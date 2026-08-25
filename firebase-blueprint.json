@@ -1,0 +1,269 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Represents a user in the system.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "The unique identifier for the user."
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "The user's email address."
+        },
+        "name": {
+          "type": "string",
+          "description": "The user's display name."
+        },
+        "avatar": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL to the user's avatar image."
+        },
+        "level": {
+          "type": "string",
+          "description": "The user's gamification level (e.g., 'Guardião Ouro')."
+        },
+        "points": {
+          "type": "number",
+          "description": "The user's total gamification points."
+        },
+        "role": {
+          "type": "string",
+          "enum": ["user", "admin"],
+          "description": "The user's role in the system."
+        },
+        "trustedContacts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "phone": { "type": "string" }
+            },
+            "required": ["name", "phone"]
+          },
+          "description": "List of trusted contacts for emergency alerts."
+        },
+        "phone": {
+          "type": "string",
+          "description": "The user's phone number."
+        },
+        "notificationSettings": {
+          "type": "object",
+          "properties": {
+            "push": { "type": "boolean" },
+            "email": { "type": "boolean" },
+            "whatsapp": { "type": "boolean" }
+          },
+          "description": "User's notification preferences."
+        },
+        "privacySettings": {
+          "type": "object",
+          "properties": {
+            "anonymousReports": { "type": "boolean" },
+            "shareLocation": { "type": "boolean" }
+          },
+          "description": "User's privacy preferences."
+        },
+        "isPremium": {
+          "type": "boolean",
+          "description": "Whether the user has a premium subscription."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the user account was created."
+        }
+      },
+      "required": ["uid", "email", "name", "role", "createdAt"]
+    },
+    "EmergencyAlert": {
+      "title": "Emergency Alert",
+      "description": "An SOS alert triggered by a user.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the alert."
+        },
+        "userId": {
+          "type": "string",
+          "description": "The UID of the user who triggered the SOS."
+        },
+        "location": {
+          "type": "object",
+          "properties": {
+            "lat": { "type": "number" },
+            "lng": { "type": "number" }
+          },
+          "required": ["lat", "lng"]
+        },
+        "status": {
+          "type": "string",
+          "enum": ["active", "resolved"],
+          "description": "The status of the emergency."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the alert was created."
+        }
+      },
+      "required": ["userId", "location", "status", "createdAt"]
+    },
+    "Report": {
+      "title": "Report",
+      "description": "An incident report created by a user.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the report."
+        },
+        "authorId": {
+          "type": "string",
+          "description": "The UID of the user who created the report."
+        },
+        "type": {
+          "type": "string",
+          "enum": ["roubo", "suspeito", "vandalismo", "outro"],
+          "description": "The type of incident."
+        },
+        "description": {
+          "type": "string",
+          "description": "Optional description of the incident."
+        },
+        "location": {
+          "type": "object",
+          "properties": {
+            "lat": { "type": "number" },
+            "lng": { "type": "number" },
+            "address": { "type": "string" }
+          },
+          "required": ["lat", "lng"]
+        },
+        "attachments": {
+          "type": "array",
+          "items": { "type": "string", "format": "uri" },
+          "description": "Optional array of attachment URLs."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "verified", "false_alarm"],
+          "description": "The verification status of the report."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the report was created."
+        }
+      },
+      "required": ["authorId", "type", "location", "status", "createdAt"]
+    },
+    "Post": {
+      "title": "Post",
+      "description": "A community feed post.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the post."
+        },
+        "authorId": {
+          "type": "string",
+          "description": "The UID of the user who created the post."
+        },
+        "authorName": {
+          "type": "string",
+          "description": "Denormalized name of the author."
+        },
+        "authorAvatar": {
+          "type": "string",
+          "description": "Denormalized avatar of the author."
+        },
+        "authorLevel": {
+          "type": "string",
+          "description": "Denormalized level of the author."
+        },
+        "type": {
+          "type": "string",
+          "enum": ["Alerta", "Informação"],
+          "description": "The type of post."
+        },
+        "content": {
+          "type": "string",
+          "description": "The text content of the post."
+        },
+        "location": {
+          "type": "string",
+          "description": "The location associated with the post."
+        },
+        "likesCount": {
+          "type": "number",
+          "description": "Total number of likes."
+        },
+        "commentsCount": {
+          "type": "number",
+          "description": "Total number of comments."
+        },
+        "verified": {
+          "type": "boolean",
+          "description": "Whether the post is verified by an admin."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the post was created."
+        }
+      },
+      "required": ["authorId", "authorName", "type", "content", "location", "likesCount", "commentsCount", "verified", "createdAt"]
+    },
+    "Like": {
+      "title": "Like",
+      "description": "A tracking document to prevent duplicate likes on posts.",
+      "type": "object",
+      "properties": {
+        "postId": {
+          "type": "string",
+          "description": "The ID of the liked post."
+        },
+        "userId": {
+          "type": "string",
+          "description": "The UID of the user who liked the post."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the like occurred."
+        }
+      },
+      "required": ["postId", "userId", "createdAt"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "User",
+      "description": "Stores user profiles."
+    },
+    "emergencyAlerts/{alertId}": {
+      "schema": "EmergencyAlert",
+      "description": "Stores active SOS alerts."
+    },
+    "reports/{reportId}": {
+      "schema": "Report",
+      "description": "Stores incident reports."
+    },
+    "posts/{postId}": {
+      "schema": "Post",
+      "description": "Stores community feed posts."
+    },
+    "likes/{likeId}": {
+      "schema": "Like",
+      "description": "Stores like tracking documents. ID format should be {userId}_{postId}."
+    }
+  }
+}

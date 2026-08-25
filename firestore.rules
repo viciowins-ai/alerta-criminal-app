@@ -1,0 +1,396 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: {userId}
+    // Fields:
+    //   - uid: string (required, immutable)
+    //   - email: string (required, email format)
+    //   - name: string (required, length < 100)
+    //   - avatar: string (optional, url format)
+    //   - level: string (optional, length < 50)
+    //   - points: number (optional, >= 0)
+    //   - role: string (required, 'user' or 'admin', immutable by user)
+    //   - createdAt: timestamp (required, immutable)
+    //
+    // Collection: reports
+    // Document ID: {reportId}
+    // Fields:
+    //   - authorId: string (required, immutable)
+    //   - type: string (required, in ['roubo', 'suspeito', 'vandalismo', 'outro'])
+    //   - description: string (optional, length < 2000)
+    //   - location: map (required, has lat/lng numbers)
+    //   - status: string (required, in ['pending', 'verified', 'false_alarm'])
+    //   - createdAt: timestamp (required, immutable)
+    //
+    // Collection: posts
+    // Document ID: {postId}
+    // Fields:
+    //   - authorId: string (required, immutable)
+    //   - authorName: string (required, length < 100)
+    //   - authorAvatar: string (optional, url format)
+    //   - authorLevel: string (optional, length < 50)
+    //   - type: string (required, in ['Alerta', 'Informação'])
+    //   - content: string (required, length < 2000)
+    //   - location: string (required, length < 200)
+    //   - likesCount: number (required, >= 0)
+    //   - commentsCount: number (required, >= 0)
+    //   - verified: boolean (required)
+    //   - createdAt: timestamp (required, immutable)
+    //
+    // Collection: likes
+    // Document ID: {userId}_{postId}
+    // Fields:
+    //   - postId: string (required, immutable)
+    //   - userId: string (required, immutable)
+    //   - createdAt: timestamp (required, immutable)
+    //
+    // Collection: risk_zones
+    // Document ID: {zoneId}
+    // Fields:
+    //   - location: map (required, has lat/lng numbers)
+    //   - intensity: number (required, 0 to 1)
+    //   - source: string (required, e.g., 'SSP-SP')
+    //   - updatedAt: timestamp (required)
+    //
+    // Collection: guardian_sessions
+    // Document ID: {sessionId}
+    // Fields:
+    //   - userId: string (required, immutable)
+    //   - userName: string (required)
+    //   - location: map (required, has lat/lng numbers)
+    //   - isActive: boolean (required)
+    //   - createdAt: timestamp (required, immutable)
+    //   - updatedAt: timestamp (required)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.authorId;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && (
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin') ||
+        (request.auth.token.email == "viciowins@gmail.com" && request.auth.token.email_verified == true)
+      );
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function validStringLength(field, minLen, maxLen) {
+      return request.resource.data[field] is string &&
+        request.resource.data[field].size() >= minLen &&
+        request.resource.data[field].size() <= maxLen;
+    }
+
+    function isValidOptionalString(field, minLen, maxLen) {
+      return !('field' in request.resource.data) ||
+             (request.resource.data[field] is string &&
+              request.resource.data[field].size() >= minLen &&
+              request.resource.data[field].size() <= maxLen);
+    }
+
+    function isValidEmail(email) {
+      return email is string &&
+        email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isPositive(field) {
+      return request.resource.data[field] is number && request.resource.data[field] >= 0;
+    }
+
+    function areImmutableFieldsUnchanged(fields) {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(fields);
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidUser(data) {
+      return hasRequiredFields(['uid', 'email', 'name', 'role', 'createdAt']) &&
+             hasOnlyAllowedFields(['uid', 'email', 'name', 'avatar', 'level', 'points', 'role', 'trustedContacts', 'createdAt', 'phone', 'notificationSettings', 'privacySettings', 'isPremium', 'fcmToken']) &&
+             data.uid is string &&
+             data.email is string && isValidEmail(data.email) &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 200 &&
+             (!('avatar' in data) || (data.avatar is string && data.avatar.size() < 5000)) &&
+             (!('level' in data) || (data.level is string && data.level.size() < 50)) &&
+             (!('points' in data) || (data.points is number && data.points >= 0)) &&
+             (!('trustedContacts' in data) || (data.trustedContacts is list && data.trustedContacts.size() <= 10)) &&
+             (!('phone' in data) || (data.phone is string && data.phone.size() <= 20)) &&
+             (!('notificationSettings' in data) || (data.notificationSettings is map)) &&
+             (!('privacySettings' in data) || (data.privacySettings is map)) &&
+             (!('isPremium' in data) || (data.isPremium is bool)) &&
+             (!('fcmToken' in data) || (data.fcmToken is string)) &&
+             data.role in ['user', 'admin'] &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidReport(data) {
+      return hasRequiredFields(['authorId', 'type', 'location', 'status', 'createdAt']) &&
+             hasOnlyAllowedFields(['authorId', 'type', 'description', 'location', 'status', 'upvotes', 'upvotedBy', 'createdAt', 'attachments']) &&
+             data.authorId is string &&
+             data.type in ['police', 'accident', 'danger', 'traffic', 'other', 'roubo', 'suspeito', 'vandalismo', 'outro'] &&
+             (!('description' in data) || (data.description is string && data.description.size() <= 2000)) &&
+             data.location is map && data.location.keys().hasAll(['lat', 'lng']) &&
+             data.location.lat is number && data.location.lng is number &&
+             (!('address' in data.location) || (data.location.address is string && data.location.address.size() < 500)) &&
+             (!('attachments' in data) || (data.attachments is list && data.attachments.size() <= 5)) &&
+             data.status in ['pending', 'verified', 'false_alert', 'false_alarm'] &&
+             (!('upvotes' in data) || (data.upvotes is number && data.upvotes >= 0)) &&
+             (!('upvotedBy' in data) || (data.upvotedBy is list && data.upvotedBy.size() <= 10000)) &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidPost(data) {
+      return hasRequiredFields(['authorId', 'authorName', 'type', 'content', 'location', 'likesCount', 'commentsCount', 'verified', 'createdAt']) &&
+             hasOnlyAllowedFields(['authorId', 'authorName', 'authorAvatar', 'authorLevel', 'type', 'content', 'location', 'likesCount', 'commentsCount', 'verified', 'createdAt']) &&
+             data.authorId is string &&
+             data.authorName is string && data.authorName.size() > 0 && data.authorName.size() < 200 &&
+             (!('authorAvatar' in data) || (data.authorAvatar is string && data.authorAvatar.size() < 2000)) &&
+             (!('authorLevel' in data) || (data.authorLevel is string && data.authorLevel.size() < 50)) &&
+             data.type in ['Alerta', 'Informação'] &&
+             data.content is string && data.content.size() > 0 && data.content.size() <= 2000 &&
+             data.location is string && data.location.size() > 0 && data.location.size() < 200 &&
+             data.likesCount is number && data.likesCount >= 0 &&
+             data.commentsCount is number && data.commentsCount >= 0 &&
+             data.verified is bool &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidEmergencyAlert(data) {
+      return hasRequiredFields(['userId', 'location', 'status', 'createdAt']) &&
+             hasOnlyAllowedFields(['userId', 'location', 'status', 'createdAt', 'audioData']) &&
+             data.userId is string &&
+             data.location is map && data.location.keys().hasAll(['lat', 'lng']) &&
+             data.location.lat is number && data.location.lng is number &&
+             data.status in ['active', 'resolved'] &&
+             (!('audioData' in data) || data.audioData is string) &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidGuardianSession(data) {
+      return hasRequiredFields(['userId', 'userName', 'location', 'isActive', 'createdAt', 'updatedAt']) &&
+             hasOnlyAllowedFields(['userId', 'userName', 'location', 'isActive', 'createdAt', 'updatedAt']) &&
+             data.userId is string &&
+             data.userName is string && data.userName.size() > 0 && data.userName.size() < 200 &&
+             data.location is map && data.location.keys().hasAll(['lat', 'lng']) &&
+             data.location.lat is number && data.location.lng is number &&
+             data.isActive is bool &&
+             data.createdAt is timestamp &&
+             data.updatedAt is timestamp;
+    }
+
+    function isValidLike(data) {
+      return hasRequiredFields(['postId', 'userId', 'createdAt']) &&
+             hasOnlyAllowedFields(['postId', 'userId', 'createdAt']) &&
+             data.postId is string &&
+             data.userId is string &&
+             data.createdAt is timestamp;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /emergencyAlerts/{alertId} {
+      // Anyone with the link can read the alert (could be unauthenticated if they just click the SMS link)
+      allow read: if true;
+      
+      allow create: if isAuthenticated() && 
+                       isValidEmergencyAlert(request.resource.data) &&
+                       request.resource.data.userId == request.auth.uid &&
+                       request.resource.data.status == 'active';
+                       
+      allow update: if isAuthenticated() && 
+                       isValidEmergencyAlert(request.resource.data) &&
+                       resource.data.userId == request.auth.uid &&
+                       areImmutableFieldsUnchanged(['userId', 'createdAt', 'location']);
+                       
+      allow delete: if isAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid);
+    }
+
+    match /users/{userId} {
+      // Users can read their own profile. Admins can read all.
+      // Other users cannot read profiles directly to protect PII (email).
+      allow read: if isOwner(userId) || isAdmin();
+      
+      // Users can create their own profile. Only admins can create admin roles.
+      allow create: if isOwner(userId) && 
+                       isValidUser(request.resource.data) && 
+                       request.resource.data.uid == userId &&
+                       (request.resource.data.role == 'user' || isAdmin());
+                       
+      function isPointsIncrementValid() {
+        let oldPoints = ('points' in resource.data) ? resource.data.points : 0;
+        let newPoints = ('points' in request.resource.data) ? request.resource.data.points : 0;
+        return newPoints == oldPoints + 10 || newPoints == oldPoints + 2;
+      }
+
+      // Users can update their own profile, but cannot change their uid, role, or createdAt.
+      allow update: if (isOwner(userId) && 
+                        isValidUser(request.resource.data) && 
+                        (areImmutableFieldsUnchanged(['uid']) || (!('uid' in resource.data) && request.resource.data.uid == userId) || ('uid' in resource.data && !(resource.data.uid is string) && request.resource.data.uid == userId)) &&
+                        (areImmutableFieldsUnchanged(['createdAt']) || (!('createdAt' in resource.data)) || ('createdAt' in resource.data && !(resource.data.createdAt is timestamp))) &&
+                        (areImmutableFieldsUnchanged(['role']) || (!('role' in resource.data) && request.resource.data.role == 'user') || ('role' in resource.data && !(resource.data.role in ['user', 'admin']) && request.resource.data.role == 'user')) &&
+                        (areImmutableFieldsUnchanged(['level']) || (!('level' in resource.data) && request.resource.data.level == 'Iniciante') || ('level' in resource.data && !(resource.data.level is string) && request.resource.data.level == 'Iniciante')) &&
+                        (areImmutableFieldsUnchanged(['points']) || isPointsIncrementValid() || (!('points' in resource.data) && request.resource.data.points == 0) || ('points' in resource.data && !(resource.data.points is number) && request.resource.data.points == 0))
+                       ) || 
+                       (isAuthenticated() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['points']) && isPointsIncrementValid()) ||
+                       (isAdmin() && isValidUser(request.resource.data) && (areImmutableFieldsUnchanged(['uid']) || (!('uid' in resource.data))) && (areImmutableFieldsUnchanged(['createdAt']) || (!('createdAt' in resource.data))));
+                       
+      allow delete: if isAdmin();
+    }
+
+    match /reports/{reportId} {
+      // Anyone authenticated can read reports (for the map)
+      allow read: if isAuthenticated();
+      
+      // Any authenticated user can create a report
+      allow create: if isAuthenticated() && 
+                       isValidReport(request.resource.data) &&
+                       request.resource.data.authorId == request.auth.uid &&
+                       request.resource.data.status == 'pending' &&
+                       (!('upvotes' in request.resource.data) || request.resource.data.upvotes == 0) &&
+                       (!('upvotedBy' in request.resource.data) || request.resource.data.upvotedBy.size() == 0);
+                       
+      function isValidReportUpvote() {
+        let oldUpvotes = ('upvotes' in resource.data) ? resource.data.upvotes : 0;
+        let newUpvotes = ('upvotes' in request.resource.data) ? request.resource.data.upvotes : 0;
+        let oldUpvotedBy = ('upvotedBy' in resource.data) ? resource.data.upvotedBy : [];
+        let newUpvotedBy = ('upvotedBy' in request.resource.data) ? request.resource.data.upvotedBy : [];
+        
+        return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['upvotes', 'upvotedBy']) &&
+               newUpvotes == oldUpvotes + 1 &&
+               request.auth.uid in newUpvotedBy &&
+               !(request.auth.uid in oldUpvotedBy);
+      }
+
+      // Users can update their own reports (e.g., add description), but cannot change authorId, createdAt, or status.
+      // Admins can update status.
+      allow update: if (isDocOwner() && 
+                        isValidReport(request.resource.data) && 
+                        areImmutableFieldsUnchanged(['authorId', 'createdAt', 'status', 'type', 'location', 'upvotes', 'upvotedBy'])) ||
+                       (isAuthenticated() && isValidReportUpvote()) ||
+                       (isAdmin() && isValidReport(request.resource.data) && areImmutableFieldsUnchanged(['authorId', 'createdAt']));
+                       
+      allow delete: if isDocOwner() || isAdmin();
+    }
+
+    match /posts/{postId} {
+      // Anyone authenticated can read posts (for the feed)
+      allow read: if isAuthenticated();
+      
+      // Any authenticated user can create a post
+      allow create: if isAuthenticated() && 
+                       isValidPost(request.resource.data) &&
+                       request.resource.data.authorId == request.auth.uid &&
+                       request.resource.data.likesCount == 0 &&
+                       request.resource.data.commentsCount == 0 &&
+                       request.resource.data.verified == false; // New posts are unverified
+                       
+      // Counter update logic for likes
+      function isValidLikeIncrement() {
+        let oldLikes = ('likesCount' in resource.data) ? resource.data.likesCount : 0;
+        let newLikes = ('likesCount' in request.resource.data) ? request.resource.data.likesCount : 0;
+        let oldUpvotedBy = ('upvotedBy' in resource.data) ? resource.data.upvotedBy : [];
+        let newUpvotedBy = ('upvotedBy' in request.resource.data) ? request.resource.data.upvotedBy : [];
+        
+        return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likesCount', 'upvotedBy']) &&
+               newLikes >= 0 &&
+               math.abs(newLikes - oldLikes) == 1 &&
+               (
+                 (newLikes > oldLikes &&
+                  newUpvotedBy.size() == oldUpvotedBy.size() + 1 &&
+                  !(request.auth.uid in oldUpvotedBy) &&
+                  (request.auth.uid in newUpvotedBy) &&
+                  !exists(/databases/$(database)/documents/likes/$(request.auth.uid + '_' + postId)) &&
+                  existsAfter(/databases/$(database)/documents/likes/$(request.auth.uid + '_' + postId))) ||
+                 (newLikes < oldLikes &&
+                  newUpvotedBy.size() == oldUpvotedBy.size() - 1 &&
+                  (request.auth.uid in oldUpvotedBy) &&
+                  !(request.auth.uid in newUpvotedBy) &&
+                  exists(/databases/$(database)/documents/likes/$(request.auth.uid + '_' + postId)) &&
+                  !existsAfter(/databases/$(database)/documents/likes/$(request.auth.uid + '_' + postId)))
+               );
+      }
+
+      // Users can update their own posts, but cannot change authorId, createdAt, likes, comments, or verified status.
+      // Any user can increment/decrement likes.
+      // Admins can update verified status.
+      allow update: if (isDocOwner() && 
+                        isValidPost(request.resource.data) && 
+                        areImmutableFieldsUnchanged(['authorId', 'createdAt', 'likesCount', 'commentsCount', 'verified'])) ||
+                       (isAuthenticated() && isValidLikeIncrement()) ||
+                       (isAdmin() && isValidPost(request.resource.data) && areImmutableFieldsUnchanged(['authorId', 'createdAt']));
+                       
+      allow delete: if isDocOwner() || isAdmin();
+    }
+
+    match /likes/{likeId} {
+      // Anyone authenticated can read likes
+      allow read: if isAuthenticated();
+      
+      // Users can create a like document. ID must be {userId}_{postId}
+      allow create: if isAuthenticated() && 
+                       isValidLike(request.resource.data) &&
+                       request.resource.data.userId == request.auth.uid &&
+                       likeId == request.auth.uid + '_' + request.resource.data.postId;
+                       
+      // Likes cannot be updated, only deleted (unliked)
+      allow update: if false;
+      
+      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+
+    match /risk_zones/{zoneId} {
+      // Anyone authenticated can read risk zones (for the heatmap)
+      allow read: if isAuthenticated();
+      
+      // Only admins (or backend service accounts) can create/update/delete risk zones
+      allow write: if isAdmin();
+    }
+
+    match /guardian_sessions/{sessionId} {
+      // Anyone with the link can read the session (could be unauthenticated)
+      allow read: if true;
+      
+      allow create: if isAuthenticated() && 
+                       isValidGuardianSession(request.resource.data) &&
+                       request.resource.data.userId == request.auth.uid;
+                       
+      allow update: if isAuthenticated() && 
+                       isValidGuardianSession(request.resource.data) &&
+                       resource.data.userId == request.auth.uid &&
+                       areImmutableFieldsUnchanged(['userId', 'createdAt']);
+                       
+      allow delete: if isAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid);
+    }
+  }
+}
