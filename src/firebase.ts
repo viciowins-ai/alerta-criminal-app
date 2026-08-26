@@ -12,7 +12,7 @@ const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 export const auth = getAuth(app);
 
 // Use getFirestore without persistent local cache to avoid HMR / garbage collection lease errors in AI Studio
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+export const db = getFirestore(app);
 
 export const storage = getStorage(app);
 
