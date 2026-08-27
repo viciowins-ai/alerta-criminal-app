@@ -358,24 +358,47 @@ export function MapPage() {
     
     try {
       const reportRef = doc(db, 'reports', reportId);
-      await updateDoc(reportRef, {
-        upvotes: increment(1),
-        upvotedBy: arrayUnion(user.uid)
-      });
       
-      // Add points to user
-      const userRef = doc(db, 'users', user.uid);
-      await updateDoc(userRef, {
-        points: increment(2)
-      });
+      if (selectedLocation?.upvotedBy?.includes(user.uid)) {
+        // Remove upvote
+        const upvotedBy = selectedLocation.upvotedBy.filter(id => id !== user.uid);
+        await updateDoc(reportRef, {
+          upvotes: Math.max(0, (selectedLocation.upvotes || 1) - 1),
+          upvotedBy: upvotedBy
+        });
+        
+        // Remove points from user
+        const userRef = doc(db, 'users', user.uid);
+        await updateDoc(userRef, {
+          points: increment(-2)
+        });
 
-      // Update local state to reflect immediately
-      setSelectedLocation(prev => prev ? {
-        ...prev,
-        upvotes: (prev.upvotes || 0) + 1,
-        upvotedBy: [...(prev.upvotedBy || []), user.uid]
-      } : null);
-      
+        // Update local state to reflect immediately
+        setSelectedLocation(prev => prev ? {
+          ...prev,
+          upvotes: Math.max(0, (prev.upvotes || 1) - 1),
+          upvotedBy: upvotedBy
+        } : null);
+      } else {
+        // Add upvote
+        await updateDoc(reportRef, {
+          upvotes: increment(1),
+          upvotedBy: arrayUnion(user.uid)
+        });
+        
+        // Add points to user
+        const userRef = doc(db, 'users', user.uid);
+        await updateDoc(userRef, {
+          points: increment(2)
+        });
+
+        // Update local state to reflect immediately
+        setSelectedLocation(prev => prev ? {
+          ...prev,
+          upvotes: (prev.upvotes || 0) + 1,
+          upvotedBy: [...(prev.upvotedBy || []), user.uid]
+        } : null);
+      }
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `reports/${reportId}`);
     }
@@ -747,15 +770,18 @@ export function MapPage() {
 
             <button 
               onClick={() => handleUpvote(selectedLocation.id)}
-              disabled={selectedLocation.upvotedBy?.includes(user?.uid)}
-              className={`flex flex-col items-center gap-2 min-w-[72px] ${selectedLocation.upvotedBy?.includes(user?.uid) ? 'opacity-50' : ''}`}
+              className="flex flex-col items-center gap-2 min-w-[72px]"
             >
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white shadow-lg active:scale-95 transition-transform ${
-                selectedLocation.upvotedBy?.includes(user?.uid) ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30' : 'bg-slate-800 border border-slate-700'
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-all duration-300 ${
+                selectedLocation.upvotedBy?.includes(user?.uid) 
+                  ? 'bg-blue-500 text-white shadow-blue-500/30 border border-blue-400' 
+                  : 'bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700'
               }`}>
                 <ThumbsUp size={20} className={selectedLocation.upvotedBy?.includes(user?.uid) ? 'fill-current' : ''} />
               </div>
-              <span className="text-[11px] font-bold text-slate-300">Confirmar</span>
+              <span className={`text-[11px] font-bold ${selectedLocation.upvotedBy?.includes(user?.uid) ? 'text-blue-400' : 'text-slate-300'}`}>
+                {selectedLocation.upvotedBy?.includes(user?.uid) ? 'Confirmado' : 'Confirmar'}
+              </span>
             </button>
 
             <button 

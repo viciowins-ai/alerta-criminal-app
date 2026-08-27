@@ -152,6 +152,49 @@ export function FeedPage() {
     alert(`Abrindo comentários para o post ${postId}... (Em breve)`);
   };
 
+  const handleUpvoteReport = async (reportId: string, currentUpvotes: number = 0) => {
+    if (!user) return;
+    
+    try {
+      const reportRef = doc(db, 'reports', reportId);
+      const reportDoc = await getDoc(reportRef);
+      
+      if (!reportDoc.exists()) return;
+      
+      const reportData = reportDoc.data();
+      const upvotedBy = reportData.upvotedBy || [];
+      const hasUpvoted = upvotedBy.includes(user.uid);
+      
+      if (hasUpvoted) {
+        // Remove upvote
+        await updateDoc(reportRef, {
+          upvotes: Math.max(0, currentUpvotes - 1),
+          upvotedBy: upvotedBy.filter((id: string) => id !== user.uid)
+        });
+        
+        // Remove points from user
+        const userRef = doc(db, 'users', user.uid);
+        await updateDoc(userRef, {
+          points: increment(-2)
+        });
+      } else {
+        // Add upvote
+        await updateDoc(reportRef, {
+          upvotes: currentUpvotes + 1,
+          upvotedBy: [...upvotedBy, user.uid]
+        });
+        
+        // Add points to user
+        const userRef = doc(db, 'users', user.uid);
+        await updateDoc(userRef, {
+          points: increment(2)
+        });
+      }
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, `reports/${reportId}`);
+    }
+  };
+
   const handleCreatePost = async () => {
     if (!newPostContent.trim() || !user || !userProfile) return;
 
@@ -292,10 +335,13 @@ export function FeedPage() {
                 </div>
 
                 <div className="flex items-center justify-between pt-3 border-t border-slate-700 relative z-10">
-                  <div className="flex items-center gap-1.5 text-slate-400">
-                    <ShieldCheck size={16} className={item.upvotes > 0 ? 'text-blue-400' : ''} />
-                    <span className="text-xs font-medium">{item.upvotes || 0} confirmações</span>
-                  </div>
+                  <button 
+                    onClick={() => handleUpvoteReport(item.id, item.upvotes)}
+                    className={`flex items-center gap-1.5 transition-colors ${item.upvotedBy?.includes(user?.uid) ? 'text-blue-400' : 'text-slate-400 hover:text-blue-400'}`}
+                  >
+                    <ShieldCheck size={16} className={item.upvotes > 0 ? (item.upvotedBy?.includes(user?.uid) ? 'text-blue-400' : 'text-slate-300') : ''} />
+                    <span className="text-xs font-medium">{item.upvotes || 0} {item.upvotes === 1 ? 'confirmação' : 'confirmações'}</span>
+                  </button>
                   <button 
                     onClick={() => handleShare(item)}
                     className="flex items-center gap-1.5 text-slate-400 hover:text-green-400 transition-colors"
