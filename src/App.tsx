@@ -28,6 +28,8 @@ const SecuritySettingsPage = lazy(() => import('./pages/SecuritySettingsPage').t
 const HelpPage = lazy(() => import('./pages/HelpPage').then(module => ({ default: module.HelpPage })));
 const TrustedContactsPage = lazy(() => import('./pages/TrustedContactsPage').then(module => ({ default: module.TrustedContactsPage })));
 const TrackingPage = lazy(() => import('./pages/TrackingPage').then(module => ({ default: module.TrackingPage })));
+const FeedbackPage = lazy(() => import('./pages/FeedbackPage').then(module => ({ default: module.FeedbackPage })));
+const TutorialPage = lazy(() => import('./pages/TutorialPage').then(module => ({ default: module.TutorialPage })));
 
 // Loading Fallback
 const PageLoader = () => (
@@ -81,6 +83,8 @@ export default function App() {
               <Route path="/settings/privacy" element={<PrivacySettingsPage />} />
               <Route path="/settings/security" element={<SecuritySettingsPage />} />
               <Route path="/help" element={<HelpPage />} />
+              <Route path="/help/feedback" element={<FeedbackPage />} />
+              <Route path="/help/tutorial" element={<TutorialPage />} />
               <Route path="/trusted-contacts" element={<TrustedContactsPage />} />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />

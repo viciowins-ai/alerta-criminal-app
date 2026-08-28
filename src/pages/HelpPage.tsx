@@ -1,13 +1,16 @@
 import React from 'react';
 import { TopBar } from '../components/TopBar';
-import { HelpCircle, MessageCircle, FileText, ExternalLink } from 'lucide-react';
+import { HelpCircle, MessageCircle, FileText, ExternalLink, Star, BookOpen } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export function HelpPage() {
+  const navigate = useNavigate();
+  
   return (
     <div className="flex flex-col h-full bg-slate-900">
       <TopBar title="Central de Ajuda" />
       
-      <div className="flex-1 overflow-y-auto p-4 space-y-6">
+      <div className="flex-1 overflow-y-auto p-4 space-y-6 pb-20">
         <div className="bg-gradient-to-br from-orange-400 to-red-500 p-8 rounded-3xl shadow-lg text-white text-center relative overflow-hidden">
           <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-white opacity-10 rounded-full" />
           <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-40 h-40 bg-white opacity-10 rounded-full" />
@@ -24,6 +27,8 @@ export function HelpPage() {
         </div>
 
         <div className="bg-slate-800 rounded-3xl shadow-sm border border-slate-700 overflow-hidden">
+          <HelpItem icon={<BookOpen size={20} className="text-yellow-500" />} label="Tutorial: Instalar e Compartilhar" onClick={() => navigate('/help/tutorial')} />
+          <HelpItem icon={<Star size={20} className="text-yellow-400 fill-yellow-400" />} label="Avaliar Aplicativo" onClick={() => navigate('/help/feedback')} />
           <HelpItem icon={<MessageCircle size={20} className="text-blue-500" />} label="Falar com Suporte" onClick={() => alert('Abrindo chat de suporte...')} />
           <HelpItem icon={<FileText size={20} className="text-green-500" />} label="Perguntas Frequentes (FAQ)" onClick={() => alert('Abrindo FAQ...')} />
           <HelpItem icon={<ExternalLink size={20} className="text-purple-500" />} label="Termos de Uso" onClick={() => alert('Abrindo Termos de Uso...')} />

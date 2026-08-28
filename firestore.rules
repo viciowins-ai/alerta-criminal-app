@@ -378,20 +378,25 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    match /guardian_sessions/{sessionId} {
+        match /guardian_sessions/{sessionId} {
       // Anyone with the link can read the session (could be unauthenticated)
       allow read: if true;
       
       allow create: if isAuthenticated() && 
-                       isValidGuardianSession(request.resource.data) &&
-                       request.resource.data.userId == request.auth.uid;
-                       
+                      isValidGuardianSession(request.resource.data) &&
+                      request.resource.data.userId == request.auth.uid;
+                      
       allow update: if isAuthenticated() && 
-                       isValidGuardianSession(request.resource.data) &&
-                       resource.data.userId == request.auth.uid &&
-                       areImmutableFieldsUnchanged(['userId', 'createdAt']);
-                       
+                      isValidGuardianSession(request.resource.data) &&
+                      resource.data.userId == request.auth.uid &&
+                      areImmutableFieldsUnchanged(['userId', 'createdAt']);
+                      
       allow delete: if isAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid);
+    }
+    
+    match /feedbacks/{feedbackId} {
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow read: if isAdmin();
     }
   }
 }

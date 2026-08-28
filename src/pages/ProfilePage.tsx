@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { TopBar } from '../components/TopBar';
-import { Settings, Shield, Award, Users, ChevronRight, Bell, HelpCircle, LogOut } from 'lucide-react';
+import { Settings, Shield, Award, Users, ChevronRight, Bell, HelpCircle, LogOut, Star, BookOpen } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
@@ -22,7 +22,6 @@ export function ProfilePage() {
         if (docSnap.exists()) {
           setProfileData(docSnap.data());
         }
-
         const q = query(collection(db, 'reports'), where('authorId', '==', user.uid));
         const snapshot = await getCountFromServer(q);
         setReportsCount(snapshot.data().count);
@@ -35,6 +34,8 @@ export function ProfilePage() {
   }, [user]);
 
   const menuItems = [
+    { icon: <BookOpen className="text-blue-500" />, label: 'Instalar e Compartilhar', path: '/help/tutorial' },
+    { icon: <Star className="text-yellow-400 fill-yellow-400" />, label: 'Avaliar Aplicativo', path: '/help/feedback' },
     { icon: <Award className="text-yellow-500" />, label: 'Meu Nível de Contribuição', path: '/gamification', badge: profileData?.level || 'Iniciante' },
     { icon: <Users className="text-green-500" />, label: 'Indique e Ganhe', path: '/referral' },
     { icon: <Shield className="text-red-500" />, label: 'Contatos de Confiança', path: '/trusted-contacts' },
