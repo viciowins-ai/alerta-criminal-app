@@ -137,14 +137,14 @@ export function ReportPage() {
     setIsSubmitting(true);
     
     try {
-      const attachmentUrls: string[] = [];
+      const attachmentData: {url: string, type: string}[] = [];
       
       // Upload attachments
       for (const file of attachments) {
         const fileRef = ref(storage, `reports/${user.uid}/${Date.now()}_${file.name}`);
         await uploadBytes(fileRef, file);
         const url = await getDownloadURL(fileRef);
-        attachmentUrls.push(url);
+        attachmentData.push({ url, type: file.type });
       }
 
       await addDoc(collection(db, 'reports'), {
@@ -156,7 +156,7 @@ export function ReportPage() {
           lng: reportLocation.longitude,
           address: address
         },
-        attachments: attachmentUrls,
+        attachments: attachmentData,
         status: 'pending',
         upvotes: 0,
         upvotedBy: [],

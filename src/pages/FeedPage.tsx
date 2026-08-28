@@ -324,12 +324,24 @@ export function FeedPage() {
                   )}
                   {item.attachments && item.attachments.length > 0 && (
                     <div className="mt-4 flex gap-2 overflow-x-auto snap-x pb-2">
-                      {item.attachments.map((url: string, index: number) => (
-                        <div key={index} className="relative aspect-video w-full shrink-0 snap-center rounded-xl overflow-hidden border border-slate-700 cursor-pointer" onClick={() => window.open(url, '_blank')}>
-                          <img src={url} alt="Anexo do reporte" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
-                          <div className="absolute inset-0 bg-gradient-to-t from-slate-900/50 to-transparent pointer-events-none" />
-                        </div>
-                      ))}
+                      {item.attachments.map((attachment: any, index: number) => {
+                        const isObject = typeof attachment === 'object' && attachment !== null;
+                        const url = isObject ? attachment.url : attachment;
+                        const type = isObject ? attachment.type : (url.includes('.mp4') || url.includes('video') ? 'video/mp4' : 'image/jpeg');
+
+                        return (
+                          <div key={index} className="relative aspect-video w-full shrink-0 snap-center rounded-xl overflow-hidden border border-slate-700 cursor-pointer" onClick={() => !type.startsWith('video/') && window.open(url, '_blank')}>
+                            {type.startsWith('video/') ? (
+                              <video src={url} controls className="w-full h-full object-cover" />
+                            ) : (
+                              <>
+                                <img src={url} alt="Anexo do reporte" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/50 to-transparent pointer-events-none" />
+                              </>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
@@ -390,12 +402,24 @@ export function FeedPage() {
                 <p className="text-sm text-slate-200 leading-relaxed">{item.content}</p>
                 {item.attachments && item.attachments.length > 0 && (
                   <div className="mt-4 flex gap-2 overflow-x-auto snap-x pb-2">
-                    {item.attachments.map((url: string, index: number) => (
-                      <div key={index} className="relative aspect-video w-full shrink-0 snap-center rounded-xl overflow-hidden border border-slate-700 cursor-pointer" onClick={() => window.open(url, '_blank')}>
-                        <img src={url} alt="Anexo do post" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/50 to-transparent pointer-events-none" />
-                      </div>
-                    ))}
+                    {item.attachments.map((attachment: any, index: number) => {
+                      const isObject = typeof attachment === 'object' && attachment !== null;
+                      const url = isObject ? attachment.url : attachment;
+                      const type = isObject ? attachment.type : (url.includes('.mp4') || url.includes('video') ? 'video/mp4' : 'image/jpeg');
+
+                      return (
+                        <div key={index} className="relative aspect-video w-full shrink-0 snap-center rounded-xl overflow-hidden border border-slate-700 cursor-pointer" onClick={() => !type.startsWith('video/') && window.open(url, '_blank')}>
+                          {type.startsWith('video/') ? (
+                            <video src={url} controls className="w-full h-full object-cover" />
+                          ) : (
+                            <>
+                              <img src={url} alt="Anexo do post" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+                              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/50 to-transparent pointer-events-none" />
+                            </>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
