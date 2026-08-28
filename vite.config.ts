@@ -13,7 +13,7 @@ export default defineConfig(({mode}) => {
       VitePWA({
         registerType: 'autoUpdate',
         injectRegister: 'auto',
-        includeAssets: ['favicon.png', 'apple-touch-icon-v2.png'],
+        includeAssets: ['favicon-32x32.png', 'apple-touch-icon-new.png', 'og-image-shield.png'],
         workbox: {
           globIgnores: ["**/*.mp4", "**/*.webm", "**/*.mkv"],
         },
@@ -26,23 +26,23 @@ export default defineConfig(({mode}) => {
           display: 'standalone',
           icons: [
             {
-              src: 'icon-192-v2.png',
+              src: 'pwa-192x192.png',
               sizes: '192x192',
               type: 'image/png'
             },
             {
-              src: 'icon-512-v2.png',
+              src: 'pwa-512x512.png',
               sizes: '512x512',
               type: 'image/png'
             },
             {
-              src: 'icon-maskable-192-v2.png',
+              src: 'pwa-192x192.png',
               sizes: '192x192',
               type: 'image/png',
               purpose: 'maskable'
             },
             {
-              src: 'icon-maskable-512-v2.png',
+              src: 'pwa-512x512.png',
               sizes: '512x512',
               type: 'image/png',
               purpose: 'maskable'

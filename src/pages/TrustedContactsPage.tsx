@@ -123,26 +123,42 @@ export function TrustedContactsPage() {
     }
 
     try {
-      const props = ['name', 'tel'];
+      // Fetch supported properties to ensure 'tel' is requested only if supported
+      const supportedProps = await nav.contacts.getProperties();
+      const props = ['name', 'tel'].filter(p => supportedProps.includes(p));
+      
       const opts = { multiple: false };
       const selectedContacts = await nav.contacts.select(props, opts);
       
       if (selectedContacts && selectedContacts.length > 0) {
         const contact = selectedContacts[0];
-        const name = contact.name && contact.name.length > 0 ? contact.name[0] : '';
-        const phone = contact.tel && contact.tel.length > 0 ? contact.tel[0] : '';
         
-        // Remove caracteres não numéricos do telefone (opcional, mas recomendado)
-        const cleanPhone = phone.replace(/[^\d+]/g, '');
+        // Find the first non-empty name
+        const name = contact.name ? contact.name.find((n: string) => n && n.trim().length > 0) || '' : '';
+        
+        // Find the first non-empty phone number
+        let phone = '';
+        if (contact.tel && contact.tel.length > 0) {
+          phone = contact.tel.find((t: string) => t && t.trim().length > 0) || '';
+        }
+        
+        // Remove caracteres não numéricos do telefone (exceto +)
+        const cleanPhone = phone.replace(/[^0-9+]/g, '');
         
         setNewName(name);
-        setNewPhone(cleanPhone);
-        setError(null);
+        
+        // Se a limpeza remover tudo (ex: veio vazio ou só letras), mantém o original para o usuário ver o que veio
+        setNewPhone(cleanPhone || phone);
+        
+        if (!phone) {
+          setError('O contato selecionado não possui um número de telefone salvo ou você não concedeu a permissão completa.');
+        } else {
+          setError(null);
+        }
       }
     } catch (err) {
       console.error('Erro ao importar contato:', err);
       // Alguns erros são apenas o usuário cancelando a seleção
-      // setError('Não foi possível importar o contato.');
     }
   };
 
