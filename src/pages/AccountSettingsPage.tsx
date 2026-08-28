@@ -38,8 +38,8 @@ export function AccountSettingsPage() {
       await setDoc(docRef, { name, phone, uid: user.uid }, { merge: true });
       alert('Dados atualizados com sucesso!');
     } catch (err) {
-      handleFirestoreError(err, OperationType.UPDATE, 'users');
-      alert('Erro ao salvar dados.');
+      console.error("Erro ao salvar perfil:", err);
+      alert('Erro ao salvar dados. Verifique se os dados estão corretos.');
     } finally {
       setIsSaving(false);
     }

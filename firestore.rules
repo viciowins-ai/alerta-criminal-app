@@ -256,11 +256,11 @@ service cloud.firestore {
       // Users can update their own profile, but cannot change their uid, role, or createdAt.
       allow update: if (isOwner(userId) && 
                         isValidUser(request.resource.data) && 
-                        (areImmutableFieldsUnchanged(['uid']) || (!('uid' in resource.data) && request.resource.data.uid == userId) || ('uid' in resource.data && !(resource.data.uid is string) && request.resource.data.uid == userId)) &&
-                        (areImmutableFieldsUnchanged(['createdAt']) || (!('createdAt' in resource.data)) || ('createdAt' in resource.data && !(resource.data.createdAt is timestamp))) &&
-                        (areImmutableFieldsUnchanged(['role']) || (!('role' in resource.data) && request.resource.data.role == 'user') || ('role' in resource.data && !(resource.data.role in ['user', 'admin']) && request.resource.data.role == 'user')) &&
-                        (areImmutableFieldsUnchanged(['level']) || (!('level' in resource.data) && request.resource.data.level == 'Iniciante') || ('level' in resource.data && !(resource.data.level is string) && request.resource.data.level == 'Iniciante')) &&
-                        (areImmutableFieldsUnchanged(['points']) || isPointsIncrementValid() || (!('points' in resource.data) && request.resource.data.points == 0) || ('points' in resource.data && !(resource.data.points is number) && request.resource.data.points == 0))
+                        (!('uid' in resource.data) || areImmutableFieldsUnchanged(['uid'])) &&
+                        (!('createdAt' in resource.data) || areImmutableFieldsUnchanged(['createdAt'])) &&
+                        (!('role' in resource.data) || areImmutableFieldsUnchanged(['role'])) &&
+                        (!('level' in resource.data) || areImmutableFieldsUnchanged(['level'])) &&
+                        (!('points' in resource.data) || areImmutableFieldsUnchanged(['points']) || isPointsIncrementValid())
                        ) || 
                        (isAuthenticated() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['points']) && isPointsIncrementValid()) ||
                        (isAdmin() && isValidUser(request.resource.data) && (areImmutableFieldsUnchanged(['uid']) || (!('uid' in resource.data))) && (areImmutableFieldsUnchanged(['createdAt']) || (!('createdAt' in resource.data))));
