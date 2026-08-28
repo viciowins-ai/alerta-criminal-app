@@ -35,7 +35,7 @@ export function FeedPage() {
     fetchProfile();
 
     // Listen to posts
-    const qPosts = query(collection(db, 'posts'), orderBy('createdAt', 'desc'), limit(30));
+    const qPosts = query(collection(db, 'posts'), orderBy('createdAt', 'desc'), limit(100));
     const unsubscribePosts = onSnapshot(qPosts, (snapshot) => {
       const postsData = snapshot.docs.map(doc => ({
         id: doc.id,
@@ -48,7 +48,7 @@ export function FeedPage() {
     });
 
     // Listen to reports
-    const qReports = query(collection(db, 'reports'), orderBy('createdAt', 'desc'), limit(30));
+    const qReports = query(collection(db, 'reports'), orderBy('createdAt', 'desc'), limit(100));
     const unsubscribeReports = onSnapshot(qReports, (snapshot) => {
       const reportsData = snapshot.docs.map(doc => ({
         id: doc.id,

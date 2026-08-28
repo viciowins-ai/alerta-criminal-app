@@ -192,14 +192,19 @@ export function ReportPage() {
 
       await addDoc(collection(db, 'reports'), reportPayload);
 
-      // Add points to user
-      const userRef = doc(db, 'users', user.uid);
-      await updateDoc(userRef, {
-        points: increment(10)
-      });
+      // Add points to user - non-blocking
+      try {
+        const userRef = doc(db, 'users', user.uid);
+        await updateDoc(userRef, {
+          points: increment(10)
+        });
+      } catch (pointsError) {
+        console.warn("Could not update user points:", pointsError);
+      }
       
       setIsSubmitting(false);
       setIsSuccess(true);
+      setUploadProgress(0);
       setTimeout(() => navigate('/'), 2000);
     } catch (error) {
       console.error("DEBUG ERROR:", error);
