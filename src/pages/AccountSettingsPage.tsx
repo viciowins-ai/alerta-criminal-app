@@ -41,7 +41,7 @@ export function AccountSettingsPage() {
       const docRef = doc(db, 'users', user.uid);
       
       // Update in background
-      updateDoc(docRef, { name, phone }).catch(err => {
+      setDoc(docRef, { name, phone, uid: user.uid }, { merge: true }).catch(err => {
         console.error("Erro background updateDoc:", err);
         alert("Erro ao salvar na nuvem: " + err.message);
       });

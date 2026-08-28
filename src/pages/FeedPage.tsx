@@ -297,6 +297,16 @@ export function FeedPage() {
         </div>
 
         {/* Feed List */}
+        {feedItems.length === 0 && (
+          <div className="flex flex-col items-center justify-center p-10 text-center space-y-4 opacity-70 mt-10">
+            <div className="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center text-slate-500">
+              <MessageSquare size={32} />
+            </div>
+            <h3 className="text-white font-bold text-lg">Seu feed está vazio</h3>
+            <p className="text-sm text-slate-400">Seja o primeiro a publicar algo ou fazer um alerta para sua comunidade!</p>
+          </div>
+        )}
+        
         {feedItems.map(item => {
           if (item.feedType === 'report') {
             return (
