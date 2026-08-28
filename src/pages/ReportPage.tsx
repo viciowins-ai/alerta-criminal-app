@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { db, storage } from '../firebase';
 import { collection, addDoc, serverTimestamp, doc, updateDoc, increment } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { handleFirestoreError, OperationType } from '../utils/firestoreErrorHandler';
 
 const INCIDENT_TYPES = [
@@ -31,6 +31,7 @@ export function ReportPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [attachments, setAttachments] = useState<File[]>([]);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
 
@@ -142,26 +143,54 @@ export function ReportPage() {
       // Upload attachments
       for (const file of attachments) {
         const fileRef = ref(storage, `reports/${user.uid}/${Date.now()}_${file.name}`);
-        await uploadBytes(fileRef, file);
-        const url = await getDownloadURL(fileRef);
-        attachmentData.push({ url, type: file.type });
+        const uploadTask = uploadBytesResumable(fileRef, file);
+        
+        await new Promise<void>((resolve, reject) => {
+          uploadTask.on('state_changed', 
+            (snapshot) => {
+              const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+              setUploadProgress(progress);
+              console.log('Upload is ' + progress + '% done');
+            }, 
+            (error) => {
+              reject(error);
+            }, 
+            async () => {
+              try {
+                const url = await getDownloadURL(uploadTask.snapshot.ref);
+                attachmentData.push({ url, type: file.type });
+                resolve();
+              } catch (err) {
+                reject(err);
+              }
+            }
+          );
+        });
       }
 
-      await addDoc(collection(db, 'reports'), {
+      const reportPayload: any = {
         authorId: user.uid,
         type: selectedType,
-        description: description,
         location: {
           lat: reportLocation.latitude,
           lng: reportLocation.longitude,
           address: address
         },
-        attachments: attachmentData,
         status: 'pending',
         upvotes: 0,
         upvotedBy: [],
         createdAt: serverTimestamp()
-      });
+      };
+      
+      if (description.trim() !== '') {
+        reportPayload.description = description.trim();
+      }
+      
+      if (attachmentData.length > 0) {
+        reportPayload.attachments = attachmentData;
+      }
+
+      await addDoc(collection(db, 'reports'), reportPayload);
 
       // Add points to user
       const userRef = doc(db, 'users', user.uid);
@@ -173,7 +202,14 @@ export function ReportPage() {
       setIsSuccess(true);
       setTimeout(() => navigate('/'), 2000);
     } catch (error) {
+      console.error("DEBUG ERROR:", error);
+      if (error instanceof Error) {
+        alert("Erro no upload: " + error.message);
+      } else {
+        alert("Erro desconhecido: " + JSON.stringify(error));
+      }
       setIsSubmitting(false);
+      setUploadProgress(0);
       handleFirestoreError(error, OperationType.CREATE, 'reports');
     }
   };
@@ -378,12 +414,26 @@ export function ReportPage() {
             {selectedType && !isSubmitting && (
               <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12 transition-transform duration-1000 group-hover:translate-x-[200%]" />
             )}
-            <span className="relative z-10 flex items-center justify-center gap-2">
-              {isSubmitting ? 'Enviando...' : (
+            <span className="relative z-10 flex flex-col items-center justify-center gap-1">
+              {isSubmitting ? (
                 <>
+                  <div className="flex items-center gap-2">
+                    <span className="animate-pulse">Enviando...</span>
+                  </div>
+                  {uploadProgress > 0 && uploadProgress < 100 && (
+                    <div className="w-full max-w-[200px] h-1.5 bg-slate-700 rounded-full overflow-hidden mt-1">
+                      <div 
+                        className="h-full bg-blue-400 transition-all duration-300" 
+                        style={{ width: `${uploadProgress}%` }}
+                      />
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="flex items-center gap-2">
                   <Send size={20} />
                   Enviar Alerta de Segurança
-                </>
+                </div>
               )}
             </span>
           </button>

@@ -234,8 +234,8 @@ export function FeedPage() {
 
   const feedItems = React.useMemo(() => {
     return [...posts, ...reports].sort((a, b) => {
-      const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
-      const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+      const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : Date.now();
+      const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : Date.now();
       return timeB - timeA;
     });
   }, [posts, reports]);
