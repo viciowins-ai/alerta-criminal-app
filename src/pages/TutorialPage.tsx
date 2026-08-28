@@ -1,6 +1,6 @@
 import React from 'react';
 import { TopBar } from '../components/TopBar';
-import { Share2, Download, Smartphone, Monitor, ChevronRight } from 'lucide-react';
+import { Share2, Download, Smartphone, Monitor, ChevronRight, Map, AlertTriangle, ShieldAlert, Route, Users, Award, BookOpen } from 'lucide-react';
 
 export function TutorialPage() {
   return (
@@ -9,6 +9,86 @@ export function TutorialPage() {
       
       <div className="flex-1 overflow-y-auto p-4 space-y-6 pb-20">
         
+        <div className="bg-slate-800 rounded-3xl p-6 border border-slate-700">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-3 bg-indigo-500/20 text-indigo-400 rounded-xl">
+              <BookOpen size={24} />
+            </div>
+            <h2 className="text-xl font-bold text-white">Como Usar os Recursos</h2>
+          </div>
+          <p className="text-slate-300 text-sm mb-6 leading-relaxed">
+            Aprenda a utilizar as principais ferramentas do Alerta Criminal para proteger você e sua comunidade.
+          </p>
+          
+          <div className="space-y-4">
+            {/* Mapa */}
+            <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
+              <div className="bg-blue-500/20 p-2 rounded-lg shrink-0 mt-1">
+                <Map size={20} className="text-blue-400" />
+              </div>
+              <div>
+                <h3 className="text-white font-semibold mb-1">Mapa de Risco</h3>
+                <p className="text-sm text-slate-400 leading-relaxed">Visualize ocorrências recentes ao seu redor. As áreas "mais quentes" (vermelhas) indicam maior perigo. Você pode filtrar o mapa para ver ocorrências das últimas 24h ou 7 dias.</p>
+              </div>
+            </div>
+
+            {/* Botão SOS */}
+            <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
+              <div className="bg-red-500/20 p-2 rounded-lg shrink-0 mt-1">
+                <ShieldAlert size={20} className="text-red-500" />
+              </div>
+              <div>
+                <h3 className="text-white font-semibold mb-1">Botão SOS (Emergência)</h3>
+                <p className="text-sm text-slate-400 leading-relaxed">O grande botão vermelho na barra inferior. Use-o <strong>apenas</strong> em caso de perigo real! Ele gera um link de rastreio da sua localização ao vivo e permite enviar rapidamente para seus Contatos de Confiança via SMS ou WhatsApp.</p>
+              </div>
+            </div>
+
+            {/* Reportar */}
+            <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
+              <div className="bg-orange-500/20 p-2 rounded-lg shrink-0 mt-1">
+                <AlertTriangle size={20} className="text-orange-400" />
+              </div>
+              <div>
+                <h3 className="text-white font-semibold mb-1">Reportar Ocorrência</h3>
+                <p className="text-sm text-slate-400 leading-relaxed">Viu algo suspeito ou foi vítima? Ajude outras pessoas! Registre furtos, assaltos ou atitudes suspeitas adicionando fotos, vídeos, áudios e a localização exata do ocorrido.</p>
+              </div>
+            </div>
+
+            {/* Rotas */}
+            <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
+              <div className="bg-indigo-500/20 p-2 rounded-lg shrink-0 mt-1">
+                <Route size={20} className="text-indigo-400" />
+              </div>
+              <div>
+                <h3 className="text-white font-semibold mb-1">Rotas Seguras</h3>
+                <p className="text-sm text-slate-400 leading-relaxed">Vai sair a pé ou de bicicleta? O aplicativo traçará uma rota até o seu destino tentando desviar das zonas (ruas) com maior índice de criminalidade e alertas recentes.</p>
+              </div>
+            </div>
+
+            {/* Feed */}
+            <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
+              <div className="bg-green-500/20 p-2 rounded-lg shrink-0 mt-1">
+                <Users size={20} className="text-green-400" />
+              </div>
+              <div>
+                <h3 className="text-white font-semibold mb-1">Feed da Comunidade</h3>
+                <p className="text-sm text-slate-400 leading-relaxed">Fique por dentro das fofocas e avisos do bairro. Você também pode verificar (curtir) alertas de outras pessoas para confirmar que aquela ocorrência foi real, ajudando a combater informações falsas.</p>
+              </div>
+            </div>
+
+            {/* Pontos */}
+            <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
+              <div className="bg-yellow-500/20 p-2 rounded-lg shrink-0 mt-1">
+                <Award size={20} className="text-yellow-400" />
+              </div>
+              <div>
+                <h3 className="text-white font-semibold mb-1">Pontos e Níveis</h3>
+                <p className="text-sm text-slate-400 leading-relaxed">Ganhe pontos ao fazer postagens, reportar crimes ou confirmar os alertas de outras pessoas. Suba de nível e ganhe destaque como um Guardião Ativo da sua região!</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="bg-slate-800 rounded-3xl p-6 border border-slate-700">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-3 bg-blue-500/20 text-blue-400 rounded-xl">
