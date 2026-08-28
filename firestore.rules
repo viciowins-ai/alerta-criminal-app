@@ -250,7 +250,7 @@ service cloud.firestore {
       function isPointsIncrementValid() {
         let oldPoints = ('points' in resource.data) ? resource.data.points : 0;
         let newPoints = ('points' in request.resource.data) ? request.resource.data.points : 0;
-        return newPoints == oldPoints + 10 || newPoints == oldPoints + 2;
+        return newPoints == oldPoints + 10 || newPoints == oldPoints + 2 || newPoints == oldPoints - 2;
       }
 
       // Users can update their own profile, but cannot change their uid, role, or createdAt.
@@ -286,10 +286,11 @@ service cloud.firestore {
         let oldUpvotedBy = ('upvotedBy' in resource.data) ? resource.data.upvotedBy : [];
         let newUpvotedBy = ('upvotedBy' in request.resource.data) ? request.resource.data.upvotedBy : [];
         
+        let isUpvote = newUpvotes == oldUpvotes + 1 && request.auth.uid in newUpvotedBy && !(request.auth.uid in oldUpvotedBy);
+        let isDownvote = newUpvotes == oldUpvotes - 1 && !(request.auth.uid in newUpvotedBy) && request.auth.uid in oldUpvotedBy;
+
         return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['upvotes', 'upvotedBy']) &&
-               newUpvotes == oldUpvotes + 1 &&
-               request.auth.uid in newUpvotedBy &&
-               !(request.auth.uid in oldUpvotedBy);
+               (isUpvote || isDownvote);
       }
 
       // Users can update their own reports (e.g., add description), but cannot change authorId, createdAt, or status.

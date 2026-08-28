@@ -172,11 +172,15 @@ export function FeedPage() {
           upvotedBy: upvotedBy.filter((id: string) => id !== user.uid)
         });
         
-        // Remove points from user
-        const userRef = doc(db, 'users', user.uid);
-        await updateDoc(userRef, {
-          points: increment(-2)
-        });
+        // Remove points from user - non-blocking
+        try {
+          const userRef = doc(db, 'users', user.uid);
+          await updateDoc(userRef, {
+            points: increment(-2)
+          });
+        } catch (pointsError) {
+          console.warn("Could not update user points:", pointsError);
+        }
       } else {
         // Add upvote
         await updateDoc(reportRef, {
@@ -184,11 +188,15 @@ export function FeedPage() {
           upvotedBy: [...upvotedBy, user.uid]
         });
         
-        // Add points to user
-        const userRef = doc(db, 'users', user.uid);
-        await updateDoc(userRef, {
-          points: increment(2)
-        });
+        // Add points to user - non-blocking
+        try {
+          const userRef = doc(db, 'users', user.uid);
+          await updateDoc(userRef, {
+            points: increment(2)
+          });
+        } catch (pointsError) {
+          console.warn("Could not update user points:", pointsError);
+        }
       }
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `reports/${reportId}`);
