@@ -134,11 +134,11 @@ service cloud.firestore {
     // ===============================================================
 
     function isValidUser(data) {
-      return hasRequiredFields(['uid', 'email', 'name', 'role', 'createdAt']) &&
+      return hasRequiredFields(['uid']) &&
              hasOnlyAllowedFields(['uid', 'email', 'name', 'avatar', 'level', 'points', 'role', 'trustedContacts', 'createdAt', 'phone', 'notificationSettings', 'privacySettings', 'isPremium', 'fcmToken']) &&
              data.uid is string &&
-             data.email is string && isValidEmail(data.email) &&
-             data.name is string && data.name.size() > 0 && data.name.size() < 200 &&
+             (!('email' in data) || (data.email is string && isValidEmail(data.email))) &&
+             (!('name' in data) || (data.name is string && data.name.size() >= 0 && data.name.size() < 200)) &&
              (!('avatar' in data) || (data.avatar is string && data.avatar.size() < 5000)) &&
              (!('level' in data) || (data.level is string && data.level.size() < 50)) &&
              (!('points' in data) || (data.points is number && data.points >= 0)) &&
@@ -148,8 +148,8 @@ service cloud.firestore {
              (!('privacySettings' in data) || (data.privacySettings is map)) &&
              (!('isPremium' in data) || (data.isPremium is bool)) &&
              (!('fcmToken' in data) || (data.fcmToken is string)) &&
-             data.role in ['user', 'admin'] &&
-             data.createdAt is timestamp;
+             (!('role' in data) || data.role in ['user', 'admin']) &&
+             (!('createdAt' in data) || data.createdAt is timestamp);
     }
 
     function isValidReport(data) {
@@ -245,7 +245,7 @@ service cloud.firestore {
       allow create: if isOwner(userId) && 
                        isValidUser(request.resource.data) && 
                        request.resource.data.uid == userId &&
-                       (request.resource.data.role == 'user' || isAdmin());
+                       (!('role' in request.resource.data) || request.resource.data.role == 'user' || isAdmin());
                        
       function isPointsIncrementValid() {
         let oldPoints = ('points' in resource.data) ? resource.data.points : 0;

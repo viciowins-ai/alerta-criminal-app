@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { TopBar } from '../components/TopBar';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { handleFirestoreError, OperationType } from '../utils/firestoreErrorHandler';
 import { Save } from 'lucide-react';
 
@@ -35,7 +35,7 @@ export function AccountSettingsPage() {
     setIsSaving(true);
     try {
       const docRef = doc(db, 'users', user.uid);
-      await updateDoc(docRef, { name, phone });
+      await setDoc(docRef, { name, phone, uid: user.uid }, { merge: true });
       alert('Dados atualizados com sucesso!');
     } catch (err) {
       handleFirestoreError(err, OperationType.UPDATE, 'users');
