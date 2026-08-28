@@ -30,7 +30,7 @@ export function AccountSettingsPage() {
     fetchProfile();
   }, [user]);
 
-  const handleSave = async () => {
+  const handleSave = () => {
     if (!user) return;
     
     setIsSaving(true);
@@ -38,22 +38,15 @@ export function AccountSettingsPage() {
     try {
       const docRef = doc(db, 'users', user.uid);
       
-      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 10000));
-      
-      // Usa updateDoc em vez de setDoc e não envia o uid, apenas os campos que mudaram
-      await Promise.race([
-        updateDoc(docRef, { name, phone }),
-        timeoutPromise
-      ]);
+      // Update in background
+      updateDoc(docRef, { name, phone }).catch(err => {
+        console.error("Erro background updateDoc:", err);
+      });
       
       alert('Dados atualizados com sucesso!');
     } catch (err: any) {
-      console.error("Erro ao salvar perfil:", err);
-      if (err instanceof Error && err.message === 'timeout') {
-        alert('A conexão com o servidor demorou muito. Verifique sua internet.');
-      } else {
-        alert('Erro do banco de dados: ' + (err.message || 'Desconhecido'));
-      }
+      console.error("Erro ao iniciar salvamento:", err);
+      alert('Erro do banco de dados: ' + (err.message || 'Desconhecido'));
     } finally {
       setIsSaving(false);
     }
