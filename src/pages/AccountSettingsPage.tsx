@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { TopBar } from '../components/TopBar';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { handleFirestoreError, OperationType } from '../utils/firestoreErrorHandler';
 import { Save } from 'lucide-react';
 
@@ -30,27 +30,30 @@ export function AccountSettingsPage() {
     fetchProfile();
   }, [user]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!user) return;
     
-    // Mostra que iniciou (opcional, já que vai ser bem rápido agora)
     setIsSaving(true);
     
     try {
       const docRef = doc(db, 'users', user.uid);
       
-      // Removemos o `await` e a promessa de timeout.
-      // O Firebase vai salvar localmente instantaneamente e sincronizar em background.
-      // Isso evita o travamento "Salvando..." se a internet ou WebSocket estiver instável no celular.
-      setDoc(docRef, { name, phone, uid: user.uid }, { merge: true }).catch(err => {
-        console.error("Erro em background ao salvar perfil:", err);
-      });
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 10000));
       
-      // Feedback imediato para o usuário (Optimistic UI)
+      // Usa updateDoc em vez de setDoc e não envia o uid, apenas os campos que mudaram
+      await Promise.race([
+        updateDoc(docRef, { name, phone }),
+        timeoutPromise
+      ]);
+      
       alert('Dados atualizados com sucesso!');
-    } catch (err) {
-      console.error("Erro ao iniciar salvamento:", err);
-      alert('Erro ao tentar salvar os dados.');
+    } catch (err: any) {
+      console.error("Erro ao salvar perfil:", err);
+      if (err instanceof Error && err.message === 'timeout') {
+        alert('A conexão com o servidor demorou muito. Verifique sua internet.');
+      } else {
+        alert('Erro do banco de dados: ' + (err.message || 'Desconhecido'));
+      }
     } finally {
       setIsSaving(false);
     }
