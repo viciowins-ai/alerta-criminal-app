@@ -35,11 +35,20 @@ export function AccountSettingsPage() {
     setIsSaving(true);
     try {
       const docRef = doc(db, 'users', user.uid);
-      await setDoc(docRef, { name, phone, uid: user.uid }, { merge: true });
+      // Adiciona um timeout de 10 segundos para evitar travamento se o Firebase estiver sem conexão real
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 10000));
+      await Promise.race([
+        setDoc(docRef, { name, phone, uid: user.uid }, { merge: true }),
+        timeoutPromise
+      ]);
       alert('Dados atualizados com sucesso!');
     } catch (err) {
       console.error("Erro ao salvar perfil:", err);
-      alert('Erro ao salvar dados. Verifique se os dados estão corretos.');
+      if (err instanceof Error && err.message === 'timeout') {
+        alert('A conexão com o servidor demorou muito. Verifique sua internet ou tente novamente.');
+      } else {
+        alert('Erro ao salvar dados. Verifique se os dados estão corretos.');
+      }
     } finally {
       setIsSaving(false);
     }
