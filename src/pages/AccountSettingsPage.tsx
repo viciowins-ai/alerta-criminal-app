@@ -30,25 +30,27 @@ export function AccountSettingsPage() {
     fetchProfile();
   }, [user]);
 
-  const handleSave = async () => {
+  const handleSave = () => {
     if (!user) return;
+    
+    // Mostra que iniciou (opcional, já que vai ser bem rápido agora)
     setIsSaving(true);
+    
     try {
       const docRef = doc(db, 'users', user.uid);
-      // Adiciona um timeout de 10 segundos para evitar travamento se o Firebase estiver sem conexão real
-      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 10000));
-      await Promise.race([
-        setDoc(docRef, { name, phone, uid: user.uid }, { merge: true }),
-        timeoutPromise
-      ]);
+      
+      // Removemos o `await` e a promessa de timeout.
+      // O Firebase vai salvar localmente instantaneamente e sincronizar em background.
+      // Isso evita o travamento "Salvando..." se a internet ou WebSocket estiver instável no celular.
+      setDoc(docRef, { name, phone, uid: user.uid }, { merge: true }).catch(err => {
+        console.error("Erro em background ao salvar perfil:", err);
+      });
+      
+      // Feedback imediato para o usuário (Optimistic UI)
       alert('Dados atualizados com sucesso!');
     } catch (err) {
-      console.error("Erro ao salvar perfil:", err);
-      if (err instanceof Error && err.message === 'timeout') {
-        alert('A conexão com o servidor demorou muito. Verifique sua internet ou tente novamente.');
-      } else {
-        alert('Erro ao salvar dados. Verifique se os dados estão corretos.');
-      }
+      console.error("Erro ao iniciar salvamento:", err);
+      alert('Erro ao tentar salvar os dados.');
     } finally {
       setIsSaving(false);
     }

@@ -102,7 +102,7 @@ export function NotificationSettingsPage() {
     
     try {
       const docRef = doc(db, 'users', user.uid);
-      await updateDoc(docRef, { notificationSettings: newSettings });
+      updateDoc(docRef, { notificationSettings: newSettings }).catch(e => console.error(e));
     } catch (err) {
       handleFirestoreError(err, OperationType.UPDATE, 'users');
       // Revert on error

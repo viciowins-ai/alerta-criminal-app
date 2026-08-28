@@ -68,7 +68,7 @@ export function TrustedContactsPage() {
 
     try {
       const docRef = doc(db, 'users', user.uid);
-      await updateDoc(docRef, { trustedContacts: updatedContacts });
+      updateDoc(docRef, { trustedContacts: updatedContacts }).catch(e => console.error(e));
       setContacts(updatedContacts);
       setNewName('');
       setNewPhone('');
@@ -105,7 +105,7 @@ export function TrustedContactsPage() {
 
     try {
       const docRef = doc(db, 'users', user.uid);
-      await updateDoc(docRef, { trustedContacts: updatedContacts });
+      updateDoc(docRef, { trustedContacts: updatedContacts }).catch(e => console.error(e));
       setContacts(updatedContacts);
     } catch (err) {
       setError('Erro ao remover contato.');

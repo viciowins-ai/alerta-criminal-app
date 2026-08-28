@@ -31,7 +31,7 @@ export function PrivacySettingsPage() {
     setSettings(newSettings);
     try {
       const docRef = doc(db, 'users', user.uid);
-      await updateDoc(docRef, { privacySettings: newSettings });
+      updateDoc(docRef, { privacySettings: newSettings }).catch(e => console.error(e));
     } catch (err) {
       handleFirestoreError(err, OperationType.UPDATE, 'users');
       // Revert on error
