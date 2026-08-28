@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { TopBar } from '../components/TopBar';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, onSnapshot } from 'firebase/firestore';
 import { handleFirestoreError, OperationType } from '../utils/firestoreErrorHandler';
 import { Save, Edit2 } from 'lucide-react';
 
@@ -14,22 +14,23 @@ export function AccountSettingsPage() {
   const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      if (!user) return;
-      try {
-        const docRef = doc(db, 'users', user.uid);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          setName(data.name || user.displayName || '');
-          setPhone(data.phone || '');
-        }
-      } catch (err) {
-        handleFirestoreError(err, OperationType.GET, 'users');
+    if (!user) return;
+    const docRef = doc(db, 'users', user.uid);
+    const unsubscribe = onSnapshot(docRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        // Only update state from DB if we are NOT currently editing, 
+        // to prevent overwriting user input while they type.
+        // Or better yet, we can update it if it's not editing.
+        setName(prev => isEditing ? prev : (data.name || user.displayName || ''));
+        setPhone(prev => isEditing ? prev : (data.phone || ''));
       }
-    };
-    fetchProfile();
-  }, [user]);
+    }, (err) => {
+      console.error("Erro no onSnapshot:", err);
+    });
+    
+    return () => unsubscribe();
+  }, [user, isEditing]);
 
   const handleSave = () => {
     if (!user) return;
@@ -42,6 +43,7 @@ export function AccountSettingsPage() {
       // Update in background
       updateDoc(docRef, { name, phone }).catch(err => {
         console.error("Erro background updateDoc:", err);
+        alert("Erro ao salvar na nuvem: " + err.message);
       });
       
       alert('Dados atualizados com sucesso!');
