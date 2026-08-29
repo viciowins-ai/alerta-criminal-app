@@ -297,7 +297,7 @@ service cloud.firestore {
       // Admins can update status.
       allow update: if (isDocOwner() && 
                         isValidReport(request.resource.data) && 
-                        areImmutableFieldsUnchanged(['authorId', 'createdAt', 'status', 'type', 'location', 'upvotes', 'upvotedBy'])) ||
+                        areImmutableFieldsUnchanged(['authorId', 'createdAt', 'status', 'location', 'upvotes', 'upvotedBy'])) ||
                        (isAuthenticated() && isValidReportUpvote()) ||
                        (isAdmin() && isValidReport(request.resource.data) && areImmutableFieldsUnchanged(['authorId', 'createdAt']));
                        
