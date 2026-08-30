@@ -1,15 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { TopBar } from '../components/TopBar';
-import { MessageSquare, Heart, Share2, MoreHorizontal, AlertTriangle, ShieldCheck, Send } from 'lucide-react';
+import { MessageSquare, Heart, Share2, MoreHorizontal, AlertTriangle, ShieldCheck, Send, MapPin } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
 import { collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, doc, getDoc, setDoc, deleteDoc, updateDoc, increment, where, limit, writeBatch } from 'firebase/firestore';
 import { handleFirestoreError, OperationType } from '../utils/firestoreErrorHandler';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 
 export function FeedPage() {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [posts, setPosts] = useState<any[]>([]);
   const [reports, setReports] = useState<any[]>([]);
   const [newPostContent, setNewPostContent] = useState('');
@@ -398,6 +399,13 @@ export function FeedPage() {
                   >
                     <ShieldCheck size={16} className={item.upvotes > 0 ? (item.upvotedBy?.includes(user?.uid) ? 'text-blue-400' : 'text-slate-300') : ''} />
                     <span className="text-xs font-medium">{item.upvotes || 0} {item.upvotes === 1 ? 'confirmação' : 'confirmações'}</span>
+                  </button>
+                  <button 
+                    onClick={() => navigate(`/?reportId=${item.id}`)}
+                    className="flex items-center gap-1.5 text-slate-400 hover:text-blue-400 transition-colors"
+                  >
+                    <MapPin size={16} />
+                    <span className="text-xs font-medium">Ver no mapa</span>
                   </button>
                   <button 
                     onClick={() => handleShare(item)}
