@@ -28,7 +28,15 @@ export function TutorialPage() {
               </div>
               <div>
                 <h3 className="text-white font-semibold mb-1">Mapa de Risco</h3>
-                <p className="text-sm text-slate-400 leading-relaxed">Visualize ocorrências recentes ao seu redor. As áreas "mais quentes" (vermelhas) indicam maior perigo. Você pode filtrar o mapa para ver ocorrências das últimas 24h ou 7 dias.</p>
+                <p className="text-sm text-slate-400 leading-relaxed mb-3">Visualize ocorrências recentes ao seu redor. As áreas "mais quentes" (vermelhas) indicam maior perigo.</p>
+                
+                <h4 className="text-xs font-bold text-slate-300 mb-2 uppercase">Botões do Mapa (Direita):</h4>
+                <ul className="text-sm text-slate-400 space-y-2">
+                  <li><strong>Filtro (Lupa/Funil):</strong> Escolha ver apenas roubos, atitudes suspeitas ou filtre por tempo (ex: últimas 24h).</li>
+                  <li><strong>Escudo Azul:</strong> Ativa o "Meu Guardião", transmitindo sua localização para pessoas de confiança.</li>
+                  <li><strong>Lua/Sol:</strong> Muda o mapa para o modo claro ou escuro.</li>
+                  <li><strong>Alvo:</strong> Centraliza o mapa na sua posição atual.</li>
+                </ul>
               </div>
             </div>
 
@@ -50,7 +58,11 @@ export function TutorialPage() {
               </div>
               <div>
                 <h3 className="text-white font-semibold mb-1">Reportar Ocorrência</h3>
-                <p className="text-sm text-slate-400 leading-relaxed">Viu algo suspeito ou foi vítima? Ajude outras pessoas! Registre furtos, assaltos ou atitudes suspeitas adicionando fotos, vídeos, áudios e a localização exata do ocorrido.</p>
+                <p className="text-sm text-slate-400 leading-relaxed">Viu algo suspeito ou foi vítima? Ajude outras pessoas! Registre furtos, assaltos ou atitudes suspeitas adicionando fotos, vídeos e a localização exata do ocorrido.</p>
+                <div className="mt-3 p-3 bg-slate-800/50 border border-slate-700 rounded-xl text-xs text-slate-300">
+                  <span className="font-bold text-blue-400 block mb-1">Dica de Correção:</span>
+                  Se você enviar e errar o tipo da ocorrência, vá na aba <strong>Feed</strong>, procure o seu alerta e toque no botão <strong>"Corrigir"</strong>.
+                </div>
               </div>
             </div>
 
