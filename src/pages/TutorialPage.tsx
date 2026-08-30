@@ -1,6 +1,6 @@
 import React from 'react';
 import { TopBar } from '../components/TopBar';
-import { Share2, Download, Smartphone, Monitor, ChevronRight, Map, AlertTriangle, ShieldAlert, Route, Users, Award, BookOpen } from 'lucide-react';
+import { Share2, Download, Smartphone, Monitor, ChevronRight, Map, AlertTriangle, ShieldAlert, Route, Users, Award, BookOpen, Plus } from 'lucide-react';
 
 export function TutorialPage() {
   return (
@@ -59,11 +59,12 @@ export function TutorialPage() {
 
             {/* Reportar */}
             <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
-              <div className="bg-orange-500/20 p-2 rounded-lg shrink-0 mt-1">
-                <AlertTriangle size={20} className="text-orange-400" />
+              <div className="bg-blue-500/20 p-2 rounded-lg shrink-0 mt-1">
+                <Plus size={20} className="text-blue-400" />
               </div>
               <div>
-                <h3 className="text-white font-semibold mb-1">Reportar Ocorrência</h3>
+                <h3 className="text-white font-semibold mb-1">Botão Reportar (Sinal de +)</h3>
+                <p className="text-sm text-slate-400 leading-relaxed mb-3">O grande botão azul com o sinal de "+" bem no centro da barra inferior.</p>
                 <p className="text-sm text-slate-400 leading-relaxed">Viu algo suspeito ou foi vítima? Ajude outras pessoas! Registre furtos, assaltos ou atitudes suspeitas adicionando fotos, vídeos e a localização exata do ocorrido.</p>
                 <div className="mt-3 p-3 bg-slate-800/50 border border-slate-700 rounded-xl text-xs text-slate-300">
                   <span className="font-bold text-blue-400 block mb-1">Dica de Correção:</span>

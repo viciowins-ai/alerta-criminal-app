@@ -2,7 +2,6 @@
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
-
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -34,6 +33,7 @@ const TermsPage = lazy(() => import('./pages/TermsPage').then(module => ({ defau
 const PrivacyPage = lazy(() => import('./pages/PrivacyPage').then(module => ({ default: module.PrivacyPage })));
 const SupportPage = lazy(() => import('./pages/SupportPage').then(module => ({ default: module.SupportPage })));
 const FaqPage = lazy(() => import('./pages/FaqPage').then(module => ({ default: module.FaqPage })));
+const AcceptTermsPage = lazy(() => import('./pages/AcceptTermsPage').then(module => ({ default: module.AcceptTermsPage })));
 
 // Loading Fallback
 const PageLoader = () => (
@@ -44,15 +44,26 @@ const PageLoader = () => (
 
 // Protected Route Wrapper
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useAuth();
+  const { user, loading, termsAccepted } = useAuth();
   const location = useLocation();
 
-  if (loading) {
+  if (loading || termsAccepted === null) {
+    // termsAccepted is null when checking or unauthenticated
+    if (loading) return <PageLoader />;
+    if (!user) return <Navigate to="/login" state={{ from: location }} replace />;
     return <PageLoader />;
   }
 
   if (!user) {
     return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+  
+  if (termsAccepted === false && location.pathname !== '/accept-terms') {
+    return <Navigate to="/accept-terms" replace />;
+  }
+  
+  if (termsAccepted === true && location.pathname === '/accept-terms') {
+    return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;
@@ -67,6 +78,10 @@ export default function App() {
           <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/track/:sessionId" element={<TrackingPage />} />
+            
+            {/* Term Acceptance is a separate flow but protected */}
+            <Route path="/accept-terms" element={<ProtectedRoute><AcceptTermsPage /></ProtectedRoute>} />
+            
             <Route element={
               <ProtectedRoute>
                 <Layout />
@@ -78,14 +93,17 @@ export default function App() {
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/route" element={<RoutePage />} />
+              
               <Route path="/tips" element={<TipsPage />} />
               <Route path="/gamification" element={<GamificationPage />} />
               <Route path="/referral" element={<ReferralPage />} />
+              
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/settings/account" element={<AccountSettingsPage />} />
               <Route path="/settings/notifications" element={<NotificationSettingsPage />} />
               <Route path="/settings/privacy" element={<PrivacySettingsPage />} />
               <Route path="/settings/security" element={<SecuritySettingsPage />} />
+              
               <Route path="/help" element={<HelpPage />} />
               <Route path="/help/feedback" element={<FeedbackPage />} />
               <Route path="/help/tutorial" element={<TutorialPage />} />
@@ -93,6 +111,7 @@ export default function App() {
               <Route path="/help/privacy" element={<PrivacyPage />} />
               <Route path="/help/support" element={<SupportPage />} />
               <Route path="/help/faq" element={<FaqPage />} />
+              
               <Route path="/trusted-contacts" element={<TrustedContactsPage />} />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
