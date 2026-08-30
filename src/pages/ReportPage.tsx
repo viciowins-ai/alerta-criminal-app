@@ -135,6 +135,11 @@ export function ReportPage() {
     e.preventDefault();
     if (!selectedType || !user) return;
     
+    if (!navigator.onLine && attachments.length > 0) {
+      alert("⚠️ Você está sem conexão com a internet.\n\nO aplicativo não consegue enviar fotos e vídeos no modo offline. Por favor, remova as mídias para enviar apenas o texto, ou aguarde até ter sinal (3G/4G/Wi-Fi) para relatar com imagens.");
+      return;
+    }
+
     setIsSubmitting(true);
     
     try {

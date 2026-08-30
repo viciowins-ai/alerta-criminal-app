@@ -670,10 +670,11 @@ export function RoutePage() {
           <button 
             onClick={handleSOS}
             disabled={isSOSActive}
-            className={`bg-red-600 text-white p-3.5 rounded-2xl shadow-lg border border-red-400/30 hover:bg-red-500 transition-all active:scale-95 flex items-center justify-center ${isSOSActive ? 'opacity-50 cursor-not-allowed' : 'animate-pulse'}`}
+            className={`bg-red-600 text-white p-2 rounded-2xl shadow-lg border border-red-400/30 hover:bg-red-500 transition-all active:scale-95 flex flex-col items-center justify-center min-w-[52px] min-h-[52px] ${isSOSActive ? 'opacity-50 cursor-not-allowed' : 'animate-pulse'}`}
             aria-label="SOS Emergência"
           >
-            <ShieldAlert size={24} />
+            <ShieldAlert size={20} />
+            <span className="text-[10px] font-black leading-none mt-1">S.O.S</span>
           </button>
           <button 
             onClick={triggerGPS}
