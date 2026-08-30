@@ -758,9 +758,21 @@ export function MapPage() {
 
           {selectedLocation.attachments && selectedLocation.attachments.length > 0 && (
             <div className="mb-4 flex gap-2 overflow-x-auto pb-2">
-              {selectedLocation.attachments.map((url: string, index: number) => (
-                <img key={index} src={url} alt="Anexo" className="h-20 w-20 object-cover rounded-lg border border-slate-700 shrink-0" />
-              ))}
+              {selectedLocation.attachments.map((attachment: any, index: number) => {
+                const isObject = typeof attachment === 'object' && attachment !== null;
+                const url = isObject ? attachment.url : attachment;
+                const type = isObject ? attachment.type : (url.includes('.mp4') || url.includes('video') ? 'video/mp4' : 'image/jpeg');
+
+                return (
+                  <div key={index} className="h-20 w-20 shrink-0 rounded-lg overflow-hidden border border-slate-700 cursor-pointer relative" onClick={() => !type.startsWith('video/') && window.open(url, '_blank')}>
+                    {type.startsWith('video/') ? (
+                      <video src={url} className="w-full h-full object-cover" />
+                    ) : (
+                      <img src={url} alt="Anexo" className="w-full h-full object-cover" />
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
 
