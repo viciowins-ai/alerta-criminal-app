@@ -377,8 +377,8 @@ export function FeedPage() {
                       <AlertTriangle size={20} />
                     </div>
                     <div>
-                      <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                        Alerta de Segurança
+                      <h4 className="text-sm font-bold text-white flex items-center gap-2 flex-wrap">
+                        {item.authorName ? `Alerta por ${item.authorName}` : 'Alerta de Segurança'}
                         {isRecent && (
                           <span className="bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded flex items-center gap-1 animate-pulse tracking-wider">
                             <span className="w-1 h-1 bg-white rounded-full"></span> AGORA

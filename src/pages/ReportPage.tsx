@@ -5,7 +5,7 @@ import Map, { ViewStateChangeEvent, MapRef, Marker } from 'react-map-gl/mapbox';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { db, storage } from '../firebase';
-import { collection, addDoc, serverTimestamp, doc, updateDoc, increment } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, doc, updateDoc, increment, getDoc } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { handleFirestoreError, OperationType } from '../utils/firestoreErrorHandler';
 
@@ -28,12 +28,32 @@ export function ReportPage() {
   const { user } = useAuth();
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [description, setDescription] = useState('');
+  const [isAnonymous, setIsAnonymous] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [attachments, setAttachments] = useState<File[]>([]);
   const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    const fetchSettings = async () => {
+      try {
+        const docRef = doc(db, 'users', user.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          if (data.privacySettings && typeof data.privacySettings.anonymousReports === 'boolean') {
+            setIsAnonymous(data.privacySettings.anonymousReports);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching user privacy settings", error);
+      }
+    };
+    fetchSettings();
+  }, [user]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -180,6 +200,8 @@ export function ReportPage() {
 
       const reportPayload: any = {
         authorId: user.uid,
+        isAnonymous: isAnonymous,
+        authorName: isAnonymous ? 'Morador Anônimo' : (user.displayName || 'Usuário'),
         type: selectedType,
         location: {
           lat: reportLocation.latitude,
@@ -426,7 +448,20 @@ export function ReportPage() {
         </div>
 
         {/* Submit Button */}
-        <div className="mt-auto pt-6">
+        <div className="mt-auto pt-6 flex flex-col gap-4">
+          <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 flex items-center justify-between cursor-pointer" onClick={() => setIsAnonymous(!isAnonymous)}>
+            <div>
+              <p className="font-bold text-white text-sm">Ocultar minha identidade (Modo Fantasma)</p>
+              <p className="text-xs text-slate-400 mt-1 leading-relaxed">Você aparecerá como "Morador Anônimo" no feed.</p>
+            </div>
+            <button 
+              type="button"
+              className={`w-12 h-6 rounded-full transition-colors relative shrink-0 ${isAnonymous ? 'bg-blue-500' : 'bg-slate-600'}`}
+            >
+              <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${isAnonymous ? 'translate-x-6' : 'translate-x-1'}`} />
+            </button>
+          </div>
+
           <button
             type="submit"
             disabled={!selectedType || isSubmitting}

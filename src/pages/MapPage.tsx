@@ -33,6 +33,7 @@ export function MapPage() {
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [showHeatmap, setShowHeatmap] = useState(false);
   const [reports, setReports] = useState<any[]>([]);
   const [riskZones, setRiskZones] = useState<any[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<any | null>(null);
@@ -161,14 +162,25 @@ export function MapPage() {
 
   // Use real data from Firestore for the heatmap
   const heatmapData = React.useMemo(() => {
-    const features = riskZones.map(zone => ({
-      type: 'Feature',
-      geometry: { type: 'Point', coordinates: [zone.location.lng, zone.location.lat] },
-      properties: { intensity: zone.intensity || 0.8 }
-    }));
+    let features: any[] = [];
+    
+    if (riskZones.length > 0) {
+      features = riskZones.map(zone => ({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [zone.location.lng, zone.location.lat] },
+        properties: { intensity: zone.intensity || 0.8 }
+      }));
+    } else {
+      // Fallback to reports data if no risk zones are defined
+      features = reports.map(report => ({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [report.location.lng, report.location.lat] },
+        properties: { intensity: report.upvotes ? 0.5 + (Math.min(report.upvotes, 10) / 20) : 0.5 }
+      }));
+    }
 
     return { type: 'FeatureCollection', features };
-  }, [riskZones]);
+  }, [riskZones, reports]);
 
   const triggerGPS = () => {
     if (userLocation && mapRef.current) {
@@ -592,6 +604,16 @@ export function MapPage() {
                 >
                   Outro
                 </button>
+                <div className="h-px w-full bg-slate-700/50 my-1" />
+                <button
+                  onClick={() => { setShowHeatmap(!showHeatmap); setShowFilters(false); }}
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${showHeatmap ? 'bg-purple-500/20 text-purple-400' : 'text-slate-300 hover:bg-slate-800'}`}
+                >
+                  <span>Mapa de Calor</span>
+                  <div className={`w-8 h-4 rounded-full transition-colors relative ${showHeatmap ? 'bg-purple-500' : 'bg-slate-600'}`}>
+                    <div className={`w-3 h-3 bg-white rounded-full absolute top-0.5 transition-transform ${showHeatmap ? 'translate-x-4.5 left-0.5' : 'left-0.5'}`} />
+                  </div>
+                </button>
               </div>
             </div>
           )}
@@ -631,7 +653,7 @@ export function MapPage() {
           </Marker>
         )}
 
-        {isMapLoaded && (
+        {isMapLoaded && showHeatmap && (
           <>
             <Source type="geojson" data={heatmapData as any}>
               <Layer
@@ -741,6 +763,12 @@ export function MapPage() {
                   <ThumbsUp size={14} className={selectedLocation.upvotedBy?.includes(user?.uid) ? 'text-blue-400' : ''} />
                   {selectedLocation.upvotes || 0} confirmaram
                 </p>
+                {selectedLocation.authorName && (
+                  <>
+                    <div className="w-1 h-1 rounded-full bg-slate-600" />
+                    <p className="text-sm text-slate-400 font-medium">Por: <span className="text-white">{selectedLocation.authorName}</span></p>
+                  </>
+                )}
               </div>
             </div>
             <div className="bg-slate-900/50 border border-white/5 rounded-xl p-2 text-center min-w-[4rem] shrink-0">

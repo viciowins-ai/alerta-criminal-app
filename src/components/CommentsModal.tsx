@@ -64,7 +64,7 @@ export function CommentsModal({ isOpen, onClose, itemId, itemType, authorName }:
 
       setNewComment('');
     } catch (error) {
-      handleFirestoreError(error, OperationType.WRITE);
+      handleFirestoreError(error, OperationType.WRITE, 'comments');
     } finally {
       setIsSubmitting(false);
     }
