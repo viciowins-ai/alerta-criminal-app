@@ -57,11 +57,14 @@ export function ReportPage() {
     }
   }, []);
 
+  const lastKnownStr = sessionStorage.getItem('lastKnownLocation');
+  const lastKnown = lastKnownStr ? JSON.parse(lastKnownStr) : null;
+
   const [reportLocation, setReportLocation] = useState({
-    longitude: -46.6333,
-    latitude: -23.5505,
+    longitude: lastKnown ? lastKnown.lng : -46.6333,
+    latitude: lastKnown ? lastKnown.lat : -23.5505,
   });
-  const [userLocation, setUserLocation] = useState<{lng: number, lat: number} | null>(null);
+  const [userLocation, setUserLocation] = useState<{lng: number, lat: number} | null>(lastKnown ? {lng: lastKnown.lng, lat: lastKnown.lat} : null);
   const [address, setAddress] = useState('Buscando localização...');
   const [isDragging, setIsDragging] = useState(false);
   const mapRef = useRef<MapRef>(null);

@@ -69,6 +69,10 @@ export function MapPage() {
           initialCenterDone.current = true;
         }
 
+        try {
+          sessionStorage.setItem('lastKnownLocation', JSON.stringify({ lat: latitude, lng: longitude }));
+        } catch (e) {}
+
         setUserLocation(prev => {
           if (!prev) return { lat: latitude, lng: longitude };
           
