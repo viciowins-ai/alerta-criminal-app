@@ -91,7 +91,7 @@ export function ReportPage() {
           setAddress(errorMsg);
           setIsLocating(false);
         },
-        { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
       );
     } else {
       setAddress('Geolocalização não suportada pelo navegador.');
@@ -297,9 +297,9 @@ export function ReportPage() {
             </Map>
             {/* Center Pin Overlay */}
             <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-              <div className={`transform transition-transform ${isDragging ? '-translate-y-4' : ''}`}>
+              <div className={`flex flex-col items-center transform transition-transform ${isDragging ? '-translate-y-8' : '-translate-y-1/2'}`}>
                 <MapPin size={36} className="text-red-500 drop-shadow-[0_0_10px_rgba(239,68,68,0.8)]" />
-                <div className="w-3 h-3 bg-red-900/40 rounded-full mx-auto mt-1 animate-ping" />
+                <div className="w-2.5 h-2.5 bg-red-900/60 rounded-full -mt-1.5 animate-ping" />
               </div>
             </div>
             {/* Instruction Overlay */}
