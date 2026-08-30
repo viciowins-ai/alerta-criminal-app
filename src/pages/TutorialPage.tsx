@@ -29,13 +29,16 @@ export function TutorialPage() {
               <div>
                 <h3 className="text-white font-semibold mb-1">Mapa de Risco</h3>
                 <p className="text-sm text-slate-400 leading-relaxed mb-3">Visualize ocorrências recentes ao seu redor. As áreas "mais quentes" (vermelhas) indicam maior perigo.</p>
+                <p className="text-sm text-slate-400 leading-relaxed mb-3">
+                  <strong>Novidade:</strong> Ao tocar em um alerta no mapa, você pode visualizar as <strong>fotos e vídeos</strong> da ocorrência diretamente na janelinha! Toque na mídia para abri-la em tela cheia.
+                </p>
                 
                 <h4 className="text-xs font-bold text-slate-300 mb-2 uppercase">Botões do Mapa (Direita):</h4>
                 <ul className="text-sm text-slate-400 space-y-2">
                   <li><strong>Filtro (Lupa/Funil):</strong> Escolha ver apenas roubos, atitudes suspeitas ou filtre por tempo (ex: últimas 24h).</li>
                   <li><strong>Escudo Azul:</strong> Ativa o "Meu Guardião", transmitindo sua localização para pessoas de confiança.</li>
-                  <li><strong>Lua/Sol:</strong> Muda o mapa para o modo claro ou escuro.</li>
-                  <li><strong>Alvo:</strong> Centraliza o mapa na sua posição atual.</li>
+                  <li><strong>Lua:</strong> Ativa o "Modo Pânico" (Tela Escura). A tela ficará totalmente preta (como se estivesse desligada). Com a tela preta, dê 3 toques rápidos nela ou chacoalhe o celular para acionar o S.O.S secretamente. Para sair, dê dois toques rápidos no canto superior direito.</li>
+                  <li><strong>Alvo:</strong> Centraliza o mapa na sua posição atual e calibra o GPS com extrema precisão.</li>
                 </ul>
               </div>
             </div>
@@ -65,7 +68,8 @@ export function TutorialPage() {
               <div>
                 <h3 className="text-white font-semibold mb-1">Botão Reportar (Sinal de +)</h3>
                 <p className="text-sm text-slate-400 leading-relaxed mb-3">O grande botão azul com o sinal de "+" bem no centro da barra inferior.</p>
-                <p className="text-sm text-slate-400 leading-relaxed">Viu algo suspeito ou foi vítima? Ajude outras pessoas! Registre furtos, assaltos ou atitudes suspeitas adicionando fotos, vídeos e a localização exata do ocorrido.</p>
+                <p className="text-sm text-slate-400 leading-relaxed mb-3">Viu algo suspeito ou foi vítima? Ajude outras pessoas! Registre furtos, assaltos ou atitudes suspeitas adicionando <strong>fotos, vídeos e descrição.</strong></p>
+                <p className="text-sm text-slate-400 leading-relaxed"><strong>GPS Inteligente:</strong> A tela de reportes puxa automaticamente sua última localização com a precisão máxima calculada pelo mapa, garantindo que o seu alerta seja colocado no local correto!</p>
                 <div className="mt-3 p-3 bg-slate-800/50 border border-slate-700 rounded-xl text-xs text-slate-300">
                   <span className="font-bold text-blue-400 block mb-1">Dica de Correção:</span>
                   Se você enviar e errar o tipo da ocorrência, vá na aba <strong>Feed</strong>, procure o seu alerta e toque no botão <strong>"Corrigir"</strong>.
@@ -91,7 +95,8 @@ export function TutorialPage() {
               </div>
               <div>
                 <h3 className="text-white font-semibold mb-1">Feed da Comunidade</h3>
-                <p className="text-sm text-slate-400 leading-relaxed">Fique por dentro das fofocas e avisos do bairro. Você também pode verificar (curtir) alertas de outras pessoas para confirmar que aquela ocorrência foi real, ajudando a combater informações falsas.</p>
+                <p className="text-sm text-slate-400 leading-relaxed mb-3">Fique por dentro das fofocas e avisos do bairro. Você também pode verificar (curtir) alertas de outras pessoas para confirmar que aquela ocorrência foi real, ajudando a combater informações falsas.</p>
+                <p className="text-sm text-slate-400 leading-relaxed"><strong>Ver no Mapa:</strong> Agora, cada alerta no Feed possui um botão <strong>"Ver no mapa"</strong>. Ao tocar nele, você é levado instantaneamente até o local exato da ocorrência!</p>
               </div>
             </div>
 
