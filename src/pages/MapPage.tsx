@@ -319,8 +319,10 @@ export function MapPage() {
       // Start audio recording asynchronously
       console.log('Starting audio recording');
       startRecording(10000).then(async (audioBase64) => {
-        console.log('Audio recording finished, updating doc');
-        await updateDoc(docRef, { audioData: audioBase64 });
+        if (audioBase64) {
+          console.log('Audio recording finished, updating doc');
+          await updateDoc(docRef, { audioData: audioBase64 });
+        }
       }).catch(e => console.log('Audio recording skipped/failed', e));
       
       console.log('Calling getDoc for user');

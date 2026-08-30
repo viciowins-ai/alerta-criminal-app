@@ -5,8 +5,12 @@ export function useAudioRecorder() {
   const mediaRecorder = useRef<MediaRecorder | null>(null);
   const audioChunks = useRef<Blob[]>([]);
 
-  const startRecording = useCallback(async (durationMs: number = 15000): Promise<string> => {
+  const startRecording = useCallback(async (durationMs: number = 15000): Promise<string | null> => {
     try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        console.warn("Microphone access not supported in this environment.");
+        return null;
+      }
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaRecorder.current = new MediaRecorder(stream);
       audioChunks.current = [];
@@ -44,7 +48,7 @@ export function useAudioRecorder() {
     } catch (error) {
       console.warn("Error accessing microphone:", error);
       setIsRecording(false);
-      throw error;
+      return null;
     }
   }, []);
 

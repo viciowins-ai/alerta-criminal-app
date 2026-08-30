@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Map, AlertTriangle, ShieldAlert, User, Users, WifiOff } from 'lucide-react';
+import { Map, Navigation, Plus, User, Users, WifiOff } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -42,17 +42,16 @@ export function Layout() {
       {!hideBottomNav && (
         <nav className="absolute bottom-0 w-full bg-slate-950 border-t border-white/10 flex justify-around items-center h-20 px-2 pb-safe z-50">
           <NavItem to="/" icon={<Map size={24} />} label="Mapa" />
-          <NavItem to="/report" icon={<AlertTriangle size={24} />} label="Reportar" />
+          <NavItem to="/route" icon={<Navigation size={24} />} label="Rotas" />
           
-          {/* Glowing SOS Button */}
+          {/* Central Report Button */}
           <div className="relative -top-6 group">
-            <div className="absolute inset-0 bg-red-600 rounded-full opacity-50 group-hover:opacity-75 transition-opacity animate-pulse"></div>
-            <div className="absolute inset-0 bg-red-500 rounded-full animate-ping opacity-20" style={{ animationDuration: '2s' }}></div>
+            <div className="absolute inset-0 bg-blue-600 rounded-full opacity-40 group-hover:opacity-70 transition-opacity"></div>
             <button 
-              onClick={() => navigate('/report?sos=true')}
-              className="relative bg-gradient-to-b from-red-500 to-red-700 text-white rounded-full p-4 shadow-[0_0_30px_rgba(220,38,38,0.6)] hover:from-red-600 hover:to-red-800 transition-all active:scale-95 flex flex-col items-center justify-center border-4 border-slate-900"
+              onClick={() => navigate('/report')}
+              className="relative bg-gradient-to-b from-blue-500 to-blue-700 text-white rounded-full p-4 shadow-[0_0_20px_rgba(59,130,246,0.4)] hover:from-blue-600 hover:to-blue-800 transition-all active:scale-95 flex flex-col items-center justify-center border-4 border-slate-900"
             >
-              <ShieldAlert size={28} />
+              <Plus size={28} strokeWidth={3} />
             </button>
           </div>
           

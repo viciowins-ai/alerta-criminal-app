@@ -47,7 +47,13 @@ export function TutorialPage() {
               </div>
               <div>
                 <h3 className="text-white font-semibold mb-1">Botão SOS (Emergência)</h3>
-                <p className="text-sm text-slate-400 leading-relaxed">O grande botão vermelho na barra inferior. Use-o <strong>apenas</strong> em caso de perigo real! Ele gera um link de rastreio da sua localização ao vivo e permite enviar rapidamente para seus Contatos de Confiança via SMS ou WhatsApp.</p>
+                <p className="text-sm text-slate-400 leading-relaxed mb-3">O botão de escudo vermelho no canto direito do mapa. Use-o <strong>apenas</strong> em caso de perigo real!</p>
+                <ul className="text-sm text-slate-400 space-y-2 list-disc pl-4">
+                  <li>Inicia automaticamente uma <strong>gravação de áudio de 10 segundos</strong> do ambiente para registro de evidências.</li>
+                  <li>Gera um link de rastreio da sua localização ao vivo.</li>
+                  <li>Permite compartilhar rapidamente o link com seus Contatos de Confiança via WhatsApp.</li>
+                  <li>Oferece um atalho para ligação imediata para a Polícia (190).</li>
+                </ul>
               </div>
             </div>
 

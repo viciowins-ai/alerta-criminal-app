@@ -9,7 +9,7 @@ const faqs = [
   },
   {
     question: "Como o botão S.O.S funciona?",
-    answer: "O botão SOS (vermelho na parte inferior) serve para emergências reais. Ele permite ligar rapidamente para a polícia (190) e também cria um link de rastreamento ao vivo que você pode enviar para seus Contatos de Confiança pelo WhatsApp."
+    answer: "O botão SOS (escudo vermelho no mapa) serve para emergências reais. Ele inicia automaticamente uma gravação de áudio do ambiente por 10 segundos (anexada ao seu alerta no sistema para segurança), permite ligar rapidamente para a polícia (190) e também cria um link de rastreamento ao vivo que você pode enviar para seus Contatos de Confiança pelo WhatsApp."
   },
   {
     question: "O aplicativo avisa a polícia automaticamente?",
