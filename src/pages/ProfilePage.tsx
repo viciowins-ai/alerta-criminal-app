@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { TopBar } from '../components/TopBar';
-import { Settings, Shield, Award, Users, ChevronRight, Bell, HelpCircle, LogOut, Star, BookOpen } from 'lucide-react';
+import { Settings, Shield, Award, Users, ChevronRight, Bell, HelpCircle, LogOut, Star, BookOpen, ShieldCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
 import { doc, getDoc, collection, query, where, getDocs, getCountFromServer } from 'firebase/firestore';
 import { handleFirestoreError, OperationType } from '../utils/firestoreErrorHandler';
+import { getLevelInfo } from '../utils/levelUtils';
 
 export function ProfilePage() {
   const navigate = useNavigate();
@@ -33,10 +34,12 @@ export function ProfilePage() {
     fetchProfile();
   }, [user]);
 
+  const levelInfo = getLevelInfo(profileData?.points || 0);
+
   const menuItems = [
     { icon: <BookOpen className="text-blue-500" />, label: 'Instalar e Compartilhar', path: '/help/tutorial' },
     { icon: <Star className="text-yellow-400 fill-yellow-400" />, label: 'Avaliar Aplicativo', path: '/help/feedback' },
-    { icon: <Award className="text-yellow-500" />, label: 'Meu Nível de Contribuição', path: '/gamification', badge: profileData?.level || 'Iniciante' },
+    { icon: <Award className="text-yellow-500" />, label: 'Meu Nível de Contribuição', path: '/gamification', badge: levelInfo.badge },
     { icon: <Users className="text-green-500" />, label: 'Indique e Ganhe', path: '/referral' },
     { icon: <Shield className="text-red-500" />, label: 'Contatos de Confiança', path: '/trusted-contacts' },
     { icon: <Bell className="text-purple-500" />, label: 'Notificações', path: '/settings' },
@@ -51,15 +54,16 @@ export function ProfilePage() {
       <div className="flex-1 overflow-y-auto pb-20">
         {/* Header */}
         <div className="bg-slate-800 p-6 border-b border-slate-700 flex items-center gap-4">
-          <img src={profileData?.avatar || user?.photoURL || "https://i.pravatar.cc/150?u=me"} alt="Me" className="w-20 h-20 rounded-full object-cover border-4 border-blue-100" referrerPolicy="no-referrer" />
+          <img src={profileData?.avatar || user?.photoURL || "https://i.pravatar.cc/150?u=me"} alt="Me" className={`w-20 h-20 rounded-full object-cover border-4 ${levelInfo.verified ? 'border-blue-500' : 'border-blue-100'}`} referrerPolicy="no-referrer" />
           <div className="flex-1 overflow-hidden">
-            <h2 className="text-xl font-bold text-white truncate">
+            <h2 className="text-xl font-bold text-white truncate flex items-center gap-1">
               {profileData?.name || user?.displayName || user?.email?.split('@')[0] || 'Usuário'}
+              {levelInfo.verified && <ShieldCheck size={18} className="text-blue-500 shrink-0" />}
             </h2>
             <p className="text-sm text-slate-400 mb-1 truncate">{user?.email}</p>
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+            <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-900 ${levelInfo.color}`}>
               <Award size={12} />
-              {profileData?.level || 'Iniciante'}
+              {levelInfo.name}
             </span>
           </div>
         </div>

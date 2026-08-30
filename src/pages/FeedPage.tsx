@@ -7,6 +7,7 @@ import { collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, doc, g
 import { handleFirestoreError, OperationType } from '../utils/firestoreErrorHandler';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { CommentsModal } from '../components/CommentsModal';
+import { getLevelInfo } from '../utils/levelUtils';
 
 export function FeedPage() {
   const { user } = useAuth();
@@ -231,17 +232,18 @@ export function FeedPage() {
     if (!newPostContent.trim() || !user || !userProfile) return;
 
     try {
+      const levelInfo = getLevelInfo(userProfile?.points || 0);
       await addDoc(collection(db, 'posts'), {
         authorId: user.uid,
         authorName: userProfile.name || user.displayName || 'Usuário',
         authorAvatar: userProfile.avatar || user.photoURL || "https://i.pravatar.cc/150?u=me",
-        authorLevel: userProfile.level || 'Iniciante',
+        authorLevel: levelInfo.name,
+        verified: levelInfo.verified,
         type: 'Informação',
         content: newPostContent,
         location: 'Sua Localização', // In a real app, get GPS location
         likesCount: 0,
         commentsCount: 0,
-        verified: false,
         createdAt: serverTimestamp(),
       });
       setNewPostContent('');
@@ -379,13 +381,17 @@ export function FeedPage() {
                     <div>
                       <h4 className="text-sm font-bold text-white flex items-center gap-2 flex-wrap">
                         {item.authorName ? `Alerta por ${item.authorName}` : 'Alerta de Segurança'}
+                        {item.verified && <ShieldCheck size={14} className="text-blue-400" />}
                         {isRecent && (
                           <span className="bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded flex items-center gap-1 animate-pulse tracking-wider">
                             <span className="w-1 h-1 bg-white rounded-full"></span> AGORA
                           </span>
                         )}
                       </h4>
-                      <p className="text-xs text-slate-400">{formatTime(item.createdAt)}</p>
+                      <p className="text-xs text-slate-400">
+                        {formatTime(item.createdAt)}
+                        {item.authorLevel ? ` • ${item.authorLevel}` : ''}
+                      </p>
                     </div>
                   </div>
                   {user?.uid === item.authorId && (

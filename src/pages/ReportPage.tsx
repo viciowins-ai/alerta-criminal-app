@@ -8,6 +8,7 @@ import { db, storage } from '../firebase';
 import { collection, addDoc, serverTimestamp, doc, updateDoc, increment, getDoc } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { handleFirestoreError, OperationType } from '../utils/firestoreErrorHandler';
+import { getLevelInfo } from '../utils/levelUtils';
 
 const INCIDENT_TYPES = [
   { id: 'roubo', label: 'Roubo/Furto', icon: <Siren size={24} />, baseColor: 'red' },
@@ -29,6 +30,7 @@ export function ReportPage() {
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [description, setDescription] = useState('');
   const [isAnonymous, setIsAnonymous] = useState(false);
+  const [userProfile, setUserProfile] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [attachments, setAttachments] = useState<File[]>([]);
@@ -44,6 +46,7 @@ export function ReportPage() {
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           const data = docSnap.data();
+          setUserProfile(data);
           if (data.privacySettings && typeof data.privacySettings.anonymousReports === 'boolean') {
             setIsAnonymous(data.privacySettings.anonymousReports);
           }
@@ -198,10 +201,15 @@ export function ReportPage() {
         });
       }
 
+      const levelInfo = getLevelInfo(userProfile?.points || 0);
+
       const reportPayload: any = {
         authorId: user.uid,
         isAnonymous: isAnonymous,
-        authorName: isAnonymous ? 'Morador Anônimo' : (user.displayName || 'Usuário'),
+        authorName: isAnonymous ? 'Morador Anônimo' : (userProfile?.name || user.displayName || 'Usuário'),
+        authorAvatar: isAnonymous ? '' : (userProfile?.avatar || user.photoURL || ''),
+        authorLevel: isAnonymous ? 'Iniciante' : levelInfo.name,
+        verified: isAnonymous ? false : levelInfo.verified,
         type: selectedType,
         location: {
           lat: reportLocation.latitude,
