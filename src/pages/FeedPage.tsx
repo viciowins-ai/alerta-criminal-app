@@ -6,6 +6,7 @@ import { db } from '../firebase';
 import { collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, doc, getDoc, setDoc, deleteDoc, updateDoc, increment, where, limit, writeBatch } from 'firebase/firestore';
 import { handleFirestoreError, OperationType } from '../utils/firestoreErrorHandler';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import { CommentsModal } from '../components/CommentsModal';
 
 export function FeedPage() {
   const { user } = useAuth();
@@ -19,6 +20,8 @@ export function FeedPage() {
   const [editingReport, setEditingReport] = useState<any>(null);
   const [editType, setEditType] = useState<string>('');
   const [editDescription, setEditDescription] = useState<string>('');
+  const [feedFilter, setFeedFilter] = useState<'all' | 'reports' | 'posts'>('all');
+  const [activeCommentItem, setActiveCommentItem] = useState<{id: string, type: 'post' | 'report', authorName: string} | null>(null);
   const feedContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -152,8 +155,12 @@ export function FeedPage() {
     }
   };
 
-  const handleComment = (postId: string) => {
-    alert(`Abrindo comentários para o post ${postId}... (Em breve)`);
+  const handleComment = (item: any, type: 'post' | 'report') => {
+    setActiveCommentItem({
+      id: item.id,
+      type,
+      authorName: item.authorName || 'Usuário'
+    });
   };
 
   const handleUpvoteReport = async (reportId: string, currentUpvotes: number = 0) => {
@@ -258,12 +265,20 @@ export function FeedPage() {
   };
 
   const feedItems = React.useMemo(() => {
-    return [...posts, ...reports].sort((a, b) => {
+    let combined = [...posts, ...reports];
+    
+    if (feedFilter === 'reports') {
+      combined = reports;
+    } else if (feedFilter === 'posts') {
+      combined = posts;
+    }
+
+    return combined.sort((a, b) => {
       const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : Date.now();
       const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : Date.now();
       return timeB - timeA;
     });
-  }, [posts, reports]);
+  }, [posts, reports, feedFilter]);
 
   useEffect(() => {
     // Scroll to shared post if present
@@ -286,7 +301,31 @@ export function FeedPage() {
     <div className="flex flex-col h-full bg-slate-900">
       <TopBar title="Rede Comunitária" />
       
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-24">
+      {/* Filters */}
+      <div className="px-4 pt-4 pb-1">
+        <div className="flex gap-2 bg-slate-800 p-1 rounded-xl">
+          <button
+            onClick={() => setFeedFilter('all')}
+            className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-colors ${feedFilter === 'all' ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+          >
+            Todos
+          </button>
+          <button
+            onClick={() => setFeedFilter('reports')}
+            className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-colors flex items-center justify-center gap-1 ${feedFilter === 'reports' ? 'bg-red-500/20 text-red-400' : 'text-slate-400 hover:text-slate-200'}`}
+          >
+            🚨 Alertas
+          </button>
+          <button
+            onClick={() => setFeedFilter('posts')}
+            className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-colors flex items-center justify-center gap-1 ${feedFilter === 'posts' ? 'bg-blue-500/20 text-blue-400' : 'text-slate-400 hover:text-slate-200'}`}
+          >
+            💬 Discussões
+          </button>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-24 pt-2">
         {/* Create Post Input */}
         <div className="bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-700 flex flex-col gap-3">
           <div className="flex gap-3 items-center">
@@ -325,6 +364,8 @@ export function FeedPage() {
         )}
         
         {feedItems.map(item => {
+          const isRecent = item.createdAt?.toMillis && (Date.now() - item.createdAt.toMillis() < 2 * 60 * 60 * 1000);
+
           if (item.feedType === 'report') {
             return (
               <div key={`report-${item.id}`} className="bg-slate-800 p-4 rounded-2xl shadow-sm border border-red-500/30 relative overflow-hidden">
@@ -336,8 +377,13 @@ export function FeedPage() {
                       <AlertTriangle size={20} />
                     </div>
                     <div>
-                      <h4 className="text-sm font-bold text-white flex items-center gap-1">
+                      <h4 className="text-sm font-bold text-white flex items-center gap-2">
                         Alerta de Segurança
+                        {isRecent && (
+                          <span className="bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded flex items-center gap-1 animate-pulse tracking-wider">
+                            <span className="w-1 h-1 bg-white rounded-full"></span> AGORA
+                          </span>
+                        )}
                       </h4>
                       <p className="text-xs text-slate-400">{formatTime(item.createdAt)}</p>
                     </div>
@@ -405,14 +451,19 @@ export function FeedPage() {
                     className="flex items-center gap-1.5 text-slate-400 hover:text-blue-400 transition-colors"
                   >
                     <MapPin size={16} />
-                    <span className="text-xs font-medium">Ver no mapa</span>
+                  </button>
+                  <button 
+                    onClick={() => handleComment(item, 'report')}
+                    className="flex items-center gap-1.5 text-slate-400 hover:text-blue-400 transition-colors"
+                  >
+                    <MessageSquare size={16} />
+                    <span className="text-xs font-medium">{item.commentsCount || 0}</span>
                   </button>
                   <button 
                     onClick={() => handleShare(item)}
                     className="flex items-center gap-1.5 text-slate-400 hover:text-green-400 transition-colors"
                   >
                     <Share2 size={16} />
-                    <span className="text-xs font-medium">Compartilhar</span>
                   </button>
                 </div>
               </div>
@@ -489,11 +540,11 @@ export function FeedPage() {
                   <span className="text-xs font-medium">{item.likesCount}</span>
                 </button>
                 <button 
-                  onClick={() => handleComment(item.id)}
+                  onClick={() => handleComment(item, 'post')}
                   className="flex items-center gap-1.5 text-slate-400 hover:text-blue-400 transition-colors"
                 >
                   <MessageSquare size={18} />
-                  <span className="text-xs font-medium">{item.commentsCount}</span>
+                  <span className="text-xs font-medium">{item.commentsCount || 0}</span>
                 </button>
                 <button 
                   onClick={() => handleShare(item)}
@@ -556,6 +607,16 @@ export function FeedPage() {
             </div>
           </div>
         </div>
+      )}
+      {/* Comments Modal */}
+      {activeCommentItem && (
+        <CommentsModal
+          isOpen={true}
+          onClose={() => setActiveCommentItem(null)}
+          itemId={activeCommentItem.id}
+          itemType={activeCommentItem.type}
+          authorName={activeCommentItem.authorName}
+        />
       )}
     </div>
   );
