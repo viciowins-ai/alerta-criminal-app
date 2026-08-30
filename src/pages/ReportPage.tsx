@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { TopBar } from '../components/TopBar';
 import { MapPin, Camera, Video, CheckCircle2, Siren, Eye, Flame, MoreHorizontal, Send, X, LocateFixed } from 'lucide-react';
-import Map, { ViewStateChangeEvent, MapRef } from 'react-map-gl/mapbox';
+import Map, { ViewStateChangeEvent, MapRef, Marker } from 'react-map-gl/mapbox';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { db, storage } from '../firebase';
@@ -61,6 +61,7 @@ export function ReportPage() {
     longitude: -46.6333,
     latitude: -23.5505,
   });
+  const [userLocation, setUserLocation] = useState<{lng: number, lat: number} | null>(null);
   const [address, setAddress] = useState('Buscando localização...');
   const [isDragging, setIsDragging] = useState(false);
   const mapRef = useRef<MapRef>(null);
@@ -74,6 +75,7 @@ export function ReportPage() {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { longitude, latitude } = position.coords;
+          setUserLocation({ lng: longitude, lat: latitude });
           setReportLocation({ longitude, latitude });
           setHasInitialLocation(true);
           mapRef.current?.flyTo({ center: [longitude, latitude], zoom: 16, duration: 2000 });
@@ -89,7 +91,7 @@ export function ReportPage() {
           setAddress(errorMsg);
           setIsLocating(false);
         },
-        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
       );
     } else {
       setAddress('Geolocalização não suportada pelo navegador.');
@@ -282,7 +284,17 @@ export function ReportPage() {
               onMoveEnd={handleMoveEnd}
               mapStyle="mapbox://styles/mapbox/streets-v12"
               mapboxAccessToken={import.meta.env.VITE_MAPBOX_TOKEN}
-            />
+            >
+              {/* Custom User Location Marker */}
+              {userLocation && (
+                <Marker longitude={userLocation.lng} latitude={userLocation.lat} anchor="center">
+                  <div className="relative flex items-center justify-center">
+                    <div className="absolute w-12 h-12 bg-blue-500/30 rounded-full animate-ping" />
+                    <div className="relative w-5 h-5 bg-blue-500 border-[3px] border-white rounded-full shadow-[0_0_15px_rgba(59,130,246,0.8)]" />
+                  </div>
+                </Marker>
+              )}
+            </Map>
             {/* Center Pin Overlay */}
             <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
               <div className={`transform transition-transform ${isDragging ? '-translate-y-4' : ''}`}>
