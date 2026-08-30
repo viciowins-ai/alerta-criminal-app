@@ -31,8 +31,8 @@ export function HelpPage() {
           <HelpItem icon={<Star size={20} className="text-yellow-400 fill-yellow-400" />} label="Avaliar Aplicativo" onClick={() => navigate('/help/feedback')} />
           <HelpItem icon={<MessageCircle size={20} className="text-blue-500" />} label="Falar com Suporte" onClick={() => alert('Abrindo chat de suporte...')} />
           <HelpItem icon={<FileText size={20} className="text-green-500" />} label="Perguntas Frequentes (FAQ)" onClick={() => alert('Abrindo FAQ...')} />
-          <HelpItem icon={<ExternalLink size={20} className="text-purple-500" />} label="Termos de Uso" onClick={() => alert('Abrindo Termos de Uso...')} />
-          <HelpItem icon={<ExternalLink size={20} className="text-orange-500" />} label="Política de Privacidade" onClick={() => alert('Abrindo Política de Privacidade...')} />
+          <HelpItem icon={<ExternalLink size={20} className="text-purple-500" />} label="Termos de Uso" onClick={() => navigate('/help/terms')} />
+          <HelpItem icon={<ExternalLink size={20} className="text-orange-500" />} label="Política de Privacidade" onClick={() => navigate('/help/privacy')} />
         </div>
       </div>
     </div>
