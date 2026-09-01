@@ -16,7 +16,7 @@
     "guardianTitle": "🛡️ Como usar o Meu Guardião?",
     "guardianDesc": "Ideal para quando você estiver andando sozinho, em um carro de aplicativo ou sentindo-se inseguro. Ao ativá-lo, o Alerta Criminal passa a monitorar sua localização continuamente. Se você não confirmar que chegou bem ao destino após o tempo estipulado, o aplicativo envia um alerta automático para seus contatos de confiança.",
     "panicTitle": "🌙 Como ativar o Modo Pânico?",
-    "panicDesc": "Se você for abordado e obrigado a entregar o celular desbloqueado, toque no botão do <strong>Modo Pânico</strong>. A tela ficará completamente escura e bloqueada, simulando que o celular está desligado ou travado, protegendo seus dados e impedindo o acesso aos seus aplicativos bancários.",
+    "panicDesc": "Se você for abordado e obrigado a entregar o celular desbloqueado, toque no botão do <strong>Modo Pânico (ícone de Lua 🌙)</strong> no menu inferior. A tela ficará completamente escura e bloqueada, simulando que o celular está desligado ou travado, protegendo seus dados e impedindo o acesso aos seus aplicativos bancários.",
     "reportTitle": "📍 Como reportar uma ocorrência?",
     "reportDesc": "No menu inferior, toque no botão azul central <strong>(+)</strong>. O GPS inteligente buscará sua localização exata. Escolha o tipo de crime ou situação suspeita, adicione fotos, vídeos e uma descrição do ocorrido. Esse alerta ajudará a proteger todo o seu bairro.",
     "gpsTitle": "🎯 Precisão da Localização e GPS",
