@@ -84,7 +84,7 @@ export function TutorialPage() {
               </div>
               <div>
                 <h3 className="text-white font-semibold mb-1">Rotas Seguras</h3>
-                <p className="text-sm text-slate-400 leading-relaxed">Vai sair a pé ou de bicicleta? O aplicativo traçará a rota mais segura até o seu destino, desviando automaticamente de ruas e regiões perigosas (locais com muitos alertas recentes).</p>
+                <p className="text-sm text-slate-400 leading-relaxed">Vai sair a pé, de bicicleta, carro ou moto? O aplicativo traçará a rota mais segura até o seu destino, desviando automaticamente de ruas e regiões perigosas (locais com muitos alertas recentes).</p>
               </div>
             </div>
 
