@@ -135,6 +135,20 @@ export function ComoUsarPage({ lang = "pt" }: { lang?: string }) {
               dangerouslySetInnerHTML={{ __html: t("tutorial.reportDesc") }}
             />
           </section>
+          
+          <section className="bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-800 shadow-xl">
+            <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-3">
+              {t("tutorial.gpsTitle")}
+            </h2>
+            <p className="text-slate-400 leading-relaxed mb-4">
+              {t("tutorial.gpsDesc")}
+            </p>
+            <ul className="list-disc list-inside space-y-2 text-slate-400 ml-4">
+              <li dangerouslySetInnerHTML={{ __html: t("tutorial.gpsMobile") }} />
+              <li dangerouslySetInnerHTML={{ __html: t("tutorial.gpsPc") }} />
+              <li dangerouslySetInnerHTML={{ __html: t("tutorial.gpsPcTip") }} />
+            </ul>
+          </section>
 
           <section className="bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-800 shadow-xl">
             <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-3">

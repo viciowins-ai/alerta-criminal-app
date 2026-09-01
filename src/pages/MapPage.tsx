@@ -91,7 +91,7 @@ export function MapPage() {
         });
       },
       (error) => {
-        console.error('Geolocation error:', error);
+        console.warn(`Geolocation error ${error.code}: ${error.message}`);
         let errorMessage = 'Erro desconhecido ao buscar localização.';
         if (error.code === 1) errorMessage = 'Permissão negada. Autorize o uso do GPS.';
         if (error.code === 2) errorMessage = 'Sinal de GPS indisponível no momento.';

@@ -109,7 +109,7 @@ export function ReportPage() {
           setIsLocating(false);
         }, 
         (error) => {
-          console.error("Error getting location:", error);
+          console.warn(`Error getting location ${error.code}: ${error.message}`);
           let errorMsg = 'Não foi possível obter sua localização.';
           if (error.code === 1) errorMsg = 'Permissão de GPS negada.';
           if (error.code === 2) errorMsg = 'Sinal de GPS indisponível.';
