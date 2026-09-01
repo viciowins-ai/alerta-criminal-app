@@ -686,7 +686,7 @@ export function MapPage() {
       </Map>
 
       {/* Floating Action Buttons */}
-      <div className={`absolute right-4 flex flex-col gap-3 z-30 items-center transition-all duration-300 ${selectedLocation ? 'bottom-[380px]' : 'bottom-[100px]'}`}>
+      <div className={`absolute right-4 flex flex-col gap-3 z-30 items-center transition-all duration-300 ${selectedLocation ? 'bottom-[280px]' : 'bottom-[100px]'}`}>
         <button 
           onClick={() => setIsGuardianMode(true)}
           className="bg-blue-600 text-white p-3.5 rounded-2xl shadow-lg border border-blue-400/30 hover:bg-blue-500 transition-all active:scale-95 flex items-center justify-center"

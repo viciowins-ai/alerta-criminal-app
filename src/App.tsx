@@ -226,7 +226,6 @@ export default function App() {
 
               <Route path="/help" element={<HelpPage />} />
               <Route path="/help/feedback" element={<FeedbackPage />} />
-              <Route path="/help/tutorial" element={<TutorialPage />} />
               <Route path="/help/terms" element={<TermsPage />} />
               <Route path="/help/privacy" element={<PrivacyPage />} />
               <Route path="/help/support" element={<SupportPage />} />

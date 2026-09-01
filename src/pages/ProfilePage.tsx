@@ -37,7 +37,7 @@ export function ProfilePage() {
   const levelInfo = getLevelInfo(profileData?.points || 0);
 
   const menuItems = [
-    { icon: <BookOpen className="text-blue-500" />, label: 'Instalar e Compartilhar', path: '/help/tutorial' },
+    { icon: <BookOpen className="text-blue-500" />, label: 'Como Usar o App', path: '/como-usar' },
     { icon: <Star className="text-yellow-400 fill-yellow-400" />, label: 'Avaliar Aplicativo', path: '/help/feedback' },
     { icon: <Award className="text-yellow-500" />, label: 'Meu Nível de Contribuição', path: '/gamification', badge: levelInfo.badge },
     { icon: <Users className="text-green-500" />, label: 'Indique e Ganhe', path: '/referral' },
