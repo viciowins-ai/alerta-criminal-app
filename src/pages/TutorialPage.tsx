@@ -84,7 +84,7 @@ export function TutorialPage() {
               </div>
               <div>
                 <h3 className="text-white font-semibold mb-1">Rotas Seguras</h3>
-                <p className="text-sm text-slate-400 leading-relaxed">Vai sair a pé ou de bicicleta? O aplicativo traçará uma rota até o seu destino tentando desviar das zonas (ruas) com maior índice de criminalidade e alertas recentes.</p>
+                <p className="text-sm text-slate-400 leading-relaxed">Vai sair a pé ou de bicicleta? O aplicativo traçará a rota mais segura até o seu destino, desviando automaticamente de ruas e regiões perigosas (locais com muitos alertas recentes).</p>
               </div>
             </div>
 
@@ -95,7 +95,7 @@ export function TutorialPage() {
               </div>
               <div>
                 <h3 className="text-white font-semibold mb-1">Feed da Comunidade</h3>
-                <p className="text-sm text-slate-400 leading-relaxed mb-3">Fique por dentro das fofocas e avisos do bairro. Você também pode verificar (curtir) alertas de outras pessoas para confirmar que aquela ocorrência foi real, ajudando a combater informações falsas.</p>
+                <p className="text-sm text-slate-400 leading-relaxed mb-3">Fique por dentro dos alertas e avisos da sua comunidade. Você também pode verificar (curtir) alertas de outras pessoas para confirmar que aquela ocorrência foi real, ajudando a combater informações falsas.</p>
                 <p className="text-sm text-slate-400 leading-relaxed"><strong>Ver no Mapa:</strong> Agora, cada alerta no Feed possui um botão <strong>"Ver no mapa"</strong>. Ao tocar nele, você é levado instantaneamente até o local exato da ocorrência!</p>
               </div>
             </div>
@@ -121,7 +121,7 @@ export function TutorialPage() {
             <h2 className="text-xl font-bold text-white">Como Instalar o Aplicativo (PWA)</h2>
           </div>
           <p className="text-slate-300 text-sm mb-6 leading-relaxed">
-            O Alerta Criminal é um Web App Progressivo (PWA). Isso significa que você pode instalá-mo diretamente do seu navegador, sem precisar da loja de aplicativos, economizando memória no seu celular!
+            O Alerta Criminal é um Web App Progressivo (PWA). Isso significa que você pode instalá-lo diretamente do seu navegador, sem precisar da loja de aplicativos, economizando memória no seu celular!
           </p>
           
           <div className="space-y-4">

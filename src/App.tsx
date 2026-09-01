@@ -28,7 +28,7 @@ const HelpPage = lazy(() => import('./pages/HelpPage').then(module => ({ default
 const TrustedContactsPage = lazy(() => import('./pages/TrustedContactsPage').then(module => ({ default: module.TrustedContactsPage })));
 const TrackingPage = lazy(() => import('./pages/TrackingPage').then(module => ({ default: module.TrackingPage })));
 const FeedbackPage = lazy(() => import('./pages/FeedbackPage').then(module => ({ default: module.FeedbackPage })));
-const TutorialPage = lazy(() => import('./pages/TutorialPage').then(module => ({ default: module.TutorialPage })));
+const TutorialPage = lazy(() => import('./pages/TutorialPage').then(module => ({ default: module.TutorialPage })));const ComoUsarPage = lazy(() => import('./pages/ComoUsarPage').then(module => ({ default: module.ComoUsarPage })));
 const TermsPage = lazy(() => import('./pages/TermsPage').then(module => ({ default: module.TermsPage })));
 const PrivacyPage = lazy(() => import('./pages/PrivacyPage').then(module => ({ default: module.PrivacyPage })));
 const SupportPage = lazy(() => import('./pages/SupportPage').then(module => ({ default: module.SupportPage })));
@@ -77,7 +77,7 @@ export default function App() {
           <PWAInstallPrompt />
           <Routes>
             <Route path="/login" element={<LoginPage />} />
-            <Route path="/track/:sessionId" element={<TrackingPage />} />
+            <Route path="/track/:sessionId" element={<TrackingPage />} /><Route path="/como-usar" element={<ComoUsarPage />} />
             
             {/* Term Acceptance is a separate flow but protected */}
             <Route path="/accept-terms" element={<ProtectedRoute><AcceptTermsPage /></ProtectedRoute>} />
