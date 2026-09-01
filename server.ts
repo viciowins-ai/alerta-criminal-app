@@ -7,7 +7,7 @@ import twilio from "twilio";
 import { startEmailCronJob, sendEmail } from "./emailService.ts";
 import { GoogleGenAI } from '@google/genai';
 
-dotenv.config();
+dotenv.config({ override: true });
 
 // Initialize AI
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });

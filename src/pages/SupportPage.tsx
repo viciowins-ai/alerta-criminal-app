@@ -20,7 +20,7 @@ export function SupportPage() {
 
           <div className="space-y-4">
             <a 
-              href="mailto:suporte@alertacriminal.com.br"
+              href="mailto:alertacriminaloficial@gmail.com"
               className="flex items-center gap-3 w-full bg-slate-900 p-4 rounded-2xl border border-slate-700 hover:border-blue-500/50 transition-colors"
             >
               <div className="p-3 bg-blue-500/20 text-blue-400 rounded-xl shrink-0">
@@ -28,7 +28,7 @@ export function SupportPage() {
               </div>
               <div className="text-left">
                 <h3 className="text-white font-bold text-sm">Enviar um E-mail</h3>
-                <p className="text-xs text-slate-400">suporte@alertacriminal.com.br</p>
+                <p className="text-xs text-slate-400">alertacriminaloficial@gmail.com</p>
               </div>
             </a>
           </div>
