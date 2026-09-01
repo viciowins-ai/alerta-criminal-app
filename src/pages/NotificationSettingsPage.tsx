@@ -110,19 +110,37 @@ export function NotificationSettingsPage() {
     }
   };
 
-  const testNotification = () => {
+  const testNotification = async () => {
     if (!('Notification' in window)) {
       alert('Seu navegador não suporta notificações.');
       return;
     }
 
     if (Notification.permission === 'granted') {
-      new Notification('Alerta Criminal - Teste', {
-        body: 'Sua configuração de notificações está funcionando perfeitamente!',
-        icon: '/escudo-logo.png',
-        badge: '/escudo-logo.png',
-        vibrate: [200, 100, 200]
-      } as any);
+      try {
+        if ('serviceWorker' in navigator) {
+          const reg = await navigator.serviceWorker.ready;
+          if (reg) {
+            reg.showNotification('Alerta Criminal - Teste', {
+              body: 'Sua configuração de notificações está funcionando perfeitamente!',
+              icon: '/escudo-logo.png',
+              badge: '/escudo-logo.png',
+              vibrate: [200, 100, 200]
+            });
+            return;
+          }
+        }
+        
+        new Notification('Alerta Criminal - Teste', {
+          body: 'Sua configuração de notificações está funcionando perfeitamente!',
+          icon: '/escudo-logo.png',
+          badge: '/escudo-logo.png',
+          vibrate: [200, 100, 200]
+        } as any);
+      } catch (err) {
+        console.error('Erro ao mostrar notificação:', err);
+        alert('Erro ao testar: ' + (err as Error).message);
+      }
     } else {
       alert('Você precisa ativar as notificações primeiro.');
     }
