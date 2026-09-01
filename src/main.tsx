@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { HelmetProvider } from "react-helmet-async";
 import App from "./App.tsx";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import "./i18n/config";
 import "./index.css";
 
 // Automatically update PWA when new version is available
