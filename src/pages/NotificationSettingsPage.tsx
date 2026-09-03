@@ -199,8 +199,21 @@ export function NotificationSettingsPage() {
                     to: user.email,
                     message: {
                       subject: "Teste de Notificação - Alerta Criminal",
-                      text: "Olá!\n\nSua configuração de e-mail no Alerta Criminal está funcionando perfeitamente!\n\nFique seguro.",
-                      html: "<h2>Olá!</h2><p>Sua configuração de e-mail no Alerta Criminal está funcionando perfeitamente!</p><p>Fique seguro.</p>"
+                      text: "Olá!\n\nSua configuração de e-mail no Alerta Criminal está funcionando perfeitamente!\n\nEste é o canal por onde você receberá resumos semanais e atualizações de segurança da sua região.\n\nFique seguro.",
+                      html: `
+                        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+                          <div style="text-align: center; padding: 20px 0; background-color: #0f172a; border-radius: 8px 8px 0 0;">
+                            <img src="https://alertacriminal.com.br/escudo-logo.png" alt="Alerta Criminal" width="100" style="display: block; margin: 0 auto;" />
+                          </div>
+                          <div style="padding: 20px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
+                            <h2 style="color: #0f172a; margin-top: 0;">Olá!</h2>
+                            <p>Sua configuração de e-mail no <strong>Alerta Criminal</strong> está funcionando perfeitamente!</p>
+                            <p>Este é o canal por onde você receberá os seus <strong>resumos semanais</strong> e as <strong>atualizações de segurança da sua região</strong>.</p>
+                            <p style="margin-top: 30px; margin-bottom: 0;">Fique seguro,</p>
+                            <p style="margin-top: 5px; font-weight: bold; color: #0f172a;">Equipe Alerta Criminal</p>
+                          </div>
+                        </div>
+                      `
                     }
                   });
                   alert("Comando de e-mail enviado para o Firebase com sucesso! Verifique sua caixa de entrada em instantes.");

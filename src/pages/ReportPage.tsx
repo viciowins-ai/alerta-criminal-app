@@ -241,6 +241,61 @@ export function ReportPage() {
       } catch (pointsError) {
         console.warn("Could not update user points:", pointsError);
       }
+
+      // Send Community Email Alert (Demo: sending to the current user to demonstrate the feature)
+      if (user.email) {
+        try {
+          const mailRef = collection(db, 'mail');
+          const typeLabel = INCIDENT_TYPES.find(t => t.id === selectedType)?.label || 'Ocorrência';
+          
+          let htmlContent = `
+            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+              <div style="background-color: #0f172a; padding: 20px; text-align: center;">
+                <img src="https://alertacriminal.com.br/escudo-logo.png" alt="Alerta Criminal" width="80" style="display: block; margin: 0 auto;" />
+              </div>
+              <div style="padding: 24px; background-color: #ffffff;">
+                <h2 style="color: #dc2626; margin-top: 0; font-size: 24px;">🚨 Alerta de Segurança</h2>
+                <p style="font-size: 16px; line-height: 1.5;">Uma nova ocorrência de <strong>${typeLabel}</strong> foi reportada na sua região.</p>
+                
+                <div style="background-color: #f8fafc; border-left: 4px solid #dc2626; padding: 16px; margin: 20px 0; border-radius: 0 8px 8px 0;">
+                  <p style="margin: 0 0 8px 0;"><strong>📍 Local:</strong> ${address || 'Localização aproximada'}</p>
+                  ${description.trim() !== '' ? `<p style="margin: 0; color: #475569;"><strong>📝 Detalhes:</strong> "${description.trim()}"</p>` : ''}
+                </div>
+          `;
+
+          if (attachmentData.length > 0 && attachmentData[0].type.startsWith('image/')) {
+            htmlContent += `
+                <div style="margin: 20px 0; border-radius: 8px; overflow: hidden; border: 1px solid #e5e7eb;">
+                  <img src="${attachmentData[0].url}" alt="Foto da Ocorrência" style="width: 100%; max-height: 300px; object-fit: cover; display: block;" />
+                </div>
+            `;
+          }
+
+          htmlContent += `
+                <div style="text-align: center; margin-top: 32px;">
+                  <a href="https://alertacriminal.com.br" style="display: inline-block; background-color: #0f172a; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
+                    Ver no Aplicativo
+                  </a>
+                </div>
+              </div>
+              <div style="background-color: #f1f5f9; padding: 16px; text-align: center; font-size: 12px; color: #64748b;">
+                <p style="margin: 0;">Você está recebendo este e-mail porque ativou os alertas de segurança da sua região no Alerta Criminal.</p>
+              </div>
+            </div>
+          `;
+
+          await addDoc(mailRef, {
+            to: user.email,
+            message: {
+              subject: `🚨 Alerta Criminal: ${typeLabel} perto de você`,
+              text: `🚨 Alerta de Segurança: Uma nova ocorrência de ${typeLabel} foi reportada na sua região. Local: ${address || 'Localização aproximada'}. Abra o aplicativo para ver mais detalhes.`,
+              html: htmlContent
+            }
+          });
+        } catch (e) {
+          console.error("Error sending email alert:", e);
+        }
+      }
       
       setIsSubmitting(false);
       setIsSuccess(true);
