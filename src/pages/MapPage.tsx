@@ -107,11 +107,29 @@ export function MapPage() {
 
   useEffect(() => {
     const q = query(collection(db, 'reports'), orderBy('createdAt', 'desc'), limit(50));
+    
+    // Fetch user groups for filtering
+    let userGroupIds: string[] = [];
+    if (user) {
+      const qGroups = query(collection(db, 'groups'), where('members', 'array-contains', user.uid));
+      getDocs(qGroups).then(snap => {
+        userGroupIds = snap.docs.map(d => d.id);
+      }).catch(e => console.error(e));
+    }
+    
     const unsubscribeReports = onSnapshot(q, (snapshot) => {
-      const reportsData = snapshot.docs.map(doc => ({
+      let reportsData = snapshot.docs.map(doc => ({
         id: doc.id,
         ...(doc.data() as any)
       }));
+      
+      // Filter reports: show if public, OR if visibility == 'group' and user is in that group, OR user is author
+      reportsData = reportsData.filter(r => 
+        !r.visibility || 
+        r.visibility === 'public' || 
+        (r.visibility === 'group' && userGroupIds.includes(r.groupId)) ||
+        r.authorId === user?.uid
+      );
       setReports(reportsData);
       
       // Check for shared report in URL
@@ -489,6 +507,8 @@ export function MapPage() {
         pulseClass = '';
       }
 
+      
+      const isGroup = report.visibility === 'group';
       return (
         <Marker 
           key={report.id} 
@@ -507,7 +527,7 @@ export function MapPage() {
               <AlertCircle size={18} />
             </div>
             <span className="mt-1.5 text-[10px] font-medium text-gray-200 drop-shadow-md bg-gray-900 px-2 py-0.5 rounded-md border border-gray-700">
-              {getLabel(report.type)}
+              {isGroup ? `🔒 ${isGroup ? `🔒 ${getLabel(report.type)}` : getLabel(report.type)}` : getLabel(report.type)}
             </span>
           </div>
         </Marker>

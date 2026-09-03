@@ -154,7 +154,7 @@ service cloud.firestore {
 
     function isValidReport(data) {
       return hasRequiredFields(['authorId', 'type', 'location', 'status', 'createdAt']) &&
-             hasOnlyAllowedFields(['authorId', 'type', 'description', 'location', 'status', 'upvotes', 'upvotedBy', 'createdAt', 'attachments']) &&
+             hasOnlyAllowedFields(['authorId', 'type', 'description', 'location', 'status', 'upvotes', 'upvotedBy', 'createdAt', 'attachments', 'visibility', 'groupId', 'groupName']) &&
              data.authorId is string &&
              data.type in ['police', 'accident', 'danger', 'traffic', 'other', 'roubo', 'suspeito', 'vandalismo', 'outro'] &&
              (!('description' in data) || (data.description is string && data.description.size() <= 2000)) &&
@@ -165,7 +165,10 @@ service cloud.firestore {
              data.status in ['pending', 'verified', 'false_alert', 'false_alarm'] &&
              (!('upvotes' in data) || (data.upvotes is number && data.upvotes >= 0)) &&
              (!('upvotedBy' in data) || (data.upvotedBy is list && data.upvotedBy.size() <= 10000)) &&
-             data.createdAt is timestamp;
+             data.createdAt is timestamp &&
+             (!('visibility' in data) || data.visibility in ['public', 'group']) &&
+             (!('groupId' in data) || data.groupId is string) &&
+             (!('groupName' in data) || data.groupName is string);
     }
 
     function isValidPost(data) {
@@ -218,6 +221,14 @@ service cloud.firestore {
     // ===============================================================
     // Rules
     // ===============================================================
+
+    
+    match /groups/{groupId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated();
+      allow delete: if isAuthenticated();
+    }
 
     match /emergencyAlerts/{alertId} {
       // Anyone with the link can read the alert (could be unauthenticated if they just click the SMS link)

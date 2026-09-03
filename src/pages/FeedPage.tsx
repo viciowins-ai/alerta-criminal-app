@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { TopBar } from '../components/TopBar';
-import { MessageSquare, Heart, Share2, MoreHorizontal, AlertTriangle, ShieldCheck, Send, MapPin } from 'lucide-react';
+import { MessageSquare, Heart, Share2, MoreHorizontal, AlertTriangle, ShieldCheck, Send, MapPin, Users } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
-import { collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, doc, getDoc, setDoc, deleteDoc, updateDoc, increment, where, limit, writeBatch } from 'firebase/firestore';
+import { collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, doc, getDoc, setDoc, deleteDoc, updateDoc, increment, where, limit, writeBatch, getDocs } from 'firebase/firestore';
 import { handleFirestoreError, OperationType } from '../utils/firestoreErrorHandler';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { CommentsModal } from '../components/CommentsModal';
@@ -56,17 +56,41 @@ export function FeedPage() {
     });
 
     // Listen to reports
-    const qReports = query(collection(db, 'reports'), orderBy('createdAt', 'desc'), limit(100));
-    const unsubscribeReports = onSnapshot(qReports, (snapshot) => {
-      const reportsData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        feedType: 'report',
-        ...(doc.data() as any)
-      }));
-      setReports(reportsData);
-    }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, 'reports');
-    });
+    let unsubscribeReports = () => {};
+    const setupReportsListener = async () => {
+      let userGroupIds: string[] = [];
+      if (user) {
+        try {
+          const qGroups = query(collection(db, 'groups'), where('members', 'array-contains', user.uid));
+          const snap = await getDocs(qGroups);
+          userGroupIds = snap.docs.map(d => d.id);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+      
+      const qReports = query(collection(db, 'reports'), orderBy('createdAt', 'desc'), limit(100));
+      unsubscribeReports = onSnapshot(qReports, (snapshot) => {
+        let reportsData = snapshot.docs.map(doc => ({
+          id: doc.id,
+          feedType: 'report',
+          ...(doc.data() as any)
+        }));
+        
+        // Filter reports
+        reportsData = reportsData.filter((r: any) => 
+          !r.visibility || 
+          r.visibility === 'public' || 
+          (r.visibility === 'group' && userGroupIds.includes(r.groupId)) ||
+          r.authorId === user?.uid
+        );
+        
+        setReports(reportsData);
+      }, (error) => {
+        handleFirestoreError(error, OperationType.LIST, 'reports');
+      });
+    };
+    setupReportsListener();
 
     // Listen to user's likes
     const likesQuery = query(collection(db, 'likes'), where('userId', '==', user.uid));
@@ -410,7 +434,7 @@ export function FeedPage() {
                 <div className="mb-3 relative z-10">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-[10px] font-bold uppercase px-2 py-1 rounded-full bg-red-500/20 text-red-400">
-                      {item.type === 'roubo' ? 'Roubo/Furto' : item.type === 'suspeito' ? 'Atividade Suspeita' : item.type === 'vandalismo' ? 'Vandalismo' : 'Outro'}
+                      {item.visibility === 'group' ? '🔒 ' : ''}{item.type === 'roubo' ? 'Roubo/Furto' : item.type === 'suspeito' ? 'Atividade Suspeita' : item.type === 'vandalismo' ? 'Vandalismo' : 'Outro'}
                     </span>
                     <span className="text-xs text-slate-400 flex items-center gap-1 truncate">
                       <ShieldCheck size={12} />

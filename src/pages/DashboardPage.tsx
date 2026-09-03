@@ -3,7 +3,7 @@ import { TopBar } from '../components/TopBar';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Users, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
 import { db } from '../firebase';
-import { collection, query, onSnapshot, orderBy, limit, getCountFromServer } from 'firebase/firestore';
+import { collection, query, onSnapshot, orderBy, limit, getCountFromServer, where, getDocs } from 'firebase/firestore';
 import { handleFirestoreError, OperationType } from '../utils/firestoreErrorHandler';
 
 export function DashboardPage() {
@@ -13,49 +13,88 @@ export function DashboardPage() {
 
   useEffect(() => {
     // Fetch reports
-    const qReports = query(collection(db, 'reports'), orderBy('createdAt', 'desc'), limit(50));
-    const unsubscribeReports = onSnapshot(qReports, (snapshot) => {
-      const reportsData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...(doc.data() as any)
-      }));
-      setReports(reportsData);
-
-      // Simple aggregation for chart (mocking days based on real data if possible, otherwise just a count)
-      // For a real app, you'd group by date. Here we just show a static trend or simple grouping
-      const days = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-      const counts = [0, 0, 0, 0, 0, 0, 0];
-      
-      reportsData.forEach(r => {
-        if (r.createdAt) {
-          const date = r.createdAt.toDate();
-          counts[date.getDay()]++;
+    let unsubscribeReports = () => {};
+    const setupReportsListener = async () => {
+      let userGroupIds: string[] = [];
+      if (user) {
+        try {
+          const qGroups = query(collection(db, 'groups'), where('members', 'array-contains', user.uid));
+          const snap = await getDocs(qGroups);
+          userGroupIds = snap.docs.map(d => d.id);
+        } catch (e) {
+          console.error(e);
         }
-      });
-
-      const newChartData = days.map((day, index) => ({
-        name: day,
-        alertas: counts[index]
-      }));
-      
-      // If no data, show some placeholder trend so chart isn't empty
-      if (reportsData.length === 0) {
-        setChartData([
-          { name: 'Seg', alertas: 0 },
-          { name: 'Ter', alertas: 0 },
-          { name: 'Qua', alertas: 0 },
-          { name: 'Qui', alertas: 0 },
-          { name: 'Sex', alertas: 0 },
-          { name: 'Sáb', alertas: 0 },
-          { name: 'Dom', alertas: 0 },
-        ]);
-      } else {
-        setChartData(newChartData);
       }
+      
+      const qReports = query(collection(db, 'reports'), orderBy('createdAt', 'desc'), limit(50));
+      unsubscribeReports = onSnapshot(qReports, (snapshot) => {
+        let reportsData = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...(doc.data() as any)
+        }));
+        
+        // Filter reports
+        reportsData = reportsData.filter((r: any) => 
+          !r.visibility || 
+          r.visibility === 'public' || 
+          (r.visibility === 'group' && userGroupIds.includes(r.groupId)) ||
+          r.authorId === user?.uid
+        );
+        
+        setReports(reportsData);
 
-    }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, 'reports');
-    });
+        // Calculate chart data (last 7 days)
+        const days = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+        const today = new Date().getDay();
+        const orderedDays = [];
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date();
+          d.setDate(d.getDate() - i);
+          orderedDays.push(days[d.getDay()]);
+        }
+
+        const counts = [0, 0, 0, 0, 0, 0, 0];
+        
+        reportsData.forEach(r => {
+          if (r.createdAt && r.createdAt.toMillis) {
+            const date = new Date(r.createdAt.toMillis());
+            const now = new Date();
+            const diffTime = Math.abs(now.getTime() - date.getTime());
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+            
+            if (diffDays <= 7) {
+              const dayIndex = 6 - (diffDays - 1);
+              if (dayIndex >= 0 && dayIndex < 7) {
+                counts[dayIndex]++;
+              }
+            }
+          }
+        });
+
+        const newChartData = orderedDays.map((day, index) => ({
+          name: day,
+          alertas: counts[index]
+        }));
+        
+        // If no data, show some placeholder trend so chart isn't empty
+        if (reportsData.length === 0) {
+          setChartData([
+            { name: 'Seg', alertas: 0 },
+            { name: 'Ter', alertas: 0 },
+            { name: 'Qua', alertas: 0 },
+            { name: 'Qui', alertas: 0 },
+            { name: 'Sex', alertas: 0 },
+            { name: 'Sáb', alertas: 0 },
+            { name: 'Dom', alertas: 0 },
+          ]);
+        } else {
+          setChartData(newChartData);
+        }
+      }, (error) => {
+        handleFirestoreError(error, OperationType.LIST, 'reports');
+      });
+    };
+    setupReportsListener();
 
     // Fetch users count efficiently
     const fetchUsersCount = async () => {

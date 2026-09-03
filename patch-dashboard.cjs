@@ -1,5 +1,5 @@
 const fs = require('fs');
-let code = fs.readFileSync('src/pages/FeedPage.tsx', 'utf8');
+let code = fs.readFileSync('src/pages/DashboardPage.tsx', 'utf8');
 
 const newReportsBlock = `
     let unsubscribeReports = () => {};
@@ -15,11 +15,10 @@ const newReportsBlock = `
         }
       }
       
-      const qReports = query(collection(db, 'reports'), orderBy('createdAt', 'desc'), limit(100));
+      const qReports = query(collection(db, 'reports'), orderBy('createdAt', 'desc'), limit(50));
       unsubscribeReports = onSnapshot(qReports, (snapshot) => {
         let reportsData = snapshot.docs.map(doc => ({
           id: doc.id,
-          feedType: 'report',
           ...(doc.data() as any)
         }));
         
@@ -32,16 +31,14 @@ const newReportsBlock = `
         );
         
         setReports(reportsData);
-      }, (error) => {
-        handleFirestoreError(error, OperationType.LIST, 'reports');
       });
     };
     setupReportsListener();
 `;
 
 code = code.replace(
-  /const qReports = query\(collection\(db, 'reports'\), orderBy\('createdAt', 'desc'\), limit\(100\)\);[\s\S]*?\}\);/m,
+  /const qReports = query\(collection\(db, 'reports'\), orderBy\('createdAt', 'desc'\), limit\(50\)\);[\s\S]*?\}\);/m,
   newReportsBlock.trim()
 );
 
-fs.writeFileSync('src/pages/FeedPage.tsx', code);
+fs.writeFileSync('src/pages/DashboardPage.tsx', code);

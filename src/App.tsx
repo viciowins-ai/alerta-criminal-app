@@ -75,6 +75,11 @@ const PrivacySettingsPage = lazy(() =>
     default: module.PrivacySettingsPage,
   })),
 );
+const GroupsPage = lazy(() =>
+  import("./pages/GroupsPage").then((module) => ({
+    default: module.GroupsPage,
+  })),
+);
 const SecuritySettingsPage = lazy(() =>
   import("./pages/SecuritySettingsPage").then((module) => ({
     default: module.SecuritySettingsPage,
@@ -205,6 +210,7 @@ export default function App() {
               <Route path="/tips" element={<TipsPage />} />
               <Route path="/gamification" element={<GamificationPage />} />
               <Route path="/referral" element={<ReferralPage />} />
+              <Route path="/groups" element={<GroupsPage />} />
 
               <Route path="/settings" element={<SettingsPage />} />
               <Route
