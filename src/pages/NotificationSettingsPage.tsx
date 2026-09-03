@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { TopBar } from '../components/TopBar';
 import { useAuth } from '../contexts/AuthContext';
 import { db, messaging } from '../firebase';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, collection, addDoc } from 'firebase/firestore';
 import { getToken } from 'firebase/messaging';
 import { handleFirestoreError, OperationType } from '../utils/firestoreErrorHandler';
 import { useNavigate } from 'react-router-dom';
@@ -193,20 +193,19 @@ export function NotificationSettingsPage() {
                   alert("Você não tem um e-mail cadastrado.");
                   return;
                 }
-                try {
-                  const res = await fetch('/api/test-email', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ to: user.email, name: user.displayName || 'Usuário' })
+                                try {
+                  const mailRef = collection(db, 'mail');
+                  await addDoc(mailRef, {
+                    to: user.email,
+                    message: {
+                      subject: "Teste de Notificação - Alerta Criminal",
+                      text: "Olá!\n\nSua configuração de e-mail no Alerta Criminal está funcionando perfeitamente!\n\nFique seguro.",
+                      html: "<h2>Olá!</h2><p>Sua configuração de e-mail no Alerta Criminal está funcionando perfeitamente!</p><p>Fique seguro.</p>"
+                    }
                   });
-                  const data = await res.json();
-                  if (data.success) {
-                    alert("E-mail de teste enviado com sucesso! Verifique sua caixa de entrada.");
-                  } else {
-                    alert("Erro ao enviar e-mail: " + data.error);
-                  }
-                } catch (e) {
-                  alert("Erro ao conectar com o servidor.");
+                  alert("Comando de e-mail enviado para o Firebase com sucesso! Verifique sua caixa de entrada em instantes.");
+                } catch (e: any) {
+                  alert("Erro ao salvar o e-mail no Firebase: " + e.message);
                 }
               }}
               className="w-full bg-slate-800 border border-slate-700 text-slate-300 py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-slate-700 transition-colors"
@@ -229,20 +228,15 @@ export function NotificationSettingsPage() {
                 const phone = prompt("Digite seu número de WhatsApp com código do país (ex: +5511999999999):");
                 if (!phone) return;
                 
-                try {
-                  const res = await fetch('/api/test-whatsapp', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ to: phone, name: user?.displayName || 'Usuário' })
+                                try {
+                  const msgRef = collection(db, 'whatsapp_messages');
+                  await addDoc(msgRef, {
+                    to: phone,
+                    body: "Alerta Criminal: Sua configuracao de WhatsApp esta funcionando perfeitamente! Fique seguro."
                   });
-                  const data = await res.json();
-                  if (data.success) {
-                    alert("Mensagem de teste enviada com sucesso pro seu WhatsApp!");
-                  } else {
-                    alert("Erro ao enviar WhatsApp: " + data.error);
-                  }
-                } catch (e) {
-                  alert("Erro ao conectar com o servidor.");
+                  alert("Comando de WhatsApp enviado para o Firebase com sucesso!");
+                } catch (e: any) {
+                  alert("Erro ao salvar o WhatsApp no Firebase: " + e.message);
                 }
               }}
               className="w-full bg-[#25D366]/10 border border-[#25D366]/30 text-[#25D366] py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-[#25D366]/20 transition-colors"

@@ -317,6 +317,7 @@ export function ReportPage() {
               onMoveEnd={handleMoveEnd}
               mapStyle="mapbox://styles/mapbox/streets-v12"
               mapboxAccessToken={import.meta.env.VITE_MAPBOX_TOKEN}
+              onError={(e) => console.warn('Mapbox warning:', e.error?.message || e)}
             >
               {/* Custom User Location Marker */}
               {userLocation && (

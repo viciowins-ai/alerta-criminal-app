@@ -10,6 +10,13 @@ import "./index.css";
 import { registerSW } from "virtual:pwa-register";
 registerSW({ immediate: true });
 
+// Suppress Mapbox GL JS aborted fetch errors in React 18 Strict Mode
+window.addEventListener('unhandledrejection', (event) => {
+  if (event.reason && event.reason.message === 'Failed to fetch' && event.reason.stack?.includes('mapbox')) {
+    event.preventDefault();
+  }
+});
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <HelmetProvider>

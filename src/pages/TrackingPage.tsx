@@ -170,6 +170,7 @@ export function TrackingPage() {
         <Map
           ref={mapRef}
           mapboxAccessToken={MAPBOX_TOKEN}
+          onError={(e) => console.warn('Mapbox warning:', e.error?.message || e)}
           initialViewState={{
             longitude: displayLocation?.lng || location.lng,
             latitude: displayLocation?.lat || location.lat,
