@@ -3,7 +3,7 @@ import Map, { Source, Layer, Marker, MapRef } from 'react-map-gl/mapbox';
 import { Search, Filter, ShieldAlert, Navigation, Building2, Landmark, Coffee, Train, LocateFixed, X, AlertCircle, ThumbsUp, Moon, ShieldCheck, Share2, MapPin } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { db } from '../firebase';
-import { collection, query, onSnapshot, limit, orderBy, doc, updateDoc, arrayUnion, increment, addDoc, serverTimestamp, getDoc, getDocs, writeBatch } from 'firebase/firestore';
+import { collection, query, onSnapshot, limit, orderBy, doc, updateDoc, arrayUnion, increment, addDoc, serverTimestamp, getDoc, getDocs, writeBatch, where } from 'firebase/firestore';
 import { handleFirestoreError, OperationType } from '../utils/firestoreErrorHandler';
 import { useAuth } from '../contexts/AuthContext';
 import { SOSModal } from '../components/SOSModal';

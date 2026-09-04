@@ -3,10 +3,12 @@ import { TopBar } from '../components/TopBar';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Users, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
 import { db } from '../firebase';
+import { useAuth } from '../contexts/AuthContext';
 import { collection, query, onSnapshot, orderBy, limit, getCountFromServer, where, getDocs } from 'firebase/firestore';
 import { handleFirestoreError, OperationType } from '../utils/firestoreErrorHandler';
 
 export function DashboardPage() {
+  const { user } = useAuth();
   const [reports, setReports] = useState<any[]>([]);
   const [usersCount, setUsersCount] = useState(0);
   const [chartData, setChartData] = useState<any[]>([]);
