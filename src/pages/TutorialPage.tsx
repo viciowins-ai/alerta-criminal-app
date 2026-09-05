@@ -72,6 +72,22 @@ export function TutorialPage() {
               </div>
             </div>
 
+            {/* Aviso de Rastreamento */}
+            <div className="bg-orange-500/10 p-4 rounded-2xl border border-orange-500/30 flex gap-4 items-start">
+              <div className="bg-orange-500/20 p-2 rounded-lg shrink-0 mt-1">
+                <AlertTriangle size={20} className="text-orange-400" />
+              </div>
+              <div>
+                <h3 className="text-orange-400 font-semibold mb-2">Como manter o rastreio ativo?</h3>
+                <p className="text-sm text-slate-300 leading-relaxed mb-3">Para que o SOS e o Modo Guardião funcionem sem interrupções (já que o sistema do seu celular pode cortar o GPS), siga as 3 regras de ouro:</p>
+                <ul className="text-sm text-slate-300 space-y-3 list-decimal pl-4">
+                  <li><strong>Não minimize o app:</strong> Deixe-o aberto! O aplicativo impedirá que a tela desligue sozinha. Se precisar esconder, use a <strong>Camuflagem</strong>.</li>
+                  <li><strong>Localização Precisa:</strong> Garanta que a permissão de GPS esteja como "Sempre" ou "Durante o uso" com <strong>Alta Precisão</strong> ativada.</li>
+                  <li><strong>Economia de Energia:</strong> Evite o modo "Economia de Bateria" do celular, pois ele desliga a antena do GPS para poupar carga.</li>
+                </ul>
+              </div>
+            </div>
+
             {/* Grupos Privados */}
             <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
               <div className="bg-purple-500/20 p-2 rounded-lg shrink-0 mt-1">
