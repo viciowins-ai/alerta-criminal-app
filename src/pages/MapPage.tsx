@@ -669,7 +669,7 @@ export function MapPage() {
           <Marker longitude={userLocation.lng} latitude={userLocation.lat} anchor="center">
             <div className="relative flex items-center justify-center">
               <div className="absolute w-12 h-12 bg-blue-500/30 rounded-full animate-ping" />
-              <div className="relative w-5 h-5 bg-blue-500 border-[3px] border-white rounded-full shadow-[0_0_15px_rgba(59,130,246,0.8)]" />
+              <div className="relative w-4 h-4 bg-blue-500 border-[2px] border-white rounded-full shadow-[0_0_15px_rgba(59,130,246,0.8)]" />
             </div>
           </Marker>
         )}
@@ -714,7 +714,7 @@ export function MapPage() {
           aria-label="Meu Guardião"
           title="Meu Guardião (Acompanhamento)"
         >
-          <ShieldCheck size={24} />
+          <ShieldCheck size={20} />
         </button>
         <button 
           onClick={() => setIsPanicMode(true)}
@@ -730,7 +730,7 @@ export function MapPage() {
           className={`bg-red-600 text-white p-2 rounded-2xl shadow-lg border border-red-400/30 hover:bg-red-500 transition-all active:scale-95 flex flex-col items-center justify-center min-w-[52px] min-h-[52px] ${isSOSActive ? 'opacity-50 cursor-not-allowed' : 'animate-pulse'}`}
           aria-label="SOS Emergência"
         >
-          <ShieldAlert size={20} />
+          <ShieldAlert size={16} />
           <span className="text-[10px] font-black leading-none mt-1">S.O.S</span>
         </button>
         <button 

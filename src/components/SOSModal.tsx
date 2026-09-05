@@ -65,7 +65,7 @@ export function SOSModal({ isOpen, onClose, contacts, location, isRecordingAudio
           </button>
           
           <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-500/30">
-            <ShieldAlert size={32} className="text-red-500 animate-pulse" />
+            <ShieldAlert size={24} className="text-red-500 animate-pulse" />
           </div>
           <h2 className="text-2xl font-black text-white mb-2">SOS Registrado!</h2>
           <p className="text-slate-300 text-sm">

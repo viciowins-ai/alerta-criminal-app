@@ -228,7 +228,7 @@ export function GuardianModeOverlay({ isActive, onDeactivate, location }: Guardi
       <div className="fixed top-0 left-0 right-0 z-40 bg-blue-600 text-white p-3 shadow-lg flex items-center justify-between animate-in slide-in-from-top">
         <div className="flex items-center gap-3">
           <div className="relative">
-            <ShieldCheck size={24} className="text-white" />
+            <ShieldCheck size={20} className="text-white" />
             <span className="absolute -top-1 -right-1 flex h-3 w-3">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
               <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>

@@ -396,7 +396,7 @@ export function ReportPage() {
                 <Marker longitude={userLocation.lng} latitude={userLocation.lat} anchor="center">
                   <div className="relative flex items-center justify-center">
                     <div className="absolute w-12 h-12 bg-blue-500/30 rounded-full animate-ping" />
-                    <div className="relative w-5 h-5 bg-blue-500 border-[3px] border-white rounded-full shadow-[0_0_15px_rgba(59,130,246,0.8)]" />
+                    <div className="relative w-4 h-4 bg-blue-500 border-[2px] border-white rounded-full shadow-[0_0_15px_rgba(59,130,246,0.8)]" />
                   </div>
                 </Marker>
               )}
