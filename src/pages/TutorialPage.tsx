@@ -1,6 +1,6 @@
 import React from 'react';
 import { TopBar } from '../components/TopBar';
-import { Share2, Download, Smartphone, Monitor, ChevronRight, Map, AlertTriangle, ShieldAlert, Route, Users, Award, BookOpen, Plus } from 'lucide-react';
+import { ShieldCheck, Share2, Download, Smartphone, Monitor, ChevronRight, Map, AlertTriangle, ShieldAlert, Route, Users, Award, BookOpen, Plus, ShieldCheck } from 'lucide-react';
 
 export function TutorialPage() {
   return (
@@ -57,6 +57,29 @@ export function TutorialPage() {
                   <li>Permite compartilhar rapidamente o link com seus Contatos de Confiança via WhatsApp.</li>
                   <li>Oferece um atalho para ligação imediata para a Polícia (190).</li>
                 </ul>
+              </div>
+            </div>
+
+            {/* Modo Guardião */}
+            <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
+              <div className="bg-blue-500/20 p-2 rounded-lg shrink-0 mt-1">
+                <ShieldCheck size={20} className="text-blue-400" />
+              </div>
+              <div>
+                <h3 className="text-white font-semibold mb-1">Modo Guardião & Camuflagem</h3>
+                <p className="text-sm text-slate-400 leading-relaxed mb-2">Acesse pelo menu lateral. O Modo Guardião rastreia sua localização em tempo real e a compartilha com seus <strong>Contatos de Confiança</strong>.</p>
+                <p className="text-sm text-slate-400 leading-relaxed"><strong>Camuflagem de Tela:</strong> Durante o uso, você pode ativar a camuflagem (que deixa o app com aparência de página de busca do Google) para despistar olhares suspeitos. Pressione a tela por 2 segundos para destrancar.</p>
+              </div>
+            </div>
+
+            {/* Grupos Privados */}
+            <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
+              <div className="bg-purple-500/20 p-2 rounded-lg shrink-0 mt-1">
+                <Users size={20} className="text-purple-400" />
+              </div>
+              <div>
+                <h3 className="text-white font-semibold mb-1">Grupos Privados</h3>
+                <p className="text-sm text-slate-400 leading-relaxed">Disponível na aba "Perfil". Crie um grupo criptografado e fechado para a sua rua, vizinhança ou condomínio. Alertas enviados de forma restrita <strong>só podem ser vistos pelos seus membros</strong>, garantindo total privacidade.</p>
               </div>
             </div>
 
