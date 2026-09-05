@@ -116,6 +116,21 @@ export function ComoUsarPage({ lang = "pt" }: { lang?: string }) {
             />
           </section>
 
+          <section className="bg-orange-500/10 rounded-3xl p-6 sm:p-8 border border-orange-500/30 shadow-xl">
+            <h2 className="text-xl sm:text-2xl font-bold text-orange-400 mb-4 flex items-center gap-3">
+              {t("tutorial.trackingTitle")}
+            </h2>
+            <p
+              className="text-slate-300 leading-relaxed mb-4"
+              dangerouslySetInnerHTML={{ __html: t("tutorial.trackingDesc") }}
+            />
+            <ul className="text-slate-300 space-y-4 list-decimal list-inside pl-2">
+              <li dangerouslySetInnerHTML={{ __html: t("tutorial.trackingL1") }} />
+              <li dangerouslySetInnerHTML={{ __html: t("tutorial.trackingL2") }} />
+              <li dangerouslySetInnerHTML={{ __html: t("tutorial.trackingL3") }} />
+            </ul>
+          </section>
+
           <section className="bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-800 shadow-xl">
             <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-3">
               {t("tutorial.panicTitle")}
