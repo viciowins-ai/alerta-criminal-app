@@ -552,7 +552,7 @@ export function ReportPage() {
             
             {visibility === 'group' && (
               <div className="mt-3">
-                <p className="text-xs text-slate-400 mb-2">Selecione o grupo que receberá este alerta:</p>
+                <p className="text-xs text-slate-400 mb-2">Selecione o grupo privado que receberá este alerta:</p>
                 <select 
                   value={selectedGroupId}
                   onChange={(e) => setSelectedGroupId(e.target.value)}

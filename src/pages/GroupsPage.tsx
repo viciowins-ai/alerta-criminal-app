@@ -59,7 +59,7 @@ export function GroupsPage() {
       fetchGroups();
     } catch (err) {
       console.error("Error creating group", err);
-      alert(`Erro ao criar o grupo. Tente novamente. Detalhes: ${err.message || err}`);
+      alert(`Erro ao criar o grupo privado. Tente novamente. Detalhes: ${err.message || err}`);
     }
   };
 
@@ -74,7 +74,7 @@ export function GroupsPage() {
       const querySnapshot = await getDocs(q);
       
       if (querySnapshot.empty) {
-        alert("Código de convite inválido ou grupo não encontrado.");
+        alert("Código de convite inválido ou grupo privado não encontrado.");
         return;
       }
       
@@ -82,7 +82,7 @@ export function GroupsPage() {
       const groupData = groupDoc.data();
       
       if (groupData.members.includes(user.uid)) {
-        alert("Você já faz parte deste grupo!");
+        alert("Você já faz parte deste grupo privado!");
         return;
       }
       
@@ -93,16 +93,16 @@ export function GroupsPage() {
       setJoinCode('');
       setIsJoining(false);
       fetchGroups();
-      alert(`Você entrou no grupo: ${groupData.name}`);
+      alert(`Você entrou no grupo privado: ${groupData.name}`);
     } catch (err) {
       console.error("Error joining group", err);
-      alert("Erro ao entrar no grupo. Tente novamente.");
+      alert("Erro ao entrar no grupo privado. Tente novamente.");
     }
   };
 
   const handleLeaveGroup = async (groupId: string, groupName: string) => {
     if (!user) return;
-    if (confirm(`Tem certeza que deseja sair do grupo "${groupName}"?`)) {
+    if (confirm(`Tem certeza que deseja sair do grupo privado "${groupName}"?`)) {
       try {
         await updateDoc(doc(db, 'groups', groupId), {
           members: arrayRemove(user.uid)
@@ -110,7 +110,7 @@ export function GroupsPage() {
         fetchGroups();
       } catch (err) {
         console.error("Error leaving group", err);
-        alert("Erro ao sair do grupo.");
+        alert("Erro ao sair do grupo privado.");
       }
     }
   };
@@ -139,7 +139,7 @@ export function GroupsPage() {
             className="flex-1 bg-blue-600 hover:bg-blue-700 text-white rounded-xl py-3 px-4 flex items-center justify-center gap-2 font-medium transition-colors"
           >
             <Plus size={18} />
-            Criar Grupo
+            Criar Grupo Privado
           </button>
           <button 
             onClick={() => { setIsJoining(true); setIsCreating(false); }}
@@ -152,7 +152,7 @@ export function GroupsPage() {
 
         {isCreating && (
           <form onSubmit={handleCreateGroup} className="bg-slate-800 p-4 rounded-xl border border-slate-700 mb-8 animate-in fade-in slide-in-from-top-4">
-            <h3 className="text-white font-bold mb-3">Criar Novo Grupo</h3>
+            <h3 className="text-white font-bold mb-3">Criar Novo Grupo Privado</h3>
             <input 
               type="text" 
               value={newGroupName}
@@ -189,7 +189,7 @@ export function GroupsPage() {
 
         <h3 className="text-white font-bold mb-4 flex items-center gap-2">
           <Shield size={18} className="text-blue-500" />
-          Seus Grupos
+          Seus Grupos Privados
         </h3>
 
         {loading ? (
@@ -200,7 +200,7 @@ export function GroupsPage() {
           <div className="bg-slate-800/50 rounded-xl p-8 text-center border border-slate-700/50">
             <Users size={48} className="text-slate-600 mx-auto mb-4" />
             <p className="text-slate-400 font-medium">Você ainda não faz parte de nenhuma rede privada.</p>
-            <p className="text-slate-500 text-sm mt-2">Crie um grupo ou peça um código de convite para um vizinho.</p>
+            <p className="text-slate-500 text-sm mt-2">Crie um grupo privado ou peça um código de convite para um vizinho.</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -237,7 +237,7 @@ export function GroupsPage() {
                       onClick={() => handleLeaveGroup(group.id, group.name)}
                       className="text-red-400 hover:text-red-300 text-xs font-medium flex items-center gap-1"
                     >
-                      <LogOut size={14} /> Sair do Grupo
+                      <LogOut size={14} /> Sair do Grupo Privado
                     </button>
                   </div>
                 </div>
