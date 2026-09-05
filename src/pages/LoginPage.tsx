@@ -67,9 +67,9 @@ export function LoginPage() {
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-slate-950/20"></div>
       </div>
 
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-end max-w-sm mx-auto w-full pb-16 pt-8 animate-in fade-in slide-in-from-bottom-8 duration-1000">
-        <Logo className="w-48 h-48 mb-6" />
-        <p className="text-slate-200 text-center mb-8 text-sm leading-relaxed font-medium drop-shadow-md">
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-end max-w-sm mx-auto w-full pb-6 pt-8 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+        <Logo className="w-48 h-48 mb-4" />
+        <p className="text-slate-200 text-center mb-6 text-sm leading-relaxed font-medium drop-shadow-md">
           Sua comunidade mais segura. Junte-se a milhares de guardiões.
         </p>
 
@@ -87,7 +87,7 @@ export function LoginPage() {
           </div>
         )}
 
-        <div className="w-full mt-4 flex flex-col items-center gap-4">
+        <div className="w-full mt-2 flex flex-col items-center gap-4">
           <button
             type="button"
             onClick={handleGoogleLogin}
@@ -121,7 +121,7 @@ export function LoginPage() {
             )}
           </button>
           
-          <p className="mt-6 text-xs text-slate-200 text-center max-w-[250px] drop-shadow-lg font-medium">
+          <p className="mt-4 text-xs text-slate-200 text-center max-w-[250px] drop-shadow-lg font-medium">
             Ao continuar, você concorda com nossos Termos de Serviço e Política de Privacidade.
           </p>
         </div>
