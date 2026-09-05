@@ -36,6 +36,8 @@
     "installIos": "<strong>En iPhone (Safari):</strong> Toca el icono de Compartir y selecciona \"Agregar a la Pantalla de Inicio\".",
     "shareTitle": "📤 ¿Cómo compartir Alerta Criminal?",
     "shareDesc": "¡Ayuda a tu calle a protegerse! Solo copia el enlace <code>https://alertacriminal.com.br/</code> y envíalo en grupos de WhatsApp o en Facebook. Al pegar en WhatsApp, espera 3 segundos para que se cargue la miniatura oficial con el Escudo antes de enviar.",
-    "footer": "© {{year}} Alerta Criminal. Todos los derechos reservados."
+    "footer": "© {{year}} Alerta Criminal. Todos los derechos reservados.",
+    "groupsTitle": "👥 ¿Cómo funcionan los Grupos Privados (Redes de Vecinos)?",
+    "groupsDesc": "Crea o únete a Redes Privadas con tus vecinos o familiares. Al reportar un incidente, puedes elegir si será <strong>Público</strong> (visible para todos en la aplicación) o <strong>Privado</strong> (restringido solo a los miembros de tu grupo). Las alertas privadas aparecen en el mapa con un icono de candado (🔒)."
   }
 }

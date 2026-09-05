@@ -36,6 +36,8 @@
     "installIos": "<strong>On iPhone (Safari):</strong> Tap the Share icon and select \"Add to Home Screen\".",
     "shareTitle": "📤 How to share Criminal Alert?",
     "shareDesc": "Help your street protect itself! Just copy the link <code>https://alertacriminal.com.br/</code> and send it to WhatsApp groups or Facebook. When pasting on WhatsApp, wait 3 seconds for the official thumbnail with the Shield to load before sending.",
-    "footer": "© {{year}} Criminal Alert. All rights reserved."
+    "footer": "© {{year}} Criminal Alert. All rights reserved.",
+    "groupsTitle": "👥 How do Private Groups (Neighbor Networks) work?",
+    "groupsDesc": "Create or join Private Networks with your neighbors or family. When reporting an incident, you can choose if it will be <strong>Public</strong> (visible to everyone in the app) or <strong>Private</strong> (restricted only to your group members). Private alerts appear on the map with a padlock icon (🔒)."
   }
 }
