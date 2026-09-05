@@ -123,7 +123,7 @@ export function GroupsPage() {
 
   return (
     <div className="flex flex-col h-full bg-slate-900">
-      <TopBar title="Redes de Vizinhos" showBack />
+      <TopBar title="Grupos Privados" showBack />
       
       <div className="flex-1 overflow-y-auto p-4 pb-20">
         <div className="mb-6">

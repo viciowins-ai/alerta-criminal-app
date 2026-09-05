@@ -39,7 +39,7 @@ export function ProfilePage() {
   const menuItems = [
     { icon: <BookOpen className="text-blue-500" />, label: 'Como Usar o App', path: '/como-usar' },
     { icon: <Star className="text-yellow-400 fill-yellow-400" />, label: 'Avaliar Aplicativo', path: '/help/feedback' },
-    { icon: <Users className="text-indigo-500" />, label: 'Redes de Vizinhos', path: '/groups' },
+    { icon: <Users className="text-indigo-500" />, label: 'Grupos Privados', path: '/groups' },
     { icon: <Award className="text-yellow-500" />, label: 'Meu Nível de Contribuição', path: '/gamification', badge: levelInfo.badge },
     { icon: <Users className="text-green-500" />, label: 'Indique e Ganhe', path: '/referral' },
     { icon: <Shield className="text-red-500" />, label: 'Contatos de Confiança', path: '/trusted-contacts' },
