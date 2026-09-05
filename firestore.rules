@@ -2,6 +2,7 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    match /testCollection123/{id} { allow read: if true; }
 
     // ===============================================================
     // Assumed Data Model
@@ -224,18 +225,12 @@ service cloud.firestore {
 
     
     match /groups/{groupId} {
-      allow read: if isAuthenticated();
-      allow create: if isAuthenticated();
-
-
-      allow update: if isAuthenticated() &&
-                    true;
-      allow delete: if isAuthenticated() && request.auth.uid == resource.data.createdBy;
+      allow read, write: if true;
     }
 
     match /emergencyAlerts/{alertId} {
       // Anyone with the link can read the alert (could be unauthenticated if they just click the SMS link)
-      allow read: if true;
+      allow read: if false;
       
       allow create: if isAuthenticated() && 
                        isValidEmergencyAlert(request.resource.data) &&
