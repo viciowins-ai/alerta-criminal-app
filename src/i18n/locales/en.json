@@ -17,7 +17,7 @@
     "guardianDesc": "Ideal for when you are walking alone, in a ride-share car, or feeling unsafe. When activated, Criminal Alert continuously monitors your location. If you do not confirm that you arrived safely at your destination after the stipulated time, the app sends an automatic alert to your trusted contacts.",
     "trackingTitle": "⚠️ How to keep tracking active?",
     "trackingDesc": "For SOS and My Guardian to work without interruptions (since your phone's OS might cut GPS to save battery), follow the 3 golden rules:",
-    "trackingL1": "<strong>Do not minimize the app:</strong> Leave it open on the screen. The app will prevent the screen from turning off. If you need to hide it, use <strong>Camouflage</strong>.",
+    "trackingL1": "<strong>Do not minimize the app:</strong> Leave it open on the screen. The app will prevent the screen from turning off. If you need to hide it, tap the <strong>Camouflage (slashed eye)</strong> button to turn the screen into a fake Google search while keeping GPS active. Press and hold the screen for 2 seconds to unlock.",
     "trackingL2": "<strong>Precise Location:</strong> Ensure GPS permission is set to \"Always\" or \"While using\" with <strong>High Accuracy</strong> enabled.",
     "trackingL3": "<strong>Battery Saver:</strong> Avoid turning on the phone's \"Battery Saver\" mode, as it turns off the GPS antenna.",
     "panicTitle": "🌙 How to activate Panic Mode?",

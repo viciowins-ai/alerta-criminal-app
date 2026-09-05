@@ -17,7 +17,7 @@
     "guardianDesc": "Ideal para cuando caminas solo, en un coche de aplicación o te sientes inseguro. Al activarlo, Alerta Criminal monitorea continuamente tu ubicación. Si no confirmas que llegaste a salvo a tu destino después del tiempo estipulado, la aplicación envía una alerta automática a tus contactos de confianza.",
     "trackingTitle": "⚠️ ¿Cómo mantener activo el rastreo?",
     "trackingDesc": "Para que el SOS y Mi Guardián funcionen sin interrupciones (ya que el sistema de tu teléfono puede cortar el GPS para ahorrar batería), sigue las 3 reglas de oro:",
-    "trackingL1": "<strong>No minimices la app:</strong> Déjala abierta en la pantalla. La aplicación evitará que la pantalla se apague sola. Si necesitas ocultarla, usa el <strong>Camuflaje</strong>.",
+    "trackingL1": "<strong>No minimices la app:</strong> Déjala abierta en la pantalla. La aplicación evitará que la pantalla se apague sola. Si necesitas ocultarla, toca el botón <strong>Camuflaje (ojo tachado)</strong> para convertir la pantalla en una búsqueda falsa de Google, manteniendo el GPS activo. Mantén presionada la pantalla por 2 segundos para desbloquear.",
     "trackingL2": "<strong>Ubicación Precisa:</strong> Asegúrate de que el permiso de GPS esté en \"Siempre\" o \"Al usar\" con <strong>Alta Precisión</strong> activada.",
     "trackingL3": "<strong>Ahorro de Batería:</strong> Evita activar el modo \"Ahorro de Batería\" del teléfono, ya que apaga la antena GPS.",
     "panicTitle": "🌙 ¿Cómo activar el Modo Pánico?",
