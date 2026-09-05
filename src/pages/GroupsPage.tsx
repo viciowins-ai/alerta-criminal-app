@@ -44,19 +44,22 @@ export function GroupsPage() {
     const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
     
     try {
-      await addDoc(collection(db, 'groups'), {
+      const payload = {
         name: newGroupName.trim(),
         inviteCode,
         createdBy: user.uid,
         members: [user.uid],
+        // @ts-ignore
         createdAt: serverTimestamp()
-      });
+      };
+      // console.log('Creating group payload:', payload);
+      await addDoc(collection(db, 'groups'), payload);
       setNewGroupName('');
       setIsCreating(false);
       fetchGroups();
     } catch (err) {
       console.error("Error creating group", err);
-      alert("Erro ao criar o grupo. Tente novamente.");
+      alert(`Erro ao criar o grupo. Tente novamente. Detalhes: ${err.message || err}`);
     }
   };
 

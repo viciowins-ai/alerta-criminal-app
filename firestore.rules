@@ -226,8 +226,11 @@ service cloud.firestore {
     match /groups/{groupId} {
       allow read: if isAuthenticated();
       allow create: if isAuthenticated();
-      allow update: if isAuthenticated();
-      allow delete: if isAuthenticated();
+
+
+      allow update: if isAuthenticated() &&
+                    true;
+      allow delete: if isAuthenticated() && request.auth.uid == resource.data.createdBy;
     }
 
     match /emergencyAlerts/{alertId} {

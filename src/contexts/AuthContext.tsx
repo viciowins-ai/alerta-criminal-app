@@ -12,6 +12,7 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType>({
+  // @ts-ignore
   user: null,
   loading: true,
   termsAccepted: null,
@@ -112,6 +113,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await firebaseSignOut(auth);
   };
 
+  // DEBUG: console.log('Auth State:', user);
   return (
     <AuthContext.Provider value={{ user, loading, termsAccepted, signOut }}>
       {children}
