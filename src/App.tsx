@@ -207,6 +207,7 @@ export default function App() {
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/route" element={<RoutePage />} />
 
+              <Route path="/tutorial" element={<TutorialPage />} />
               <Route path="/tips" element={<TipsPage />} />
               <Route path="/gamification" element={<GamificationPage />} />
               <Route path="/referral" element={<ReferralPage />} />

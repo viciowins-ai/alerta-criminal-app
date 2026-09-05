@@ -27,7 +27,7 @@ export function HelpPage() {
         </div>
 
         <div className="bg-slate-800 rounded-3xl shadow-sm border border-slate-700 overflow-hidden">
-          <HelpItem icon={<BookOpen size={20} className="text-yellow-500" />} label="Como Usar o App" onClick={() => navigate('/como-usar')} />
+          <HelpItem icon={<BookOpen size={20} className="text-yellow-500" />} label="Tutorial Visual (Botões e Mapa)" onClick={() => navigate('/tutorial')} />
           <HelpItem icon={<Star size={20} className="text-yellow-400 fill-yellow-400" />} label="Avaliar Aplicativo" onClick={() => navigate('/help/feedback')} />
           <HelpItem icon={<MessageCircle size={20} className="text-blue-500" />} label="Falar com Suporte" onClick={() => navigate('/help/support')} />
           <HelpItem icon={<FileText size={20} className="text-green-500" />} label="Perguntas Frequentes (FAQ)" onClick={() => navigate('/help/faq')} />
