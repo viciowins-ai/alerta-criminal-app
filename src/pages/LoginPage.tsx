@@ -48,7 +48,7 @@ export function LoginPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-slate-950 p-6 relative overflow-hidden">
+    <div className="flex flex-col min-h-screen bg-slate-950 px-6 pb-2 pt-6 relative overflow-hidden">
       {/* Video Background Layer */}
       <div className="absolute inset-0 z-0 overflow-hidden bg-slate-950">
         <video
@@ -67,9 +67,9 @@ export function LoginPage() {
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-slate-950/20"></div>
       </div>
 
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-end max-w-sm mx-auto w-full pb-6 pt-8 animate-in fade-in slide-in-from-bottom-8 duration-1000">
-        <Logo className="w-48 h-48 mb-4" />
-        <p className="text-slate-200 text-center mb-6 text-sm leading-relaxed font-medium drop-shadow-md">
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-end max-w-sm mx-auto w-full pb-0 pt-8 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+        <Logo className="w-32 h-32 mb-1" />
+        <p className="text-slate-200 text-center mb-3 text-sm leading-relaxed font-medium drop-shadow-md">
           Sua comunidade mais segura. Junte-se a milhares de guardiões.
         </p>
 
@@ -87,12 +87,12 @@ export function LoginPage() {
           </div>
         )}
 
-        <div className="w-full mt-2 flex flex-col items-center gap-4">
+        <div className="w-full mt-0 flex flex-col items-center gap-3">
           <button
             type="button"
             onClick={handleGoogleLogin}
             disabled={loading}
-            className="w-full py-4 rounded-2xl font-bold text-slate-700 bg-white hover:bg-slate-50 transition-all flex items-center justify-center gap-3 active:scale-[0.98] shadow-lg"
+            className="w-full py-3.5 rounded-2xl font-bold text-slate-700 bg-white hover:bg-slate-50 transition-all flex items-center justify-center gap-3 active:scale-[0.98] shadow-lg"
           >
             {loading ? (
               <div className="w-6 h-6 border-2 border-slate-300 border-t-blue-600 rounded-full animate-spin" />
@@ -121,7 +121,7 @@ export function LoginPage() {
             )}
           </button>
           
-          <p className="mt-4 text-xs text-slate-200 text-center max-w-[250px] drop-shadow-lg font-medium">
+          <p className="mt-2 text-[10px] leading-tight text-slate-300 text-center max-w-[250px] drop-shadow-lg font-medium">
             Ao continuar, você concorda com nossos Termos de Serviço e Política de Privacidade.
           </p>
         </div>
