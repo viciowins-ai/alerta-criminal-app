@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { TopBar } from '../components/TopBar';
-import { MessageSquare, Heart, Share2, MoreHorizontal, AlertTriangle, ShieldCheck, Send, MapPin, Users } from 'lucide-react';
+import { MessageSquare, Heart, Share2, MoreHorizontal, AlertTriangle, ShieldCheck, Send, MapPin, Users, Play } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
 import { collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, doc, getDoc, setDoc, deleteDoc, updateDoc, increment, where, limit, writeBatch, getDocs } from 'firebase/firestore';
