@@ -107,41 +107,63 @@ export function ReportPage() {
   const mapRef = useRef<MapRef>(null);
   const [hasInitialLocation, setHasInitialLocation] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
+  const userHasDragged = useRef(false);
 
-  const requestLocation = useCallback(() => {
-    setIsLocating(true);
-    setAddress('Buscando localização...');
+  useEffect(() => {
+    let watchId: number;
     if ('geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition(
+      watchId = navigator.geolocation.watchPosition(
         (position) => {
           const { longitude, latitude } = position.coords;
           setUserLocation({ lng: longitude, lat: latitude });
-          setReportLocation({ longitude, latitude });
-          setHasInitialLocation(true);
-          mapRef.current?.flyTo({ center: [longitude, latitude], zoom: 16, duration: 2000 });
-          fetchAddress(longitude, latitude);
-          setIsLocating(false);
-        }, 
-        (error) => {
-          console.warn(`Error getting location ${error.code}: ${error.message}`);
-          let errorMsg = 'Não foi possível obter sua localização.';
-          if (error.code === 1) errorMsg = 'Permissão de GPS negada.';
-          if (error.code === 2) errorMsg = 'Sinal de GPS indisponível.';
-          if (error.code === 3) errorMsg = 'Tempo limite ao buscar GPS.';
-          setAddress(errorMsg);
-          setIsLocating(false);
+          
+          if (!userHasDragged.current) {
+             setReportLocation({ longitude, latitude });
+             mapRef.current?.flyTo({ center: [longitude, latitude], zoom: 16, duration: 1000 });
+             fetchAddress(longitude, latitude);
+          }
         },
-        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+        (error) => {
+          console.warn(`Watch position error:`, error);
+        },
+        { enableHighAccuracy: true, maximumAge: 5000 }
       );
-    } else {
-      setAddress('Geolocalização não suportada pelo navegador.');
-      setIsLocating(false);
     }
+    return () => {
+      if (watchId) navigator.geolocation.clearWatch(watchId);
+    };
   }, []);
 
-  useEffect(() => {
-    requestLocation();
-  }, [requestLocation]);
+  const requestLocation = useCallback(() => {
+    if (userLocation) {
+      userHasDragged.current = false;
+      setReportLocation({ longitude: userLocation.lng, latitude: userLocation.lat });
+      mapRef.current?.flyTo({ center: [userLocation.lng, userLocation.lat], zoom: 16, duration: 1000 });
+      fetchAddress(userLocation.lng, userLocation.lat);
+    } else {
+      setIsLocating(true);
+      setAddress('Buscando localização...');
+      if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const { longitude, latitude } = position.coords;
+            setUserLocation({ lng: longitude, lat: latitude });
+            setReportLocation({ longitude, latitude });
+            userHasDragged.current = false;
+            mapRef.current?.flyTo({ center: [longitude, latitude], zoom: 16, duration: 1000 });
+            fetchAddress(longitude, latitude);
+            setIsLocating(false);
+          }, 
+          (error) => {
+            console.warn(`Error getting location ${error.code}: ${error.message}`);
+            setAddress('Não foi possível obter sua localização.');
+            setIsLocating(false);
+          },
+          { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+        );
+      }
+    }
+  }, [userLocation]);
 
   const fetchAddress = async (lng: number, lat: number) => {
     try {
@@ -162,6 +184,7 @@ export function ReportPage() {
 
   const handleMoveStart = useCallback(() => {
     setIsDragging(true);
+    userHasDragged.current = true;
   }, []);
 
   const handleMoveEnd = useCallback((evt: ViewStateChangeEvent) => {
@@ -384,6 +407,11 @@ export function ReportPage() {
                 zoom: 16,
                 pitch: 0,
                 bearing: 0
+              }}
+              onLoad={() => {
+                if (userLocation) {
+                  mapRef.current?.flyTo({ center: [userLocation.lng, userLocation.lat], zoom: 16, duration: 0 });
+                }
               }}
               onMoveStart={handleMoveStart}
               onMoveEnd={handleMoveEnd}
