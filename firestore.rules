@@ -25,36 +25,209 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function areImmutableFieldsUnchanged(fields) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasNone(fields);
+    }
+    
+    function isValidUser(data) {
+      return hasRequiredFields(['uid', 'email', 'name', 'level', 'points', 'createdAt']) &&
+             data.uid is string &&
+             data.email is string &&
+             data.name is string &&
+             data.level is string &&
+             data.points is number && data.points >= 0 &&
+             data.createdAt is timestamp &&
+             (!('role' in data) || data.role in ['user', 'admin', 'moderator']) &&
+             (!('avatar' in data) || data.avatar is string) &&
+             (!('phone' in data) || data.phone is string) &&
+             (!('trustedContacts' in data) || (data.trustedContacts is list && data.trustedContacts.size() <= 5)) &&
+             (!('notificationSettings' in data) || data.notificationSettings is map) &&
+             (!('privacySettings' in data) || data.privacySettings is map) &&
+             (!('isPremium' in data) || data.isPremium is bool) &&
+             (!('fcmToken' in data) || data.fcmToken is string) &&
+             (!('termsAccepted' in data) || data.termsAccepted is bool) &&
+             (!('termsAcceptedAt' in data) || data.termsAcceptedAt is string);
+    }
+
+    function isValidReport(data) {
+      return hasRequiredFields(['authorId', 'type', 'location', 'status', 'createdAt']) &&
+             data.authorId is string &&
+             data.type in ['police', 'accident', 'danger', 'traffic', 'other', 'roubo', 'suspeito', 'vandalismo', 'outro'] &&
+             (!('description' in data) || (data.description is string && data.description.size() <= 2000)) &&
+             data.location is map && data.location.keys().hasAll(['lat', 'lng']) &&
+             data.location.lat is number && data.location.lng is number &&
+             (!('address' in data.location) || (data.location.address is string && data.location.address.size() < 500)) &&
+             (!('attachments' in data) || (data.attachments is list && data.attachments.size() <= 5)) &&
+             data.status in ['pending', 'verified', 'false_alert', 'false_alarm'] &&
+             (!('upvotes' in data) || (data.upvotes is number && data.upvotes >= 0)) &&
+             (!('upvotedBy' in data) || (data.upvotedBy is list && data.upvotedBy.size() <= 10000)) &&
+             data.createdAt is timestamp &&
+             (!('visibility' in data) || data.visibility in ['public', 'group']) &&
+             (!('groupId' in data) || data.groupId == null || data.groupId is string) &&
+             (!('groupName' in data) || data.groupName == null || data.groupName is string) &&
+             (!('isAnonymous' in data) || data.isAnonymous is bool) &&
+             (!('authorName' in data) || data.authorName is string) &&
+             (!('authorAvatar' in data) || data.authorAvatar is string) &&
+             (!('authorLevel' in data) || data.authorLevel is string) &&
+             (!('verified' in data) || data.verified is bool);
+    }
+
+    function isValidPost(data) {
+      return hasRequiredFields(['authorId', 'authorName', 'type', 'content', 'location', 'likesCount', 'commentsCount', 'verified', 'createdAt']) &&
+             data.authorId is string &&
+             data.authorName is string &&
+             (!('authorAvatar' in data) || data.authorAvatar is string) &&
+             (!('authorLevel' in data) || data.authorLevel is string) &&
+             data.type in ['alert', 'news', 'discussion', 'other'] &&
+             data.content is string && data.content.size() > 0 && data.content.size() <= 5000 &&
+             data.location is map && data.location.keys().hasAll(['lat', 'lng']) &&
+             data.location.lat is number && data.location.lng is number &&
+             data.likesCount is number && data.likesCount >= 0 &&
+             data.commentsCount is number && data.commentsCount >= 0 &&
+             data.verified is bool &&
+             data.createdAt is timestamp;
+    }
+    
+    function isValidGuardianSession(data) {
+      return hasRequiredFields(['userId', 'userName', 'location', 'isActive', 'createdAt', 'updatedAt']) &&
+             data.userId is string &&
+             data.userName is string && data.userName.size() > 0 && data.userName.size() < 200 &&
+             data.location is map && data.location.keys().hasAll(['lat', 'lng']) &&
+             data.location.lat is number && data.location.lng is number &&
+             data.isActive is bool &&
+             data.createdAt is timestamp &&
+             data.updatedAt is timestamp;
+    }
+    
+    function isValidLike(data) {
+      return hasRequiredFields(['postId', 'userId', 'createdAt']) &&
+             data.postId is string &&
+             data.userId is string &&
+             data.createdAt is timestamp;
+    }
+
     // ===============================================================
     // Rules
     // ===============================================================
 
     match /users/{userId} {
       allow read: if isOwner(userId) || isAdmin();
-      allow create: if isOwner(userId);
-      allow update: if isOwner(userId) || isAdmin();
-      allow delete: if isAdmin();
+      
+      allow create: if isOwner(userId) &&
+                       isValidUser(request.resource.data) &&
+                       request.resource.data.uid == userId &&
+                       (!('role' in request.resource.data) || request.resource.data.role == 'user' || isAdmin());
+                       
+      function isPointsIncrementValid() {
+        let oldPoints = ('points' in resource.data) ? resource.data.points : 0;
+        let newPoints = ('points' in request.resource.data) ? request.resource.data.points : 0;
+        return newPoints == oldPoints + 10 || newPoints == oldPoints + 2 || newPoints == oldPoints - 2;
+      }
+      
+      allow update: if (isOwner(userId) && 
+                        isValidUser(request.resource.data) && 
+                        (!('uid' in resource.data) || areImmutableFieldsUnchanged(['uid'])) &&
+                        (!('createdAt' in resource.data) || areImmutableFieldsUnchanged(['createdAt'])) &&
+                        (!('role' in resource.data) || areImmutableFieldsUnchanged(['role'])) &&
+                        (!('level' in resource.data) || areImmutableFieldsUnchanged(['level'])) &&
+                        (!('points' in resource.data) || areImmutableFieldsUnchanged(['points']) || isPointsIncrementValid())
+                       ) || 
+                       (isAuthenticated() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['points']) && isPointsIncrementValid()) ||
+                       (isAdmin() && isValidUser(request.resource.data) && (areImmutableFieldsUnchanged(['uid']) || (!('uid' in resource.data))) && (areImmutableFieldsUnchanged(['createdAt']) || (!('createdAt' in resource.data))));
+                       
+      allow delete: if isAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid);
     }
 
     match /reports/{reportId} {
       allow read: if isAuthenticated();
-      allow create: if isAuthenticated();
-      allow update: if isDocOwner() || isAdmin() || isAuthenticated();
+      
+      allow create: if isAuthenticated() &&
+                       isValidReport(request.resource.data) &&
+                       request.resource.data.authorId == request.auth.uid &&
+                       request.resource.data.status == 'pending' &&
+                       (!('upvotes' in request.resource.data) || request.resource.data.upvotes == 0) &&
+                       (!('upvotedBy' in request.resource.data) || request.resource.data.upvotedBy.size() == 0);
+                       
+      function isValidReportUpvote() {
+        let oldUpvotes = ('upvotes' in resource.data) ? resource.data.upvotes : 0;
+        let newUpvotes = ('upvotes' in request.resource.data) ? request.resource.data.upvotes : 0;
+        let oldUpvotedBy = ('upvotedBy' in resource.data) ? resource.data.upvotedBy : [];
+        let newUpvotedBy = ('upvotedBy' in request.resource.data) ? request.resource.data.upvotedBy : [];
+        
+        let isUpvote = newUpvotes == oldUpvotes + 1 && request.auth.uid in newUpvotedBy && !(request.auth.uid in oldUpvotedBy);
+        let isDownvote = newUpvotes == oldUpvotes - 1 && !(request.auth.uid in newUpvotedBy) && request.auth.uid in oldUpvotedBy;
+        
+        return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['upvotes', 'upvotedBy']) &&
+               (isUpvote || isDownvote);
+      }
+      
+      allow update: if (isDocOwner() && 
+                        isValidReport(request.resource.data) && 
+                        areImmutableFieldsUnchanged(['authorId', 'createdAt', 'status', 'location', 'upvotes', 'upvotedBy'])) ||
+                       (isAuthenticated() && isValidReportUpvote()) ||
+                       (isAdmin() && isValidReport(request.resource.data) && areImmutableFieldsUnchanged(['authorId', 'createdAt']));
+                       
       allow delete: if isDocOwner() || isAdmin();
     }
 
     match /posts/{postId} {
       allow read: if isAuthenticated();
-      allow create: if isAuthenticated();
-      allow update: if isDocOwner() || isAdmin() || isAuthenticated();
+      
+      allow create: if isAuthenticated() &&
+                       isValidPost(request.resource.data) &&
+                       request.resource.data.authorId == request.auth.uid &&
+                       request.resource.data.likesCount == 0 &&
+                       request.resource.data.commentsCount == 0 &&
+                       request.resource.data.verified == false;
+                       
+      function isValidLikeIncrement() {
+        let oldLikes = ('likesCount' in resource.data) ? resource.data.likesCount : 0;
+        let newLikes = ('likesCount' in request.resource.data) ? request.resource.data.likesCount : 0;
+        let oldUpvotedBy = ('upvotedBy' in resource.data) ? resource.data.upvotedBy : [];
+        let newUpvotedBy = ('upvotedBy' in request.resource.data) ? request.resource.data.upvotedBy : [];
+        
+        return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likesCount', 'upvotedBy']) &&
+               newLikes >= 0 &&
+               math.abs(newLikes - oldLikes) == 1 &&
+               (
+                 (newLikes > oldLikes &&
+                  newUpvotedBy.size() == oldUpvotedBy.size() + 1 &&
+                  !(request.auth.uid in oldUpvotedBy) &&
+                  (request.auth.uid in newUpvotedBy) &&
+                  !exists(/databases/$(database)/documents/likes/$(request.auth.uid + '_' + postId)) &&
+                  existsAfter(/databases/$(database)/documents/likes/$(request.auth.uid + '_' + postId))) ||
+                 (newLikes < oldLikes &&
+                  newUpvotedBy.size() == oldUpvotedBy.size() - 1 &&
+                  (request.auth.uid in oldUpvotedBy) &&
+                  !(request.auth.uid in newUpvotedBy) &&
+                  exists(/databases/$(database)/documents/likes/$(request.auth.uid + '_' + postId)) &&
+                  !existsAfter(/databases/$(database)/documents/likes/$(request.auth.uid + '_' + postId)))
+               );
+      }
+      
+      allow update: if (isDocOwner() && 
+                        isValidPost(request.resource.data) && 
+                        areImmutableFieldsUnchanged(['authorId', 'createdAt', 'likesCount', 'commentsCount', 'verified'])) ||
+                       (isAuthenticated() && isValidLikeIncrement()) ||
+                       (isAdmin() && isValidPost(request.resource.data) && areImmutableFieldsUnchanged(['authorId', 'createdAt']));
+                       
       allow delete: if isDocOwner() || isAdmin();
     }
     
     match /likes/{likeId} {
       allow read: if isAuthenticated();
-      allow create: if isAuthenticated();
+      
+      allow create: if isAuthenticated() &&
+                       isValidLike(request.resource.data) &&
+                       request.resource.data.userId == request.auth.uid &&
+                       likeId == request.auth.uid + '_' + request.resource.data.postId;
+                       
       allow update: if false;
-      allow delete: if isAuthenticated();
+      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
     }
 
     match /risk_zones/{zoneId} {
@@ -64,9 +237,16 @@ service cloud.firestore {
     
     match /guardian_sessions/{sessionId} {
       allow read: if true;
-      allow create: if isAuthenticated();
-      allow update: if isAuthenticated();
-      allow delete: if isAdmin() || isAuthenticated();
+      allow create: if isAuthenticated() &&
+                      isValidGuardianSession(request.resource.data) &&
+                      request.resource.data.userId == request.auth.uid;
+                      
+      allow update: if isAuthenticated() && 
+                      isValidGuardianSession(request.resource.data) &&
+                      resource.data.userId == request.auth.uid &&
+                      areImmutableFieldsUnchanged(['userId', 'createdAt']);
+                      
+      allow delete: if isAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid);
     }
     
     match /emergencyAlerts/{alertId} {
