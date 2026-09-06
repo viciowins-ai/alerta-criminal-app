@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import Map, { Source, Layer, Marker, MapRef } from 'react-map-gl/mapbox';
-import { Search, Filter, ShieldAlert, Navigation, Building2, Landmark, Coffee, Train, LocateFixed, X, AlertCircle, ThumbsUp, Moon, ShieldCheck, Share2, MapPin } from 'lucide-react';
+import { Search, Filter, ShieldAlert, Navigation, Building2, Landmark, Coffee, Train, LocateFixed, X, AlertCircle, ThumbsUp, Moon, ShieldCheck, Share2, MapPin, Play } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { db } from '../firebase';
 import { collection, query, onSnapshot, limit, orderBy, doc, updateDoc, arrayUnion, increment, addDoc, serverTimestamp, getDoc, getDocs, writeBatch, where } from 'firebase/firestore';
@@ -813,11 +813,16 @@ export function MapPage() {
                 const type = isObject ? attachment.type : (url.includes('.mp4') || url.includes('video') ? 'video/mp4' : 'image/jpeg');
 
                 return (
-                  <div key={index} className="h-20 w-20 shrink-0 rounded-lg overflow-hidden border border-slate-700 cursor-pointer relative" onClick={() => !type.startsWith('video/') && window.open(url, '_blank')}>
+                  <div key={index} className="h-20 w-20 shrink-0 rounded-lg overflow-hidden border border-slate-700 cursor-pointer relative group" onClick={() => window.open(url, '_blank')}>
                     {type.startsWith('video/') ? (
-                      <video src={url} className="w-full h-full object-cover" />
+                      <>
+                        <video src={url} className="w-full h-full object-cover" muted playsInline preload="metadata" />
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/50 transition-colors">
+                          <Play className="text-white fill-white/80" size={24} />
+                        </div>
+                      </>
                     ) : (
-                      <img src={url} alt="Anexo" className="w-full h-full object-cover" />
+                      <img src={url} alt="Anexo" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                     )}
                   </div>
                 );
