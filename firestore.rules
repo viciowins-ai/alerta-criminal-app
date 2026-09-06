@@ -161,7 +161,7 @@ service cloud.firestore {
 
     function isValidReport(data) {
       return hasRequiredFields(['authorId', 'type', 'location', 'status', 'createdAt']) &&
-             hasOnlyAllowedFields(['authorId', 'type', 'description', 'location', 'status', 'upvotes', 'upvotedBy', 'createdAt', 'attachments', 'visibility', 'groupId', 'groupName']) &&
+             hasOnlyAllowedFields(['authorId', 'type', 'description', 'location', 'status', 'upvotes', 'upvotedBy', 'createdAt', 'attachments', 'visibility', 'groupId', 'groupName', 'isAnonymous', 'authorName', 'authorAvatar', 'authorLevel', 'verified']) &&
              data.authorId is string &&
              data.type in ['police', 'accident', 'danger', 'traffic', 'other', 'roubo', 'suspeito', 'vandalismo', 'outro'] &&
              (!('description' in data) || (data.description is string && data.description.size() <= 2000)) &&
