@@ -174,8 +174,13 @@ service cloud.firestore {
              (!('upvotedBy' in data) || (data.upvotedBy is list && data.upvotedBy.size() <= 10000)) &&
              data.createdAt is timestamp &&
              (!('visibility' in data) || data.visibility in ['public', 'group']) &&
-             (!('groupId' in data) || data.groupId is string) &&
-             (!('groupName' in data) || data.groupName is string);
+             (!('groupId' in data) || data.groupId == null || data.groupId is string) &&
+             (!('groupName' in data) || data.groupName == null || data.groupName is string) &&
+             (!('isAnonymous' in data) || data.isAnonymous is bool) &&
+             (!('authorName' in data) || data.authorName is string) &&
+             (!('authorAvatar' in data) || data.authorAvatar is string) &&
+             (!('authorLevel' in data) || data.authorLevel is string) &&
+             (!('verified' in data) || data.verified is bool);
     }
 
     function isValidPost(data) {
