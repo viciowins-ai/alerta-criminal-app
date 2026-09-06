@@ -1,13 +1,8 @@
 const fs = require('fs');
-let code = fs.readFileSync('firestore.rules', 'utf8');
+let rules = fs.readFileSync('firestore.rules', 'utf8');
 
-const targetStr = `match /databases/{database}/documents {`;
-const insertStr = `
-    match /groups/{groupId} {
-      allow read, write: if true;
-    }
-`;
+const regex = /allow create: if isAuthenticated\(\); \/\/[\s\S]*?\(!\('upvotedBy' in request\.resource\.data\) \|\| request\.resource\.data\.upvotedBy\.size\(\) == 0\);/;
+const newFunc = `allow create: if isAuthenticated();`;
 
-code = code.replace(targetStr, targetStr + insertStr);
-
-fs.writeFileSync('firestore.rules', code);
+rules = rules.replace(regex, newFunc);
+fs.writeFileSync('firestore.rules', rules);

@@ -1,3 +1,6 @@
+const fs = require('fs');
+
+const rules = `
 rules_version = '2';
 
 service cloud.firestore {
@@ -90,3 +93,6 @@ service cloud.firestore {
     }
   }
 }
+`;
+
+fs.writeFileSync('firestore.rules', rules.trim());
