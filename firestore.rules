@@ -161,6 +161,7 @@ service cloud.firestore {
 
     function isValidReport(data) {
       return hasRequiredFields(['authorId', 'type', 'location', 'status', 'createdAt']) &&
+             hasOnlyAllowedFields(['authorId', 'type', 'description', 'location', 'status', 'upvotes', 'upvotedBy', 'createdAt', 'attachments', 'visibility', 'groupId', 'groupName']) &&
              data.authorId is string &&
              data.type in ['police', 'accident', 'danger', 'traffic', 'other', 'roubo', 'suspeito', 'vandalismo', 'outro'] &&
              (!('description' in data) || (data.description is string && data.description.size() <= 2000)) &&
@@ -173,13 +174,8 @@ service cloud.firestore {
              (!('upvotedBy' in data) || (data.upvotedBy is list && data.upvotedBy.size() <= 10000)) &&
              data.createdAt is timestamp &&
              (!('visibility' in data) || data.visibility in ['public', 'group']) &&
-             (!('groupId' in data) || data.groupId == null || data.groupId is string) &&
-             (!('groupName' in data) || data.groupName == null || data.groupName is string) &&
-             (!('isAnonymous' in data) || data.isAnonymous is bool) &&
-             (!('authorName' in data) || data.authorName is string) &&
-             (!('authorAvatar' in data) || data.authorAvatar is string) &&
-             (!('authorLevel' in data) || data.authorLevel is string) &&
-             (!('verified' in data) || data.verified is bool);
+             (!('groupId' in data) || data.groupId is string) &&
+             (!('groupName' in data) || data.groupName is string);
     }
 
     function isValidPost(data) {
