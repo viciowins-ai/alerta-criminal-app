@@ -8,6 +8,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   termsAccepted: boolean | null;
+  role: string | null;
   signOut: () => Promise<void>;
 }
 
@@ -16,6 +17,7 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
   termsAccepted: null,
+  role: null,
   signOut: async () => {},
 });
 
@@ -23,15 +25,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [termsAccepted, setTermsAccepted] = useState<boolean | null>(null);
+  const [role, setRole] = useState<string | null>(null);
 
   useEffect(() => {
     let profileUnsubscribe: (() => void) | undefined;
-
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       
       if (!currentUser) {
         setTermsAccepted(null);
+        setRole(null);
         setLoading(false);
         if (profileUnsubscribe) {
           profileUnsubscribe();
@@ -46,8 +49,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       profileUnsubscribe = onSnapshot(userRef, (userSnap) => {
         if (userSnap.exists()) {
           setTermsAccepted(userSnap.data().termsAccepted === true);
+          setRole(userSnap.data().role || 'user');
         } else {
           setTermsAccepted(false);
+          setRole('user');
         }
         setLoading(false); // Auth is fully loaded once we know the terms status
       }, (error) => {
@@ -115,7 +120,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // DEBUG: console.log('Auth State:', user);
   return (
-    <AuthContext.Provider value={{ user, loading, termsAccepted, signOut }}>
+    <AuthContext.Provider value={{ user, loading, termsAccepted, role, signOut }}>
       {children}
     </AuthContext.Provider>
   );

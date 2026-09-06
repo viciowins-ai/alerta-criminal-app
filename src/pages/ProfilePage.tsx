@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { TopBar } from '../components/TopBar';
-import { Settings, Shield, Award, Users, ChevronRight, Bell, HelpCircle, LogOut, Star, BookOpen, ShieldCheck } from 'lucide-react';
+import { Settings, Shield, Award, Users, ChevronRight, Bell, HelpCircle, LogOut, Star, BookOpen, ShieldCheck, Activity } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
@@ -10,7 +10,7 @@ import { getLevelInfo } from '../utils/levelUtils';
 
 export function ProfilePage() {
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const { user, role, signOut } = useAuth();
   const [profileData, setProfileData] = useState<any>(null);
   const [reportsCount, setReportsCount] = useState(0);
 
@@ -47,6 +47,10 @@ export function ProfilePage() {
     { icon: <HelpCircle className="text-orange-500" />, label: 'Central de Ajuda', path: '/help' },
     { icon: <Settings className="text-gray-500" />, label: 'Configurações', path: '/settings' },
   ];
+
+  if (role === 'admin' || role === 'guard') {
+    menuItems.unshift({ icon: <Activity className="text-blue-400" />, label: 'Painel da Viatura', path: '/admin', badge: undefined });
+  }
 
   return (
     <div className="flex flex-col h-full bg-slate-900">
