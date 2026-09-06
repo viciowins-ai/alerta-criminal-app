@@ -450,11 +450,15 @@ export function FeedPage() {
                         const isObject = typeof attachment === 'object' && attachment !== null;
                         const url = isObject ? attachment.url : attachment;
                         const type = isObject ? attachment.type : (url.includes('.mp4') || url.includes('video') ? 'video/mp4' : 'image/jpeg');
-
                         return (
-                          <div key={index} className="relative aspect-video w-full shrink-0 snap-center rounded-xl overflow-hidden border border-slate-700 cursor-pointer" onClick={() => !type.startsWith('video/') && window.open(url, '_blank')}>
+                          <div key={index} className="relative aspect-video w-[85%] max-w-sm shrink-0 snap-center rounded-xl overflow-hidden border border-slate-700 cursor-pointer group" onClick={() => window.open(url, '_blank')}>
                             {type.startsWith('video/') ? (
-                              <video src={url} controls className="w-full h-full object-cover" />
+                              <>
+                                <video src={url} className="w-full h-full object-cover" muted playsInline preload="metadata" />
+                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/50 transition-colors">
+                                  <Play className="text-white fill-white/80" size={32} />
+                                </div>
+                              </>
                             ) : (
                               <>
                                 <img src={url} alt="Anexo do reporte" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
@@ -540,11 +544,15 @@ export function FeedPage() {
                       const isObject = typeof attachment === 'object' && attachment !== null;
                       const url = isObject ? attachment.url : attachment;
                       const type = isObject ? attachment.type : (url.includes('.mp4') || url.includes('video') ? 'video/mp4' : 'image/jpeg');
-
                       return (
-                        <div key={index} className="relative aspect-video w-full shrink-0 snap-center rounded-xl overflow-hidden border border-slate-700 cursor-pointer" onClick={() => !type.startsWith('video/') && window.open(url, '_blank')}>
+                        <div key={index} className="relative aspect-video w-[85%] max-w-sm shrink-0 snap-center rounded-xl overflow-hidden border border-slate-700 cursor-pointer group" onClick={() => window.open(url, '_blank')}>
                           {type.startsWith('video/') ? (
-                            <video src={url} controls className="w-full h-full object-cover" />
+                            <>
+                              <video src={url} className="w-full h-full object-cover" muted playsInline preload="metadata" />
+                              <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/50 transition-colors">
+                                <Play className="text-white fill-white/80" size={32} />
+                              </div>
+                            </>
                           ) : (
                             <>
                               <img src={url} alt="Anexo do post" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
