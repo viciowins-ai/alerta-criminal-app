@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import Map, { Source, Layer, Marker, MapRef } from 'react-map-gl/mapbox';
-import { Search, Filter, ShieldAlert, Navigation, Building2, Landmark, Coffee, Train, LocateFixed, X, AlertCircle, ThumbsUp, Moon, ShieldCheck, Share2, MapPin, Play } from 'lucide-react';
+import { AttachmentGallery } from '../components/AttachmentGallery';
+import { Search, Filter, ShieldAlert, Navigation, Building2, Landmark, Coffee, Train, LocateFixed, X, AlertCircle, ThumbsUp, Moon, ShieldCheck, Share2, MapPin, Play, Car, Bike } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { db } from '../firebase';
 import { collection, query, onSnapshot, limit, orderBy, doc, updateDoc, arrayUnion, increment, addDoc, serverTimestamp, getDoc, getDocs, writeBatch, where } from 'firebase/firestore';
@@ -35,6 +36,22 @@ export function MapPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [showHeatmap, setShowHeatmap] = useState(false);
   const [reports, setReports] = useState<any[]>([]);
+  const [activePatrols, setActivePatrols] = useState<any[]>([]);
+
+  // Carregar Patrulhas Ativas
+  useEffect(() => {
+    const q = query(
+      collection(db, 'users'), 
+      where('isPatrolling', '==', true)
+    );
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const patrols = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setActivePatrols(patrols);
+    }, (error) => {
+      console.error("Erro ao carregar patrulhas", error);
+    });
+    return () => unsubscribe();
+  }, []);
   const [riskZones, setRiskZones] = useState<any[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<any | null>(null);
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
@@ -704,6 +721,33 @@ export function MapPage() {
 
         {/* Custom Glowing Markers */}
         {markers}
+        {/* Viatura / Tático Móvel Markers */}
+        {activePatrols.map((patrol) => {
+          if (!patrol.location || !patrol.location.lat || !patrol.location.lng) return null;
+          return (
+            <Marker 
+              key={patrol.id} 
+              longitude={patrol.location.lng} 
+              latitude={patrol.location.lat} 
+              anchor="center"
+              style={{ zIndex: 50 }}
+            >
+              <div className="relative flex flex-col items-center justify-center">
+                <div className="absolute w-12 h-12 bg-blue-500/30 rounded-full animate-ping" />
+                <div className="relative w-10 h-10 bg-slate-900 border-2 border-blue-500 rounded-full shadow-[0_0_15px_rgba(59,130,246,0.8)] flex items-center justify-center">
+                  {patrol.vehicleType === 'motorcycle' ? (
+                    <Bike size={20} className="text-blue-400" />
+                  ) : (
+                    <Car size={20} className="text-blue-400" />
+                  )}
+                </div>
+                <span className="mt-1 bg-slate-900/90 text-blue-400 text-[9px] font-bold px-2 py-0.5 rounded border border-blue-500/50 uppercase">
+                  {patrol.vehicleType === 'motorcycle' ? 'Tático' : 'Viatura'}
+                </span>
+              </div>
+            </Marker>
+          );
+        })}
       </Map>
 
       {/* Floating Action Buttons */}
@@ -806,27 +850,8 @@ export function MapPage() {
           )}
 
           {selectedLocation.attachments && selectedLocation.attachments.length > 0 && (
-            <div className="mb-4 flex gap-2 overflow-x-auto pb-2">
-              {selectedLocation.attachments.map((attachment: any, index: number) => {
-                const isObject = typeof attachment === 'object' && attachment !== null;
-                const url = isObject ? attachment.url : attachment;
-                const type = isObject ? attachment.type : (url.includes('.mp4') || url.includes('video') ? 'video/mp4' : 'image/jpeg');
-
-                return (
-                  <div key={index} className="h-20 w-20 shrink-0 rounded-lg overflow-hidden border border-slate-700 cursor-pointer relative group" onClick={() => window.open(url, '_blank')}>
-                    {type.startsWith('video/') ? (
-                      <>
-                        <video src={url} className="w-full h-full object-cover" muted playsInline preload="metadata" />
-                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/50 transition-colors">
-                          <Play className="text-white fill-white/80" size={24} />
-                        </div>
-                      </>
-                    ) : (
-                      <img src={url} alt="Anexo" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-                    )}
-                  </div>
-                );
-              })}
+            <div className="mb-4">
+              <AttachmentGallery attachments={selectedLocation.attachments} />
             </div>
           )}
 

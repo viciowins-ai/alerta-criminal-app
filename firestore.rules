@@ -43,7 +43,7 @@ service cloud.firestore {
              data.level is string &&
              data.points is number && data.points >= 0 &&
              data.createdAt is timestamp &&
-             (!('role' in data) || data.role in ['user', 'admin', 'moderator']) &&
+             (!('role' in data) || data.role in ['user', 'admin', 'moderator', 'guard']) &&
              (!('avatar' in data) || data.avatar is string) &&
              (!('phone' in data) || data.phone is string) &&
              (!('trustedContacts' in data) || (data.trustedContacts is list && data.trustedContacts.size() <= 5)) &&
@@ -52,7 +52,7 @@ service cloud.firestore {
              (!('isPremium' in data) || data.isPremium is bool) &&
              (!('fcmToken' in data) || data.fcmToken is string) &&
              (!('termsAccepted' in data) || data.termsAccepted is bool) &&
-             (!('termsAcceptedAt' in data) || data.termsAcceptedAt is string);
+             (!('termsAcceptedAt' in data) || data.termsAcceptedAt is string) && (!('isPatrolling' in data) || data.isPatrolling is bool) && (!('vehicleType' in data) || data.vehicleType in ['car', 'motorcycle']) && (!('location' in data) || data.location is map);
     }
 
     function isValidReport(data) {

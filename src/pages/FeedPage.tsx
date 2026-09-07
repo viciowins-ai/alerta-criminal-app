@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { TopBar } from '../components/TopBar';
+import { AttachmentGallery } from '../components/AttachmentGallery';
 import { MessageSquare, Heart, Share2, MoreHorizontal, AlertTriangle, ShieldCheck, Send, MapPin, Users, Play } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
@@ -445,30 +446,7 @@ export function FeedPage() {
                     <p className="text-sm text-slate-200 leading-relaxed mt-2 border-l-2 border-slate-600 pl-3 italic">"{item.description}"</p>
                   )}
                   {item.attachments && item.attachments.length > 0 && (
-                    <div className="mt-4 flex gap-2 overflow-x-auto snap-x pb-2">
-                      {item.attachments.map((attachment: any, index: number) => {
-                        const isObject = typeof attachment === 'object' && attachment !== null;
-                        const url = isObject ? attachment.url : attachment;
-                        const type = isObject ? attachment.type : (url.includes('.mp4') || url.includes('video') ? 'video/mp4' : 'image/jpeg');
-                        return (
-                          <div key={index} className="relative aspect-video w-[85%] max-w-sm shrink-0 snap-center rounded-xl overflow-hidden border border-slate-700 cursor-pointer group" onClick={() => window.open(url, '_blank')}>
-                            {type.startsWith('video/') ? (
-                              <>
-                                <video src={url} className="w-full h-full object-cover" muted playsInline preload="metadata" />
-                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/50 transition-colors">
-                                  <Play className="text-white fill-white/80" size={32} />
-                                </div>
-                              </>
-                            ) : (
-                              <>
-                                <img src={url} alt="Anexo do reporte" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
-                                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/50 to-transparent pointer-events-none" />
-                              </>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
+                    <AttachmentGallery attachments={item.attachments} />
                   )}
                 </div>
 
@@ -539,31 +517,8 @@ export function FeedPage() {
                 </div>
                 <p className="text-sm text-slate-200 leading-relaxed">{item.content}</p>
                 {item.attachments && item.attachments.length > 0 && (
-                  <div className="mt-4 flex gap-2 overflow-x-auto snap-x pb-2">
-                    {item.attachments.map((attachment: any, index: number) => {
-                      const isObject = typeof attachment === 'object' && attachment !== null;
-                      const url = isObject ? attachment.url : attachment;
-                      const type = isObject ? attachment.type : (url.includes('.mp4') || url.includes('video') ? 'video/mp4' : 'image/jpeg');
-                      return (
-                        <div key={index} className="relative aspect-video w-[85%] max-w-sm shrink-0 snap-center rounded-xl overflow-hidden border border-slate-700 cursor-pointer group" onClick={() => window.open(url, '_blank')}>
-                          {type.startsWith('video/') ? (
-                            <>
-                              <video src={url} className="w-full h-full object-cover" muted playsInline preload="metadata" />
-                              <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/50 transition-colors">
-                                <Play className="text-white fill-white/80" size={32} />
-                              </div>
-                            </>
-                          ) : (
-                            <>
-                              <img src={url} alt="Anexo do post" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
-                              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/50 to-transparent pointer-events-none" />
-                            </>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
+                    <AttachmentGallery attachments={item.attachments} />
+                  )}
               </div>
 
               {/* Actions */}

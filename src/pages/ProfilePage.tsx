@@ -119,7 +119,7 @@ export function ProfilePage() {
 
         {/* Admin Link (For Demo) */}
         <div className="p-6 space-y-3">
-          {profileData?.role === 'admin' && (
+          {(profileData?.role === 'admin' || profileData?.role === 'guard') && (
             <button 
               onClick={() => navigate('/admin')}
               className="w-full py-3 rounded-xl border-2 border-dashed border-slate-700 text-slate-400 font-medium text-sm hover:bg-slate-800 transition-colors"

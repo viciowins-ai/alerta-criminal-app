@@ -1,0 +1,8 @@
+const fs = require('fs');
+let code = fs.readFileSync('src/pages/FeedPage.tsx', 'utf8');
+
+const regex1 = /\{item\.attachments && item\.attachments\.length > 0 && \(\s*<div className="mt-4 flex gap-2 overflow-x-auto snap-x pb-2">\s*\{item\.attachments\.map\(\(attachment: any, index: number\) => \{\s*const isObject = typeof attachment === 'object' && attachment !== null;\s*const url = isObject \? attachment\.url : attachment;\s*const type = isObject \? attachment\.type : \(url\.includes\('\.mp4'\) \|\| url\.includes\('video'\) \? 'video\/mp4' : 'image\/jpeg'\);\s*return \(\s*<div key=\{index\} className="relative aspect-video w-\[85%\] max-w-sm shrink-0 snap-center rounded-xl overflow-hidden border border-slate-700 cursor-pointer group" onClick=\{.*?\}\>\s*\{type\.startsWith\('video\/'\) \? \(\s*<>\s*<video src=\{url\} className="w-full h-full object-cover" muted playsInline preload="metadata" \/>\s*<div className="absolute inset-0 bg-black\/40 flex items-center justify-center group-hover:bg-black\/50 transition-colors">\s*<Play className="text-white fill-white\/80" size=\{32\} \/>\s*<\/div>\s*<\/>\s*\) : \(\s*<>\s*<img src=\{url\} alt=".*?" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" \/>\s*<div className="absolute inset-0 bg-gradient-to-t from-slate-900\/50 to-transparent pointer-events-none" \/>\s*<\/>\s*\)\}\s*<\/div>\s*\);\s*\}\)\}\s*<\/div>\s*\)\}/g;
+
+code = code.replace(regex1, "{item.attachments && item.attachments.length > 0 && (\n                    <AttachmentGallery attachments={item.attachments} />\n                  )}");
+
+fs.writeFileSync('src/pages/FeedPage.tsx', code);
