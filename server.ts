@@ -45,7 +45,6 @@ if (TWILIO_ACCOUNT_SID && TWILIO_AUTH_TOKEN) {
 
 async function startServer() {
   const app = express();
-
   const isProduction = process.env.NODE_ENV === "production";
   const PORT = 3000;
 
@@ -61,12 +60,35 @@ async function startServer() {
     next();
   });
 
+  // --------------------------------------------------------------------------
+  // 🔥 FIREBASE AUTH MIDDLEWARE (SECURITY SHIELD)
+  // --------------------------------------------------------------------------
+  const verifyFirebaseToken = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ error: "Não autorizado. Token ausente ou inválido." });
+    }
+
+    const idToken = authHeader.split("Bearer ")[1];
+    try {
+      // Verifica o token no Google Identity/Firebase Admin
+      const decodedToken = await admin.auth().verifyIdToken(idToken);
+      // Injeta os dados do usuário autenticado na requisição para as próximas rotas usarem
+      (req as any).user = decodedToken;
+      next();
+    } catch (error) {
+      console.error("Token de autenticação inválido ou expirado:", error);
+      return res.status(403).json({ error: "Acesso negado. Sessão inválida ou expirada." });
+    }
+  };
+
   // API routes FIRST
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok" });
   });
 
-  app.post("/api/chat", async (req, res) => {
+  // 🔒 Rota Protegida (Guardião Virtual)
+  app.post("/api/chat", verifyFirebaseToken, async (req, res) => {
     try {
       const { messages } = req.body;
       
@@ -82,7 +104,6 @@ async function startServer() {
           systemInstruction: "Você é o Guardião Virtual, um assistente especializado em segurança pública e pessoal no Brasil. Dê dicas práticas, curtas e diretas sobre como evitar assaltos, rotas seguras, e o que fazer em emergências. Seja empático, calmo e prestativo. Nunca recomende reagir a assaltos.",
         }
       });
-
       res.json({ text: response.text });
     } catch (error: any) {
       console.error("Erro no chat:", error);
@@ -90,7 +111,8 @@ async function startServer() {
     }
   });
 
-  app.get("/api/test-admin", async (req, res) => {
+  // 🔒 Rota Protegida
+  app.get("/api/test-admin", verifyFirebaseToken, async (req, res) => {
     try {
       const db = admin.firestore();
       const usersSnap = await db.collection('users').limit(1).get();
@@ -100,7 +122,8 @@ async function startServer() {
     }
   });
 
-  app.post("/api/test-email", async (req, res) => {
+  // 🔒 Rota Protegida
+  app.post("/api/test-email", verifyFirebaseToken, async (req, res) => {
     const { to, name } = req.body;
     if (!to) {
       return res.status(400).json({ success: false, error: "E-mail de destino (to) é obrigatório." });
@@ -125,7 +148,8 @@ async function startServer() {
     }
   });
 
-  app.post("/api/test-whatsapp", async (req, res) => {
+  // 🔒 Rota Protegida
+  app.post("/api/test-whatsapp", verifyFirebaseToken, async (req, res) => {
     const { to, name } = req.body;
     if (!to) {
       return res.status(400).json({ success: false, error: "Número de destino (to) é obrigatório." });

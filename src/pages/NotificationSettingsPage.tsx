@@ -126,7 +126,7 @@ export function NotificationSettingsPage() {
               icon: '/escudo-logo.png',
               badge: '/escudo-logo.png',
               vibrate: [200, 100, 200]
-            });
+            } as any);
             return;
           }
         }

@@ -1,6 +1,6 @@
 import React from 'react';
 import { TopBar } from '../components/TopBar';
-import { ShieldCheck, Share2, Download, Smartphone, Monitor, ChevronRight, Map, AlertTriangle, ShieldAlert, Route, Users, Award, BookOpen, Plus, ShieldCheck } from 'lucide-react';
+import { ShieldCheck, Share2, Download, Smartphone, Monitor, ChevronRight, Map, AlertTriangle, ShieldAlert, Route, Users, Award, BookOpen, Plus } from 'lucide-react';
 
 export function TutorialPage() {
   return (

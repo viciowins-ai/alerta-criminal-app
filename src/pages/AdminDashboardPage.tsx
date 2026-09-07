@@ -55,7 +55,7 @@ export function AdminDashboardPage() {
     const unsubPatrol = onSnapshot(qPatrol, (snapshot) => {
       const patrols = snapshot.docs.map(doc => ({
         id: doc.id,
-        ...doc.data()
+        ...(doc.data() as any)
       })).filter(p => p.role === 'admin' || p.role === 'guard');
       setActivePatrols(patrols);
     });
@@ -63,7 +63,7 @@ export function AdminDashboardPage() {
     // Escutar Relatos Privados (Moderação)
     const qReports = query(collection(db, 'reports'), orderBy('createdAt', 'desc'), limit(100));
     const unsubReports = onSnapshot(qReports, (snapshot) => {
-      const allReports = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      const allReports = snapshot.docs.map(d => ({ id: d.id, ...(d.data() as any) }));
       setPrivateReports(allReports.filter(r => r.visibility === 'group' || r.visibility === 'private'));
     });
 
