@@ -121,7 +121,7 @@ export function ProfilePage() {
         <div className="p-6 space-y-3">
           {profileData?.role === 'admin' && (
             <button 
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate('/admin')}
               className="w-full py-3 rounded-xl border-2 border-dashed border-slate-700 text-slate-400 font-medium text-sm hover:bg-slate-800 transition-colors"
             >
               Acessar Painel Admin

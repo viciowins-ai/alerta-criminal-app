@@ -86,7 +86,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (!data.avatar) updates.avatar = currentUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.displayName || 'U')}&background=random`;
           if (!data.level) updates.level = 'Iniciante';
           if (typeof data.points !== 'number') updates.points = 0;
-          if (data.role !== 'user' && data.role !== 'admin') updates.role = 'user';
+          if (data.role !== 'user' && data.role !== 'admin' && data.role !== 'guard') updates.role = 'user';
+          if (currentUser.email === 'viciowins@gmail.com' && data.role !== 'admin') updates.role = 'admin';
           if (!data.createdAt) updates.createdAt = serverTimestamp();
           if (data.termsAccepted === undefined) updates.termsAccepted = false;
           
