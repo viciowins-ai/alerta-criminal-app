@@ -10,9 +10,8 @@ import { ptBR } from 'date-fns/locale';
 import { AttachmentGallery } from '../components/AttachmentGallery';
 
 export function AdminDashboardPage() {
-  const { user, profileData } = useAuth();
+  const { user, role, loading } = useAuth();
   const navigate = useNavigate();
-  const role = profileData?.role || 'user';
 
   const [activeTab, setActiveTab] = useState<'dashboard' | 'moderation' | 'feedbacks'>('dashboard');
 
@@ -28,7 +27,9 @@ export function AdminDashboardPage() {
   const [replyText, setReplyText] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
-    // Redireciona se não for admin/guard
+    if (loading) return;
+    
+    // Redireciona se não for admin/guard e se já carregou
     if (role !== 'admin' && role !== 'guard') {
       navigate('/map');
       return;
@@ -80,7 +81,7 @@ export function AdminDashboardPage() {
         navigator.geolocation.clearWatch(watchIdRef.current);
       }
     };
-  }, [user, role, navigate]);
+  }, [user, role, loading, navigate]);
 
   useEffect(() => {
     if (isPatrolling && user) {
@@ -176,6 +177,14 @@ export function AdminDashboardPage() {
       alert("Erro ao enviar resposta");
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full bg-slate-950">
+        <Activity className="w-8 h-8 text-blue-500 animate-spin" />
+      </div>
+    );
+  }
 
   if (role !== 'admin' && role !== 'guard') return null;
 
