@@ -256,6 +256,31 @@ export function AdminDashboardPage() {
               </div>
             </div>
 
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex flex-col items-center justify-center text-center">
+                <ShieldAlert className="text-red-500 mb-2" size={28} />
+                <span className="text-3xl font-bold text-white">0</span>
+                <span className="text-xs text-slate-400 uppercase tracking-wider mt-1">SOS Ativos</span>
+              </div>
+              
+              <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex flex-col items-center justify-center text-center">
+                <MapPin className="text-orange-500 mb-2" size={28} />
+                <span className="text-3xl font-bold text-white">0</span>
+                <span className="text-xs text-slate-400 uppercase tracking-wider mt-1">Ocorrências (24h)</span>
+              </div>
+            </div>
+
+            <div className="bg-slate-900 rounded-3xl p-6 border border-slate-800">
+              <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                <AlertTriangle className="text-yellow-500" size={20} />
+                Alertas em Tempo Real
+              </h3>
+              <div className="text-center py-8">
+                <p className="text-slate-400">Nenhum SOS ativo no momento.</p>
+                <p className="text-xs text-slate-500 mt-2">A central está monitorando sua região.</p>
+              </div>
+            </div>
+
             <div className="bg-slate-900 rounded-3xl p-6 border border-slate-800">
               <h3 className="text-lg font-bold text-white mb-4 flex items-center justify-between">
                 <div className="flex items-center gap-2">
