@@ -4,7 +4,7 @@ import { AttachmentGallery } from '../components/AttachmentGallery';
 import { Search, Filter, ShieldAlert, Navigation, Building2, Landmark, Coffee, Train, LocateFixed, X, AlertCircle, ThumbsUp, Moon, ShieldCheck, Share2, MapPin, Play, Car, Bike } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { db } from '../firebase';
-import { collection, query, onSnapshot, limit, orderBy, doc, updateDoc, arrayUnion, increment, addDoc, serverTimestamp, getDoc, getDocs, writeBatch, where } from 'firebase/firestore';
+import { collection, query, onSnapshot, limit, orderBy, doc, updateDoc, arrayUnion, increment, addDoc, serverTimestamp, getDoc, getDocs, writeBatch, where, deleteDoc } from 'firebase/firestore';
 import { handleFirestoreError, OperationType } from '../utils/firestoreErrorHandler';
 import { useAuth } from '../contexts/AuthContext';
 import { SOSModal } from '../components/SOSModal';
@@ -457,6 +457,18 @@ export function MapPage() {
     }
   };
 
+  const handleDeleteReport = async () => {
+    if (!selectedLocation || !user || selectedLocation.authorId !== user.uid) return;
+    if (window.confirm("Deseja realmente excluir sua ocorrência do mapa?")) {
+      try {
+        await deleteDoc(doc(db, 'reports', selectedLocation.id));
+        setSelectedLocation(null);
+      } catch (error) {
+        handleFirestoreError(error, OperationType.DELETE, `reports/${selectedLocation.id}`);
+      }
+    }
+  };
+
   const handleShareLocation = async () => {
     if (!selectedLocation) return;
     
@@ -891,6 +903,17 @@ export function MapPage() {
               </div>
               <span className="text-[11px] font-bold text-slate-300">Compartilhar</span>
             </button>
+            {user?.uid === selectedLocation.authorId && (
+              <button 
+                onClick={handleDeleteReport}
+                className="flex flex-col items-center gap-2 min-w-[72px]"
+              >
+                <div className="w-12 h-12 rounded-full bg-slate-800 border border-red-500/50 flex items-center justify-center text-red-500 shadow-lg active:scale-95 transition-transform">
+                  <X size={20} />
+                </div>
+                <span className="text-[11px] font-bold text-red-500">Excluir</span>
+              </button>
+            )}
           </div>
         </div>
       )}

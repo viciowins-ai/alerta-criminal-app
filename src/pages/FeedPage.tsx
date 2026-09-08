@@ -148,6 +148,18 @@ export function FeedPage() {
     }
   };
 
+  const handleDeleteItem = async (id: string, feedType: 'post' | 'report') => {
+    if (!user) return;
+    if (window.confirm("Deseja realmente excluir esta postagem?")) {
+      const collectionName = feedType === 'post' ? 'posts' : 'reports';
+      try {
+        await deleteDoc(doc(db, collectionName, id));
+      } catch (error) {
+        handleFirestoreError(error, OperationType.DELETE, `${collectionName}/${id}`);
+      }
+    }
+  };
+
   const handleShare = async (item: any) => {
     try {
       let title = '';
@@ -420,16 +432,24 @@ export function FeedPage() {
                     </div>
                   </div>
                   {user?.uid === item.authorId && (
-                    <button 
-                      onClick={() => {
-                        setEditingReport(item);
-                        setEditType(item.type || 'outro');
-                        setEditDescription(item.description || '');
-                      }}
-                      className="text-slate-400 hover:text-white p-2"
-                    >
-                      <span className="text-xs bg-slate-700/50 px-2 py-1 rounded">Corrigir</span>
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <button 
+                        onClick={() => {
+                          setEditingReport(item);
+                          setEditType(item.type || 'outro');
+                          setEditDescription(item.description || '');
+                        }}
+                        className="text-slate-400 hover:text-white p-2"
+                      >
+                        <span className="text-xs bg-slate-700/50 px-2 py-1 rounded hover:bg-slate-700 transition-colors">Corrigir</span>
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteItem(item.id, 'report')}
+                        className="text-slate-400 hover:text-red-400 p-2"
+                      >
+                        <span className="text-xs bg-slate-700/50 px-2 py-1 rounded hover:bg-red-500/20 transition-colors">Excluir</span>
+                      </button>
+                    </div>
                   )}
                 </div>
                 <div className="mb-3 relative z-10">
@@ -497,9 +517,18 @@ export function FeedPage() {
                     <p className="text-xs text-slate-400">{formatTime(item.createdAt)} • {item.authorLevel}</p>
                   </div>
                 </div>
-                <button className="text-slate-500 hover:text-slate-300" onClick={() => alert('Opções do post (Em breve)')}>
-                  <MoreHorizontal size={20} />
-                </button>
+                {user?.uid === item.authorId ? (
+                  <button 
+                    className="text-slate-500 hover:text-red-400 p-2" 
+                    onClick={() => handleDeleteItem(item.id, 'post')}
+                  >
+                    <span className="text-xs bg-slate-700/50 px-2 py-1 rounded hover:bg-red-500/20 transition-colors">Excluir</span>
+                  </button>
+                ) : (
+                  <button className="text-slate-500 hover:text-slate-300">
+                    <MoreHorizontal size={20} />
+                  </button>
+                )}
               </div>
 
               {/* Content */}
