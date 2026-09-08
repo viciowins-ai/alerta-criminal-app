@@ -822,7 +822,7 @@ export function MapPage() {
 
       {/* Bottom Sheet Summary */}
       {selectedLocation && (
-        <div className="absolute bottom-0 left-0 right-0 bg-slate-950 rounded-t-[2.5rem] shadow-[0_-10px_40px_rgba(0,0,0,0.5)] p-6 pb-6 z-20 transition-transform transform translate-y-0 border-t border-white/10 animate-in slide-in-from-bottom-full max-h-[55vh] flex flex-col">
+        <div className="absolute bottom-0 left-0 right-0 bg-slate-950 rounded-t-[2.5rem] shadow-[0_-10px_40px_rgba(0,0,0,0.5)] p-6 pb-6 z-20 transition-transform transform translate-y-0 border-t border-white/10 animate-in slide-in-from-bottom-full max-h-[40vh] flex flex-col">
           <div className="w-12 h-1.5 bg-slate-700/50 rounded-full mx-auto mb-6 cursor-pointer shrink-0" onClick={() => setSelectedLocation(null)} />
           <div className="flex-1 overflow-y-auto hide-scrollbar -mx-6 px-6 pb-2">
             <div className="flex justify-between items-start mb-4">
