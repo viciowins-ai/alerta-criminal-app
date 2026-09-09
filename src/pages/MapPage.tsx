@@ -883,34 +883,32 @@ export function MapPage() {
               onClick={() => navigate(`/route?destination=${encodeURIComponent(selectedLocation.location.address || '')}`)}
               className="flex flex-col items-center gap-2 min-w-[72px]"
             >
-              <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-white shadow-lg active:scale-95 transition-transform">
-                <Navigation size={20} />
+              <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white shadow-lg active:scale-95 transition-transform">
+                <Navigation size={18} />
               </div>
               <span className="text-[11px] font-bold text-blue-500">Rotas</span>
             </button>
-
             <button 
               onClick={() => handleUpvote(selectedLocation.id)}
               className="flex flex-col items-center gap-2 min-w-[72px]"
             >
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-all duration-300 ${
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-all duration-300 ${
                 selectedLocation.upvotedBy?.includes(user?.uid) 
                   ? 'bg-blue-500 text-white shadow-blue-500/30 border border-blue-400' 
                   : 'bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700'
               }`}>
-                <ThumbsUp size={20} className={selectedLocation.upvotedBy?.includes(user?.uid) ? 'fill-current' : ''} />
+                <ThumbsUp size={18} className={selectedLocation.upvotedBy?.includes(user?.uid) ? 'fill-current' : ''} />
               </div>
               <span className={`text-[11px] font-bold ${selectedLocation.upvotedBy?.includes(user?.uid) ? 'text-blue-400' : 'text-slate-300'}`}>
                 {selectedLocation.upvotedBy?.includes(user?.uid) ? 'Confirmado' : 'Confirmar'}
               </span>
             </button>
-
             <button 
               onClick={handleShareLocation}
               className="flex flex-col items-center gap-2 min-w-[72px]"
             >
-              <div className="w-12 h-12 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-white shadow-lg active:scale-95 transition-transform">
-                <Share2 size={20} />
+              <div className="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-white shadow-lg active:scale-95 transition-transform">
+                <Share2 size={18} />
               </div>
               <span className="text-[11px] font-bold text-slate-300">Compartilhar</span>
             </button>
@@ -919,8 +917,8 @@ export function MapPage() {
                 onClick={handleDeleteReport}
                 className="flex flex-col items-center gap-2 min-w-[72px]"
               >
-                <div className="w-12 h-12 rounded-full bg-slate-800 border border-red-500/50 flex items-center justify-center text-red-500 shadow-lg active:scale-95 transition-transform">
-                  <X size={20} />
+                <div className="w-10 h-10 rounded-full bg-slate-800 border border-red-500/50 flex items-center justify-center text-red-500 shadow-lg active:scale-95 transition-transform">
+                  <X size={18} />
                 </div>
                 <span className="text-[11px] font-bold text-red-500">Excluir</span>
               </button>
