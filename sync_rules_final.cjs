@@ -1,4 +1,7 @@
-rules_version = '2';
+const fs = require('fs');
+let rules = fs.readFileSync('firestore.rules', 'utf8');
+
+const newCode = `rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     match /groups/{groupId} {
@@ -38,7 +41,7 @@ service cloud.firestore {
     }
 
     function isValidEmail(email) {
-      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\\.[a-zA-Z]{2,}$");
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\\\\\.[a-zA-Z]{2,}$");
     }
 
     function areImmutableFieldsUnchanged(fields) {
@@ -190,4 +193,7 @@ service cloud.firestore {
       allow read: if isAdmin();
     }
   }
-}
+}`;
+
+fs.writeFileSync('firestore.rules', newCode);
+console.log("Local rules synced securely.");
