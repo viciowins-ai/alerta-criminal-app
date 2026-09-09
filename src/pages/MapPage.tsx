@@ -69,57 +69,66 @@ export function MapPage() {
       return;
     }
 
-    const watchId = navigator.geolocation.watchPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        
-        // Only center on user if there's no shared report to center on
-        const hasSharedReport = new URLSearchParams(window.location.search).get('reportId');
-        if (!initialCenterDone.current && mapRef.current && !hasSharedReport) {
-          mapRef.current.flyTo({
-            center: [longitude, latitude],
-            zoom: 16,
-            pitch: 0,
-            bearing: 0,
-            duration: 2000,
-            essential: true
+    let watchId: number;
+    try {
+      watchId = navigator.geolocation.watchPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          
+          // Only center on user if there's no shared report to center on
+          const hasSharedReport = new URLSearchParams(window.location.search).get('reportId');
+          if (!initialCenterDone.current && mapRef.current && !hasSharedReport) {
+            mapRef.current.flyTo({
+              center: [longitude, latitude],
+              zoom: 16,
+              pitch: 0,
+              bearing: 0,
+              duration: 2000,
+              essential: true
+            });
+            initialCenterDone.current = true;
+          }
+
+          try {
+            sessionStorage.setItem('lastKnownLocation', JSON.stringify({ lat: latitude, lng: longitude }));
+          } catch (e) {}
+
+          setUserLocation(prev => {
+            if (!prev) return { lat: latitude, lng: longitude };
+            
+            const R = 6371e3;
+            const p1 = prev.lat * Math.PI/180;
+            const p2 = latitude * Math.PI/180;
+            const dp = (latitude-prev.lat) * Math.PI/180;
+            const dl = (longitude-prev.lng) * Math.PI/180;
+            const a = Math.sin(dp/2) * Math.sin(dp/2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl/2) * Math.sin(dl/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            const d = R * c;
+            
+            if (d > 5) return { lat: latitude, lng: longitude };
+            return prev;
           });
-          initialCenterDone.current = true;
-        }
+        },
+        (error) => {
+          console.warn(`Geolocation error ${error.code}: ${error.message}`);
+          let errorMessage = 'Erro desconhecido ao buscar localização.';
+          if (error.code === 1) errorMessage = 'Permissão negada. Autorize o uso do GPS. (No celular, talvez precise abrir em nova guia)';
+          if (error.code === 2) errorMessage = 'Sinal de GPS indisponível no momento.';
+          if (error.code === 3) errorMessage = 'Tempo limite excedido ao buscar GPS.';
+          setGeoError(errorMessage);
+          setTimeout(() => setGeoError(null), 6000);
+        },
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+      );
+    } catch (e) {
+      console.warn("Caught synchronous geolocation error", e);
+    }
 
-        try {
-          sessionStorage.setItem('lastKnownLocation', JSON.stringify({ lat: latitude, lng: longitude }));
-        } catch (e) {}
-
-        setUserLocation(prev => {
-          if (!prev) return { lat: latitude, lng: longitude };
-          
-          const R = 6371e3;
-          const p1 = prev.lat * Math.PI/180;
-          const p2 = latitude * Math.PI/180;
-          const dp = (latitude-prev.lat) * Math.PI/180;
-          const dl = (longitude-prev.lng) * Math.PI/180;
-          const a = Math.sin(dp/2) * Math.sin(dp/2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl/2) * Math.sin(dl/2);
-          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-          const d = R * c;
-          
-          if (d > 5) return { lat: latitude, lng: longitude };
-          return prev;
-        });
-      },
-      (error) => {
-        console.warn(`Geolocation error ${error.code}: ${error.message}`);
-        let errorMessage = 'Erro desconhecido ao buscar localização.';
-        if (error.code === 1) errorMessage = 'Permissão negada. Autorize o uso do GPS.';
-        if (error.code === 2) errorMessage = 'Sinal de GPS indisponível no momento.';
-        if (error.code === 3) errorMessage = 'Tempo limite excedido ao buscar GPS.';
-        setGeoError(errorMessage);
-        setTimeout(() => setGeoError(null), 6000);
-      },
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-    );
-
-    return () => navigator.geolocation.clearWatch(watchId);
+    return () => {
+      try {
+        if (watchId !== undefined) navigator.geolocation.clearWatch(watchId);
+      } catch (e) {}
+    };
   }, []);
 
   useEffect(() => {

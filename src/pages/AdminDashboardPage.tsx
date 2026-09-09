@@ -86,29 +86,35 @@ export function AdminDashboardPage() {
   useEffect(() => {
     if (isPatrolling && user) {
       if ('geolocation' in navigator) {
-        watchIdRef.current = navigator.geolocation.watchPosition(
-          async (position) => {
-            try {
-              const userRef = doc(db, 'users', user.uid);
-              await updateDoc(userRef, {
-                location: {
-                  lat: position.coords.latitude,
-                  lng: position.coords.longitude
-                }
-              });
-            } catch (err) {
-              console.error("Erro ao atualizar localização da patrulha", err);
-            }
-          },
-          (error) => {
-            console.error("Erro de GPS", error);
-          },
-          { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
-        );
+        try {
+          watchIdRef.current = navigator.geolocation.watchPosition(
+            async (position) => {
+              try {
+                const userRef = doc(db, 'users', user.uid);
+                await updateDoc(userRef, {
+                  location: {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                  }
+                });
+              } catch (err) {
+                console.error("Erro ao atualizar localização da patrulha", err);
+              }
+            },
+            (error) => {
+              console.error("Erro de GPS:", error.message || 'Unknown error');
+            },
+            { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
+          );
+        } catch (e) {
+          console.error("Synchronous GPS Error", e);
+        }
       }
     } else {
       if (watchIdRef.current !== null) {
-        navigator.geolocation.clearWatch(watchIdRef.current);
+        try {
+          navigator.geolocation.clearWatch(watchIdRef.current);
+        } catch (e) {}
         watchIdRef.current = null;
       }
     }

@@ -112,25 +112,32 @@ export function ReportPage() {
   useEffect(() => {
     let watchId: number;
     if ('geolocation' in navigator) {
-      watchId = navigator.geolocation.watchPosition(
-        (position) => {
-          const { longitude, latitude } = position.coords;
-          setUserLocation({ lng: longitude, lat: latitude });
-          
-          if (!userHasDragged.current) {
-             setReportLocation({ longitude, latitude });
-             mapRef.current?.flyTo({ center: [longitude, latitude], zoom: 16, duration: 1000 });
-             fetchAddress(longitude, latitude);
-          }
-        },
-        (error) => {
-          console.warn(`Watch position error:`, error);
-        },
-        { enableHighAccuracy: true, maximumAge: 5000 }
-      );
+      try {
+        watchId = navigator.geolocation.watchPosition(
+          (position) => {
+            const { longitude, latitude } = position.coords;
+            setUserLocation({ lng: longitude, lat: latitude });
+            
+            if (!userHasDragged.current) {
+               setReportLocation({ longitude, latitude });
+               mapRef.current?.flyTo({ center: [longitude, latitude], zoom: 16, duration: 1000 });
+               fetchAddress(longitude, latitude);
+            }
+          },
+          (error) => {
+            console.warn(`Watch position error: ${error.message || 'Unknown error'}`);
+          },
+          { enableHighAccuracy: true, maximumAge: 5000 }
+        );
+      } catch (e) {
+        console.warn("Caught synchronous geolocation error", e);
+      }
     }
+
     return () => {
-      if (watchId) navigator.geolocation.clearWatch(watchId);
+      try {
+        if (watchId !== undefined) navigator.geolocation.clearWatch(watchId);
+      } catch (e) {}
     };
   }, []);
 
@@ -144,23 +151,32 @@ export function ReportPage() {
       setIsLocating(true);
       setAddress('Buscando localização...');
       if ('geolocation' in navigator) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const { longitude, latitude } = position.coords;
-            setUserLocation({ lng: longitude, lat: latitude });
-            setReportLocation({ longitude, latitude });
-            userHasDragged.current = false;
-            mapRef.current?.flyTo({ center: [longitude, latitude], zoom: 16, duration: 1000 });
-            fetchAddress(longitude, latitude);
-            setIsLocating(false);
-          }, 
-          (error) => {
-            console.warn(`Error getting location ${error.code}: ${error.message}`);
-            setAddress('Não foi possível obter sua localização.');
-            setIsLocating(false);
-          },
-          { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-        );
+        try {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              const { longitude, latitude } = position.coords;
+              setUserLocation({ lng: longitude, lat: latitude });
+              setReportLocation({ longitude, latitude });
+              userHasDragged.current = false;
+              mapRef.current?.flyTo({ center: [longitude, latitude], zoom: 16, duration: 1000 });
+              fetchAddress(longitude, latitude);
+              setIsLocating(false);
+            }, 
+            (error) => {
+              console.warn(`Error getting location ${error.code}: ${error.message}`);
+              setAddress('Não foi possível obter sua localização.');
+              setIsLocating(false);
+            },
+            { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+          );
+        } catch (e) {
+          console.warn("Caught synchronous geolocation error", e);
+          setAddress('Erro ao acessar o GPS.');
+          setIsLocating(false);
+        }
+      } else {
+        setAddress('GPS não suportado neste dispositivo.');
+        setIsLocating(false);
       }
     }
   }, [userLocation]);
@@ -270,7 +286,7 @@ export function ReportPage() {
         reportPayload.attachments = attachmentData;
       }
 
-      await addDoc(collection(db, 'reports'), reportPayload);
+      const reportRef = await addDoc(collection(db, 'reports'), reportPayload);
 
       // Add points to user - non-blocking
       try {
@@ -298,7 +314,7 @@ export function ReportPage() {
                 <p style="font-size: 16px; line-height: 1.5;">Uma nova ocorrência de <strong>${typeLabel}</strong> foi reportada na sua região.</p>
                 
                 <div style="background-color: #f8fafc; border-left: 4px solid #dc2626; padding: 16px; margin: 20px 0; border-radius: 0 8px 8px 0;">
-                  <p style="margin: 0 0 8px 0;"><strong>📍 Local:</strong> ${address || 'Localização aproximada'}</p>
+                  <p style="margin: 0 0 8px 0;"><strong>📍 Local:</strong> <a href="https://alertacriminal.com.br/?reportId=${reportRef.id}" style="color: #3b82f6; text-decoration: underline;">${address || 'Localização aproximada'}</a></p>
                   ${description.trim() !== '' ? `<p style="margin: 0; color: #475569;"><strong>📝 Detalhes:</strong> "${description.trim()}"</p>` : ''}
                 </div>
           `;
@@ -306,14 +322,16 @@ export function ReportPage() {
           if (attachmentData.length > 0 && attachmentData[0].type.startsWith('image/')) {
             htmlContent += `
                 <div style="margin: 20px 0; border-radius: 8px; overflow: hidden; border: 1px solid #e5e7eb;">
-                  <img src="${attachmentData[0].url}" alt="Foto da Ocorrência" style="width: 100%; max-height: 300px; object-fit: cover; display: block;" />
+                  <a href="https://alertacriminal.com.br/?reportId=${reportRef.id}">
+                    <img src="${attachmentData[0].url}" alt="Foto da Ocorrência" style="width: 100%; max-height: 300px; object-fit: cover; display: block; border: none;" />
+                  </a>
                 </div>
             `;
           }
 
           htmlContent += `
                 <div style="text-align: center; margin-top: 32px;">
-                  <a href="https://alertacriminal.com.br" style="display: inline-block; background-color: #0f172a; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
+                  <a href="https://alertacriminal.com.br/?reportId=${reportRef.id}" style="display: inline-block; background-color: #0f172a; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
                     Ver no Aplicativo
                   </a>
                 </div>
