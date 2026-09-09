@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { TopBar } from '../components/TopBar';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { collection, query, where, getDocs, limit, orderBy, doc, getDoc, updateDoc, onSnapshot, deleteDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, limit, orderBy, doc, getDoc, updateDoc, onSnapshot, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { AlertTriangle, MapPin, Users, ShieldAlert, Activity, Car, Bike, Power, MessageSquare, ShieldBan, Send, CheckCircle2, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
@@ -174,13 +174,13 @@ export function AdminDashboardPage() {
     try {
       await updateDoc(doc(db, 'feedbacks', feedbackId), {
         adminResponse: text,
-        adminResponseAt: new Date()
+        adminResponseAt: serverTimestamp()
       });
       alert("Resposta enviada ao usuário com sucesso!");
       setReplyText(prev => ({ ...prev, [feedbackId]: '' }));
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      alert("Erro ao enviar resposta");
+      alert("Erro ao enviar resposta: " + (e.message || JSON.stringify(e)));
     }
   };
 
