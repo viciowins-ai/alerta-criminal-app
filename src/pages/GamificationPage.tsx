@@ -106,7 +106,7 @@ export function GamificationPage() {
           <ul className="space-y-4">
             <RewardItem title="Dicas Avançadas de IA" desc="Acesso antecipado a rotas seguras geradas por IA." active={points >= 100} />
             <RewardItem title="Selo de Verificação" desc="Seus alertas ganham prioridade no feed." active={points >= 500} />
-            <RewardItem title="Descontos em Parceiros" desc="50% off em seguros e serviços de monitoramento." active={points >= 1500} />
+            <RewardItem title="Avatar Personalizado" desc="Desbloqueie molduras exclusivas para sua foto de perfil." active={points >= 1500} />
           </ul>
         </div>
       </div>
