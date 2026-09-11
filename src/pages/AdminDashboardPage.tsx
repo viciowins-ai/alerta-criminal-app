@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { TopBar } from '../components/TopBar';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { collection, query, where, getDocs, limit, orderBy, doc, getDoc, updateDoc, onSnapshot, deleteDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, limit, orderBy, doc, getDoc, updateDoc, onSnapshot, deleteDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { AlertTriangle, MapPin, Users, ShieldAlert, Activity, Car, Bike, Power, MessageSquare, ShieldBan, Send, CheckCircle2, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
@@ -25,6 +25,10 @@ export function AdminDashboardPage() {
   const [privateReports, setPrivateReports] = useState<any[]>([]);
   const [feedbacks, setFeedbacks] = useState<any[]>([]);
   const [replyText, setReplyText] = useState<{ [key: string]: string }>({});
+
+  // Dados reais para Dashboard
+  const [activeSOS, setActiveSOS] = useState<any[]>([]);
+  const [occurrences24hCount, setOccurrences24hCount] = useState<number>(0);
 
   useEffect(() => {
     if (loading) return;
@@ -73,15 +77,36 @@ export function AdminDashboardPage() {
       setFeedbacks(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
     });
 
+    // Escutar SOS Ativos
+    const qSOS = query(collection(db, 'emergencyAlerts'), where('status', '==', 'active'));
+    console.log('Setting up SOS listener...');
+    const unsubSOS = onSnapshot(qSOS, (snapshot) => {
+      const newSOS = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      console.log('Received SOS update:', newSOS);
+      setActiveSOS(newSOS);
+    }, (error) => console.error('Error fetching SOS:', error));
+
+    // Escutar Ocorrências 24h
+    const yesterday = new Date();
+    yesterday.setHours(yesterday.getHours() - 24);
+    const qOccurrences = query(collection(db, 'reports'), where('createdAt', '>=', Timestamp.fromDate(yesterday)));
+    console.log('Setting up Occurrences listener...');
+    const unsubOccurrences = onSnapshot(qOccurrences, (snapshot) => {
+      console.log('Received Occurrences update, size:', snapshot.size);
+      setOccurrences24hCount(snapshot.size);
+    }, (error) => console.error('Error fetching Occurrences:', error));
+
     return () => {
       unsubPatrol();
       unsubReports();
       unsubFeedbacks();
+      unsubSOS();
+      unsubOccurrences();
       if (watchIdRef.current !== null) {
         navigator.geolocation.clearWatch(watchIdRef.current);
       }
     };
-  }, [user, role, loading, navigate]);
+  }, [user, role, loading, navigate, activeTab]);
 
   useEffect(() => {
     if (isPatrolling && user) {
@@ -265,13 +290,13 @@ export function AdminDashboardPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex flex-col items-center justify-center text-center">
                 <ShieldAlert className="text-red-500 mb-2" size={28} />
-                <span className="text-3xl font-bold text-white">0</span>
+                <span className="text-3xl font-bold text-white">{activeSOS.length}</span>
                 <span className="text-xs text-slate-400 uppercase tracking-wider mt-1">SOS Ativos</span>
               </div>
               
               <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex flex-col items-center justify-center text-center">
                 <MapPin className="text-orange-500 mb-2" size={28} />
-                <span className="text-3xl font-bold text-white">0</span>
+                <span className="text-3xl font-bold text-white">{occurrences24hCount}</span>
                 <span className="text-xs text-slate-400 uppercase tracking-wider mt-1">Ocorrências (24h)</span>
               </div>
             </div>
@@ -281,10 +306,36 @@ export function AdminDashboardPage() {
                 <AlertTriangle className="text-yellow-500" size={20} />
                 Alertas em Tempo Real
               </h3>
-              <div className="text-center py-8">
-                <p className="text-slate-400">Nenhum SOS ativo no momento.</p>
-                <p className="text-xs text-slate-500 mt-2">A central está monitorando sua região.</p>
-              </div>
+              {activeSOS.length > 0 ? (
+                <div className="space-y-3">
+                  {activeSOS.map(sos => (
+                    <div key={sos.id} className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-red-500/20 text-red-400 rounded-lg animate-pulse">
+                          <ShieldAlert size={20} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-white">Pedido de Socorro!</p>
+                          <p className="text-xs text-slate-400">
+                            {sos.createdAt?.toDate ? format(sos.createdAt.toDate(), "HH:mm", { locale: ptBR }) : ''}
+                          </p>
+                        </div>
+                      </div>
+                      <button 
+                        onClick={() => navigate('/map')}
+                        className="text-xs font-bold text-white bg-red-600 px-3 py-1.5 rounded-lg shadow-lg hover:bg-red-500"
+                      >
+                        Ver no Mapa
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-slate-400">Nenhum SOS ativo no momento.</p>
+                  <p className="text-xs text-slate-500 mt-2">A central está monitorando sua região.</p>
+                </div>
+              )}
             </div>
 
             <div className="bg-slate-900 rounded-3xl p-6 border border-slate-800">

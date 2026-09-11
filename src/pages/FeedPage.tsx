@@ -24,6 +24,12 @@ export function FeedPage() {
   const [editDescription, setEditDescription] = useState<string>('');
   const [feedFilter, setFeedFilter] = useState<'all' | 'reports' | 'posts'>('all');
   const [activeCommentItem, setActiveCommentItem] = useState<{id: string, type: 'post' | 'report', authorName: string} | null>(null);
+  const [initialLoading, setInitialLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setInitialLoading(false), 1500);
+    return () => clearTimeout(timer);
+  }, []);
   const feedContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -52,6 +58,7 @@ export function FeedPage() {
         ...(doc.data() as any)
       }));
       setPosts(postsData);
+      setInitialLoading(false);
     }, (error) => {
       handleFirestoreError(error, OperationType.LIST, 'posts');
     });
@@ -87,6 +94,7 @@ export function FeedPage() {
         );
         
         setReports(reportsData);
+        setInitialLoading(false);
       }, (error) => {
         handleFirestoreError(error, OperationType.LIST, 'reports');
       });
@@ -392,7 +400,12 @@ export function FeedPage() {
         </div>
 
         {/* Feed List */}
-        {feedItems.length === 0 && (
+        {initialLoading ? (
+          <div className="flex flex-col items-center justify-center p-10 text-center opacity-70 mt-10">
+            <div className="w-10 h-10 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mb-4"></div>
+            <p className="text-slate-400 text-sm font-medium">Carregando feed...</p>
+          </div>
+        ) : feedItems.length === 0 && (
           <div className="flex flex-col items-center justify-center p-10 text-center space-y-4 opacity-70 mt-10">
             <div className="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center text-slate-500">
               <MessageSquare size={32} />
