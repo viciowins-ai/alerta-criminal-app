@@ -805,13 +805,7 @@ export function MapPage() {
         >
           <LocateFixed size={24} />
         </button>
-        <button 
-          onClick={() => navigate('/route')}
-          className="bg-gradient-to-br from-blue-500 to-blue-700 text-white p-3.5 rounded-2xl shadow-lg border border-blue-400/30 hover:from-blue-400 hover:to-blue-600 transition-all active:scale-95 flex items-center justify-center"
-          aria-label="Nova Rota"
-        >
-          <Navigation size={24} />
-        </button>
+
       </div>
 
       <PanicModeOverlay 
