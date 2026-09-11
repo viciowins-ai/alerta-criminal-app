@@ -13,6 +13,7 @@ import {
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { Layout } from "./components/Layout";
 import { PWAInstallPrompt } from "./components/PWAInstallPrompt";
+import { analytics } from './firebase';
 
 // Lazy load pages for better performance
 const MapPage = lazy(() =>
@@ -176,6 +177,11 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 export default function App() {
+  // Initialize analytics on app load
+  useEffect(() => {
+    analytics().catch(console.error);
+  }, []);
+
   return (
     <AuthProvider>
       <BrowserRouter>

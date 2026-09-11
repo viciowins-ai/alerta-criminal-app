@@ -3,6 +3,7 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getMessaging, isSupported } from 'firebase/messaging';
+import { getAnalytics, isSupported as isAnalyticsSupported } from 'firebase/analytics';
 import firebaseConfig from '../firebase-applet-config.json';
 
 // Initialize Firebase
@@ -30,6 +31,16 @@ export const messaging = async () => {
   const supported = await isSupported();
   if (supported) {
     return getMessaging(app);
+  }
+  return null;
+};
+
+
+// Initialize Analytics (only if supported by the browser)
+export const analytics = async () => {
+  const supported = await isAnalyticsSupported();
+  if (supported) {
+    return getAnalytics(app);
   }
   return null;
 };
