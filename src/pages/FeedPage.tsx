@@ -27,7 +27,7 @@ export function FeedPage() {
   const [initialLoading, setInitialLoading] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => setInitialLoading(false), 1500);
+    const timer = setTimeout(() => setInitialLoading(false), 3000);
     return () => clearTimeout(timer);
   }, []);
   const feedContainerRef = useRef<HTMLDivElement>(null);
@@ -58,7 +58,7 @@ export function FeedPage() {
         ...(doc.data() as any)
       }));
       setPosts(postsData);
-      setInitialLoading(false);
+      if (!snapshot.metadata.fromCache || postsData.length > 0) setInitialLoading(false);
     }, (error) => {
       handleFirestoreError(error, OperationType.LIST, 'posts');
     });
@@ -94,7 +94,7 @@ export function FeedPage() {
         );
         
         setReports(reportsData);
-        setInitialLoading(false);
+        if (!snapshot.metadata.fromCache || reportsData.length > 0) setInitialLoading(false);
       }, (error) => {
         handleFirestoreError(error, OperationType.LIST, 'reports');
       });
