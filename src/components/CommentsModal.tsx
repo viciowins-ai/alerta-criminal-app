@@ -24,8 +24,7 @@ export function CommentsModal({ isOpen, onClose, itemId, itemType, authorName }:
 
     const q = query(
       collection(db, 'comments'),
-      where('itemId', '==', itemId),
-      orderBy('createdAt', 'asc')
+      where('itemId', '==', itemId)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -33,6 +32,14 @@ export function CommentsModal({ isOpen, onClose, itemId, itemType, authorName }:
         id: doc.id,
         ...doc.data()
       }));
+      
+      // Ordenar no frontend (cliente) para evitar o erro de Índice Composto do Firebase
+      fetchedComments.sort((a, b) => {
+        const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+        const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+        return timeA - timeB; // Ordem crescente
+      });
+      
       setComments(fetchedComments);
     }, (error) => {
       console.error("Error fetching comments: ", error);
