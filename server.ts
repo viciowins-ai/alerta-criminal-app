@@ -179,7 +179,73 @@ async function startServer() {
   });
 
 
+
+
+  // 🔒 Rota para Buscar Comentários
+  app.get("/api/comments", verifyFirebaseToken, async (req, res) => {
+    try {
+      const { itemId } = req.query;
+      const db = admin.firestore();
+      
+      if (!itemId) return res.status(400).json({ error: "itemId is required" });
+
+      const snapshot = await db.collection('comments')
+        .where('itemId', '==', itemId)
+        .orderBy('createdAt', 'asc')
+        .get();
+
+      const comments = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        // Serialize timestamp for JSON
+        createdAt: doc.data().createdAt ? doc.data().createdAt.toDate().toISOString() : new Date().toISOString()
+      }));
+
+      res.json({ comments });
+    } catch (error: any) {
+      console.error("Erro ao buscar comentários:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // 🔒 Rota para Adicionar Comentários (Bypass de Rules)
+
+  app.post("/api/comments", verifyFirebaseToken, async (req, res) => {
+    try {
+      const { itemId, itemType, content, authorName, authorAvatar } = req.body;
+      const user = (req as any).user;
+      const db = admin.firestore();
+
+      if (!itemId || !itemType || !content) {
+        return res.status(400).json({ error: "Faltam parâmetros obrigatórios." });
+      }
+
+      const commentData = {
+        itemId,
+        itemType,
+        authorId: user.uid,
+        authorName: authorName || user.name || 'Usuário Anônimo',
+        authorAvatar: authorAvatar || user.picture || '',
+        content: content.trim(),
+        createdAt: admin.firestore.FieldValue.serverTimestamp()
+      };
+
+      await db.collection('comments').add(commentData);
+
+      const itemRef = db.collection(itemType === 'report' ? 'reports' : 'posts').doc(itemId);
+      await itemRef.update({
+        commentsCount: admin.firestore.FieldValue.increment(1)
+      });
+
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("Erro ao adicionar comentário:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   const distPath = path.join(process.cwd(), 'dist');
+
 
   if (isProduction && fs.existsSync(distPath)) {
     app.use(express.static(distPath));

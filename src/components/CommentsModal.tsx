@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Send, User } from 'lucide-react';
-import { db } from '../firebase';
-import { collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp, doc, updateDoc, increment } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
-import { handleFirestoreError, OperationType } from '../utils/firestoreErrorHandler';
 
 interface CommentsModalProps {
   isOpen: boolean;
@@ -19,52 +16,59 @@ export function CommentsModal({ isOpen, onClose, itemId, itemType, authorName }:
   const [newComment, setNewComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const fetchComments = async () => {
+    if (!user || !itemId) return;
+    try {
+      const token = await user.getIdToken();
+      const res = await fetch(`/api/comments?itemId=${itemId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setComments(data.comments);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   useEffect(() => {
-    if (!isOpen || !itemId) return;
-
-    const q = query(
-      collection(db, 'comments'),
-      where('itemId', '==', itemId),
-      orderBy('createdAt', 'asc')
-    );
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const fetchedComments = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setComments(fetchedComments);
-    }, (error) => {
-      console.error("Error fetching comments: ", error);
-    });
-
-    return () => unsubscribe();
-  }, [isOpen, itemId]);
+    if (isOpen && itemId && user) {
+      fetchComments();
+      const interval = setInterval(fetchComments, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [isOpen, itemId, user]);
 
   const handlePostComment = async () => {
     if (!newComment.trim() || !user) return;
     setIsSubmitting(true);
     
     try {
-      await addDoc(collection(db, 'comments'), {
-        itemId,
-        itemType,
-        authorId: user.uid,
-        authorName: user.displayName || 'Usuário Anônimo',
-        authorAvatar: user.photoURL || '',
-        content: newComment.trim(),
-        createdAt: serverTimestamp()
+      const token = await user.getIdToken();
+      const res = await fetch('/api/comments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          itemId,
+          itemType,
+          content: newComment.trim(),
+          authorName: user.displayName,
+          authorAvatar: user.photoURL
+        })
       });
 
-      // Increment comment count on the parent item
-      const itemRef = doc(db, itemType === 'report' ? 'reports' : 'posts', itemId);
-      await updateDoc(itemRef, {
-        commentsCount: increment(1)
-      });
-
-      setNewComment('');
+      if (res.ok) {
+        setNewComment('');
+        await fetchComments();
+      } else {
+        console.error("Failed to post comment");
+      }
     } catch (error) {
-      handleFirestoreError(error, OperationType.WRITE, 'comments');
+      console.error("Error posting comment", error);
     } finally {
       setIsSubmitting(false);
     }
