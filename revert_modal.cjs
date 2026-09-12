@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+const fs = require('fs');
+
+const originalModalCode = `import React, { useState, useEffect } from 'react';
 import { X, Send, User } from 'lucide-react';
 import { db } from '../firebase';
 import { collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp, doc, updateDoc, increment } from 'firebase/firestore';
@@ -155,3 +157,6 @@ export function CommentsModal({ isOpen, onClose, itemId, itemType, authorName }:
     </div>
   );
 }
+`;
+
+fs.writeFileSync('src/components/CommentsModal.tsx', originalModalCode);
