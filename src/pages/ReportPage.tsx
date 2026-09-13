@@ -288,6 +288,15 @@ export function ReportPage() {
 
       const reportRef = await addDoc(collection(db, 'reports'), reportPayload);
 
+      // Track report creation
+      import('../firebase').then(({ trackEvent }) => {
+        trackEvent('report_created', {
+          report_type: selectedType,
+          has_attachments: attachments.length > 0,
+          is_anonymous: isAnonymous
+        });
+      }).catch(console.error);
+
       // Add points to user - non-blocking
       try {
         const userRef = doc(db, 'users', user.uid);

@@ -63,6 +63,13 @@ export function CommentsModal({ isOpen, onClose, itemId, itemType, authorName }:
         createdAt: serverTimestamp()
       });
 
+      // Track comment event
+      import('../firebase').then(({ trackEvent }) => {
+        trackEvent('comment_created', {
+          item_type: itemType
+        });
+      }).catch(console.error);
+
       // Increment comment count on the parent item
       const itemRef = doc(db, itemType === 'report' ? 'reports' : 'posts', itemId);
       await updateDoc(itemRef, {

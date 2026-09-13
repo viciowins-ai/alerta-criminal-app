@@ -23,6 +23,12 @@ export function SOSModal({ isOpen, onClose, contacts, location, isRecordingAudio
 
   const handleWhatsApp = (phone: string) => {
     if (!location) return;
+
+    // Track the SOS interaction
+    import('../firebase').then(({ trackEvent }) => {
+      trackEvent('sos_whatsapp_contact_clicked', { has_location: true });
+    }).catch(console.error);
+
     const message = encodeURIComponent(
       `🚨 *ALERTA DE EMERGÊNCIA (SOS)* 🚨\n\nPreciso de ajuda! Esta é minha localização atual:\nhttps://maps.google.com/?q=${location.lat},${location.lng}`
     );
