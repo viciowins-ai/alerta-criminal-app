@@ -226,7 +226,7 @@ export function AdminDashboardPage() {
       <TopBar title="Painel Admin" showBack={true} />
       
       {/* Abas Superiores */}
-      <div className="flex px-4 py-2 bg-slate-900 border-b border-slate-800 gap-2 overflow-x-auto hide-scrollbar">
+      <div className="flex flex-wrap px-4 py-2 bg-slate-900 border-b border-slate-800 gap-2">
         <button 
           onClick={() => setActiveTab('dashboard')}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl whitespace-nowrap text-sm font-bold transition-all ${activeTab === 'dashboard' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}
