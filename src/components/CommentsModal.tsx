@@ -30,7 +30,7 @@ export function CommentsModal({ isOpen, onClose, itemId, itemType, authorName }:
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const fetchedComments = snapshot.docs.map(doc => ({
         id: doc.id,
-        ...doc.data()
+        ...(doc.data() as any)
       }));
       
       // Ordenar no frontend (cliente) para evitar o erro de Índice Composto do Firebase

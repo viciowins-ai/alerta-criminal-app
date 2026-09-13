@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { TopBar } from '../components/TopBar';
+import { ImageBlurEditor } from '../components/ImageBlurEditor';
 import { MapPin, Camera, Video, CheckCircle2, Siren, Eye, Flame, MoreHorizontal, Send, X, LocateFixed, AlertTriangle } from 'lucide-react';
 import Map, { ViewStateChangeEvent, MapRef, Marker } from 'react-map-gl/mapbox';
 import { useNavigate } from 'react-router-dom';
@@ -36,6 +37,7 @@ export function ReportPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [attachments, setAttachments] = useState<File[]>([]);
+  const [editingImage, setEditingImage] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [userGroups, setUserGroups] = useState<any[]>([]);
   const [visibility, setVisibility] = useState<'public' | 'group'>('public');
@@ -76,7 +78,18 @@ export function ReportPage() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      setAttachments(prev => [...prev, ...Array.from(e.target.files!)]);
+      const newFiles = Array.from(e.target.files);
+      const firstImage = newFiles.find(f => f.type.startsWith('image/'));
+      const otherFiles = firstImage ? newFiles.filter(f => f !== firstImage) : newFiles;
+      
+      if (firstImage) {
+        setEditingImage(firstImage);
+        if (otherFiles.length > 0) {
+          setAttachments(prev => [...prev, ...otherFiles]);
+        }
+      } else {
+        setAttachments(prev => [...prev, ...newFiles]);
+      }
     }
   };
 
@@ -566,6 +579,10 @@ export function ReportPage() {
             </button>
           </div>
           
+          <p className="text-[11px] text-red-400/80 text-center font-medium px-4 mt-2">
+            ⚠️ Por motivos legais, evite filmar rostos de terceiros e placas de viaturas.
+          </p>
+          
           {attachments.length > 0 && (
             <div className="mt-4 flex gap-2 overflow-x-auto pb-2">
               {attachments.map((file, index) => (
@@ -682,6 +699,19 @@ export function ReportPage() {
           </button>
         </div>
       </form>
+      
+      {editingImage && (
+        <ImageBlurEditor 
+          file={editingImage} 
+          onSave={(blurredFile) => {
+            setAttachments(prev => [...prev, blurredFile]);
+            setEditingImage(null);
+          }} 
+          onCancel={() => {
+            setEditingImage(null);
+          }} 
+        />
+      )}
     </div>
   );
 }
