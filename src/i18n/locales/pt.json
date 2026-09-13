@@ -24,6 +24,8 @@
     "panicDesc": "Se você for abordado e obrigado a entregar o celular desbloqueado, toque no botão do <strong>Modo Pânico (ícone de Lua 🌙)</strong> no menu inferior. A tela ficará completamente escura e bloqueada, simulando que o celular está desligado ou travado, protegendo seus dados e impedindo o acesso aos seus aplicativos bancários.",
     "reportTitle": "📍 Como reportar uma ocorrência?",
     "reportDesc": "No menu inferior, toque no botão azul central <strong>(+)</strong>. O GPS inteligente buscará sua localização exata. Escolha o tipo de crime ou situação suspeita, adicione fotos, vídeos e uma descrição do ocorrido. Esse alerta ajudará a proteger todo o seu bairro.",
+    "zeladoriaTitle": "🚧 Zeladoria e Riscos Ambientais",
+    "zeladoriaDesc": "Reportar <strong>Zeladoria / Risco</strong> (como ruas sem iluminação, mato alto, áreas alagadas, buracos e fios rompidos) é tão importante quanto relatar furtos. Locais mal cuidados atraem a criminalidade e oferecem risco à vida. Ajude a prevenir assaltos e acidentes marcando no mapa ruas que precisam de alerta ou manutenção urgente.",
     "gpsTitle": "🎯 Precisão da Localização e GPS",
     "gpsDesc": "O Alerta Criminal funciona melhor no celular, que possui um chip de GPS dedicado para localização exata.",
     "gpsMobile": "<strong>No celular:</strong> Mantenha a \"Localização de Alta Precisão\" ativada nas configurações para máxima exatidão.",

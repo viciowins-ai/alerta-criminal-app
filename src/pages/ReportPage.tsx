@@ -11,15 +11,17 @@ import { handleFirestoreError, OperationType } from '../utils/firestoreErrorHand
 import { getLevelInfo } from '../utils/levelUtils';
 
 const INCIDENT_TYPES = [
-  { id: 'roubo', label: 'Roubo/Furto', icon: <Siren size={24} />, baseColor: 'red' },
-  { id: 'suspeito', label: 'Atividade Suspeita', icon: <Eye size={24} />, baseColor: 'orange' },
-  { id: 'vandalismo', label: 'Vandalismo', icon: <Flame size={24} />, baseColor: 'yellow' },
-  { id: 'outro', label: 'Outro', icon: <MoreHorizontal size={24} />, baseColor: 'slate' },
+  { id: 'roubo', label: 'Roubo/Furto', icon: <Siren size={24} />, baseColor: 'red', desc: 'Assaltos ou furtos' },
+  { id: 'suspeito', label: 'Atividade Suspeita', icon: <Eye size={24} />, baseColor: 'orange', desc: 'Pessoas ou veículos' },
+  { id: 'zeladoria', label: 'Zeladoria / Risco', icon: <AlertTriangle size={24} />, baseColor: 'cyan', desc: 'Ruas escuras, alagamentos...' },
+  { id: 'vandalismo', label: 'Vandalismo', icon: <Flame size={24} />, baseColor: 'yellow', desc: 'Danos ao patrimônio' },
+  { id: 'outro', label: 'Outro', icon: <MoreHorizontal size={24} />, baseColor: 'slate', desc: 'Outras ocorrências' },
 ];
 
 const COLOR_MAP: Record<string, any> = {
   red: { activeBg: 'bg-red-950/40', activeBorder: 'border-red-500/50', activeText: 'text-red-400', activeShadow: 'shadow-[0_0_20px_rgba(239,68,68,0.2)]', iconActiveBg: 'bg-red-500/20', glow: 'from-red-500/0 to-red-500/10' },
   orange: { activeBg: 'bg-orange-950/40', activeBorder: 'border-orange-500/50', activeText: 'text-orange-400', activeShadow: 'shadow-[0_0_20px_rgba(249,115,22,0.2)]', iconActiveBg: 'bg-orange-500/20', glow: 'from-orange-500/0 to-orange-500/10' },
+  cyan: { activeBg: 'bg-cyan-950/40', activeBorder: 'border-cyan-500/50', activeText: 'text-cyan-400', activeShadow: 'shadow-[0_0_20px_rgba(6,182,212,0.2)]', iconActiveBg: 'bg-cyan-500/20', glow: 'from-cyan-500/0 to-cyan-500/10' },
   yellow: { activeBg: 'bg-yellow-950/40', activeBorder: 'border-yellow-500/50', activeText: 'text-yellow-400', activeShadow: 'shadow-[0_0_20px_rgba(234,179,8,0.2)]', iconActiveBg: 'bg-yellow-500/20', glow: 'from-yellow-500/0 to-yellow-500/10' },
   slate: { activeBg: 'bg-slate-800/80', activeBorder: 'border-slate-400/50', activeText: 'text-slate-200', activeShadow: 'shadow-[0_0_20px_rgba(148,163,184,0.2)]', iconActiveBg: 'bg-slate-600/30', glow: 'from-slate-500/0 to-slate-500/10' },
 };
@@ -505,6 +507,11 @@ export function ReportPage() {
                     isSelected ? 'text-white' : 'text-slate-400 group-hover:text-slate-200'
                   }`}>
                     {type.label}
+                  </span>
+                  <span className={`text-[10px] mt-1 relative z-10 transition-colors duration-300 text-center leading-tight ${
+                    isSelected ? 'text-slate-300' : 'text-slate-500 group-hover:text-slate-400'
+                  }`}>
+                    {type.desc}
                   </span>
                 </button>
               );

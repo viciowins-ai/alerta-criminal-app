@@ -17,6 +17,7 @@ const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || '';
 const colorStyles: Record<string, string> = {
   roubo: "border-red-400 text-red-400 shadow-[0_0_15px_rgba(248,113,113,0.6)]",
   suspeito: "border-orange-400 text-orange-400 shadow-[0_0_15px_rgba(251,146,60,0.6)]",
+  zeladoria: "border-cyan-400 text-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.6)]",
   vandalismo: "border-yellow-400 text-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.6)]",
   outro: "border-slate-400 text-slate-400 shadow-[0_0_15px_rgba(148,163,184,0.6)]",
 };
@@ -504,6 +505,7 @@ export function MapPage() {
   const getRiskLevel = (type: string) => {
     switch (type) {
       case 'roubo': return 'Crítico';
+      case 'zeladoria': return 'Atenção';
       case 'suspeito': return 'Alto';
       case 'vandalismo': return 'Médio';
       default: return 'Baixo';
@@ -513,6 +515,7 @@ export function MapPage() {
   const getLabel = (type: string) => {
     switch (type) {
       case 'roubo': return 'Roubo/Furto';
+      case 'zeladoria': return 'Zeladoria / Risco';
       case 'suspeito': return 'Atividade Suspeita';
       case 'vandalismo': return 'Vandalismo';
       default: return 'Outro';
