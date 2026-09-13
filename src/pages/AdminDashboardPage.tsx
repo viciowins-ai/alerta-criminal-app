@@ -13,7 +13,7 @@ export function AdminDashboardPage() {
   const { user, role, loading } = useAuth();
   const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'moderation' | 'feedbacks'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'moderation' | 'moderation_public' | 'feedbacks'>('dashboard');
 
   // Patrulha State
   const [isPatrolling, setIsPatrolling] = useState(false);
@@ -23,6 +23,7 @@ export function AdminDashboardPage() {
 
   // Moderação e Feedbacks State
   const [privateReports, setPrivateReports] = useState<any[]>([]);
+  const [publicReports, setPublicReports] = useState<any[]>([]);
   const [feedbacks, setFeedbacks] = useState<any[]>([]);
   const [replyText, setReplyText] = useState<{ [key: string]: string }>({});
 
@@ -64,11 +65,12 @@ export function AdminDashboardPage() {
       setActivePatrols(patrols);
     });
 
-    // Escutar Relatos Privados (Moderação)
+    // Escutar Relatos (Moderação)
     const qReports = query(collection(db, 'reports'), orderBy('createdAt', 'desc'), limit(100));
     const unsubReports = onSnapshot(qReports, (snapshot) => {
       const allReports = snapshot.docs.map(d => ({ id: d.id, ...(d.data() as any) }));
       setPrivateReports(allReports.filter(r => r.visibility === 'group' || r.visibility === 'private'));
+      setPublicReports(allReports.filter(r => r.visibility === 'public'));
     });
 
     // Escutar Feedbacks
@@ -236,6 +238,12 @@ export function AdminDashboardPage() {
           className={`flex items-center gap-2 px-4 py-2 rounded-xl whitespace-nowrap text-sm font-bold transition-all ${activeTab === 'moderation' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}
         >
           <ShieldAlert size={18} /> Moderação (Privados)
+        </button>
+        <button 
+          onClick={() => setActiveTab('moderation_public')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl whitespace-nowrap text-sm font-bold transition-all ${activeTab === 'moderation_public' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}
+        >
+          <ShieldAlert size={18} /> Moderação (Públicos)
         </button>
         <button 
           onClick={() => setActiveTab('feedbacks')}
@@ -432,6 +440,70 @@ export function AdminDashboardPage() {
                   <div className="text-center py-10 bg-slate-900/50 rounded-2xl border border-slate-800">
                     <CheckCircle2 className="mx-auto text-green-500 mb-3" size={32} />
                     <p className="text-slate-400 font-medium">Nenhum relato privado no momento.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ABA 2.5: MODERAÇÃO DE RELATOS PÚBLICOS */}
+        {activeTab === 'moderation_public' && (
+          <div className="space-y-6">
+            <div className="bg-slate-900 rounded-3xl p-6 border border-slate-800">
+              <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                <ShieldAlert className="text-orange-500" size={24} />
+                Auditoria de Relatos Públicos
+              </h3>
+              <p className="text-sm text-slate-400 mb-6">
+                Todas as ocorrências criadas no mapa aberto (Rede Pública) são direcionadas para esta central de moderação. Avalie se há falsa denúncia ou mau uso e aplique banimento se necessário.
+              </p>
+
+              <div className="space-y-4">
+                {publicReports.length > 0 ? (
+                  publicReports.map(report => (
+                    <div key={report.id} className="p-4 bg-slate-950 rounded-2xl border border-slate-800 flex flex-col gap-3">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h4 className="font-bold text-white">{report.type}</h4>
+                          <p className="text-xs text-slate-400">Alcance: <span className="text-orange-400 font-medium">Rede Pública</span></p>
+                          <p className="text-xs text-slate-500">Autor: {report.isAnonymous ? 'Anônimo' : report.authorName} • {report.createdAt?.toDate ? format(report.createdAt.toDate(), "dd/MM/yy 'às' HH:mm", { locale: ptBR }) : ''}</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <button 
+                            onClick={() => deleteReport(report.id)}
+                            className="bg-slate-800 p-2 rounded-lg text-slate-400 hover:text-red-400 transition-colors"
+                            title="Apagar Ocorrência"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                          <button 
+                            onClick={() => blockUser(report.authorId)}
+                            className="bg-red-500/20 border border-red-500/50 p-2 rounded-lg text-red-500 hover:bg-red-500 hover:text-white transition-colors"
+                            title="Bloquear Perfil"
+                          >
+                            <ShieldBan size={16} />
+                          </button>
+                        </div>
+                      </div>
+                      
+                      {report.description && (
+                        <p className="text-sm text-slate-300 bg-slate-900 p-3 rounded-xl border-l-2 border-orange-500 italic">
+                          "{report.description}"
+                        </p>
+                      )}
+
+                      {report.attachments && report.attachments.length > 0 && (
+                        <div className="mt-2">
+                          <AttachmentGallery attachments={report.attachments} />
+                        </div>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-10 bg-slate-900/50 rounded-2xl border border-slate-800">
+                    <CheckCircle2 className="mx-auto text-green-500 mb-3" size={32} />
+                    <p className="text-slate-400 font-medium">Nenhum relato público no momento.</p>
                   </div>
                 )}
               </div>
