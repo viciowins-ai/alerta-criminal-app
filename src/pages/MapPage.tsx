@@ -468,7 +468,7 @@ export function MapPage() {
   };
 
   const handleDeleteReport = async () => {
-    if (!selectedLocation || !user || selectedLocation.authorId !== user.uid) return;
+    if (!selectedLocation || !user || (selectedLocation.authorId !== user.uid && user.email !== 'viciowins@gmail.com')) return;
     if (window.confirm("Deseja realmente excluir sua ocorrência do mapa?")) {
       try {
         await deleteDoc(doc(db, 'reports', selectedLocation.id));
@@ -909,7 +909,7 @@ export function MapPage() {
               </div>
               <span className="text-[11px] font-bold text-slate-300">Compartilhar</span>
             </button>
-            {user?.uid === selectedLocation.authorId && (
+            {(user?.uid === selectedLocation.authorId || user?.email === 'viciowins@gmail.com') && (
               <button 
                 onClick={handleDeleteReport}
                 className="flex flex-col items-center gap-2 min-w-[72px]"

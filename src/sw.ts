@@ -1,7 +1,12 @@
 /// <reference lib="webworker" />
 import { precacheAndRoute } from 'workbox-precaching';
+import { clientsClaim } from 'workbox-core';
 
 declare let self: ServiceWorkerGlobalScope;
+
+// Force the service worker to activate immediately and take control of all clients
+self.skipWaiting();
+clientsClaim();
 
 // Precache resources
 precacheAndRoute(self.__WB_MANIFEST || []);
