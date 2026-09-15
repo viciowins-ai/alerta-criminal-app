@@ -4,6 +4,19 @@ import admin from "firebase-admin";
 import fs from "fs";
 import dotenv from "dotenv";
 import twilio from "twilio";
+import webPush from "web-push";
+
+// Configurações do Web Push (VAPID)
+// Você deve gerar essas chaves usando: npx web-push generate-vapid-keys
+// E salvá-las no seu .env
+const publicVapidKey = process.env.VAPID_PUBLIC_KEY || 'BE_2bKQd-_sjqirzqxUyWDUzGXUMpsYdJAykxDmVySDs1wIfhDxZ7ngCaHFaZQslDjOHb3-vmechAxxMeqplwQE'; 
+const privateVapidKey = process.env.VAPID_PRIVATE_KEY || 'UGwEUtPz5_FqSPgPE4rPQ-Ep-x1AuHtVg92a3UMyIC4';
+
+webPush.setVapidDetails(
+  'mailto:viciowins@gmail.com',
+  publicVapidKey,
+  privateVapidKey
+);
 import { startEmailCronJob, sendEmail } from "./emailService.ts";
 import { GoogleGenAI } from '@google/genai';
 
@@ -145,6 +158,66 @@ async function startServer() {
       res.json({ success: true, message: "E-mail enviado com sucesso!" });
     } else {
       res.status(500).json({ success: false, error: "Falha ao enviar e-mail. Verifique os logs do servidor e as credenciais SMTP." });
+    }
+  });
+
+  // --------------------------------------------------------------------------
+  // 🔥 PUSH NOTIFICATIONS API
+  // --------------------------------------------------------------------------
+  
+  // Endpoint to save a push subscription
+  app.post('/api/push/subscribe', verifyFirebaseToken, async (req, res) => {
+    try {
+      const subscription = req.body;
+      const uid = (req as any).user.uid;
+
+      console.log(`Nova inscrição de Push recebida para o usuário: ${uid}`);
+      
+      const db = admin.firestore();
+      await db.collection('users').doc(uid).collection('pushSubscriptions').add(subscription);
+
+      res.status(201).json({ message: 'Inscrição realizada com sucesso' });
+    } catch (error) {
+      console.error('Erro ao salvar inscrição push:', error);
+      res.status(500).json({ error: 'Falha ao salvar inscrição' });
+    }
+  });
+
+  // Endpoint to broadcast a push notification
+  app.post('/api/push/broadcast', verifyFirebaseToken, async (req, res) => {
+    try {
+      const { title, body, url } = req.body;
+      const uid = (req as any).user.uid;
+
+      const db = admin.firestore();
+      const usersSnapshot = await db.collection('users').get();
+      
+      let sendCount = 0;
+      
+      for (const userDoc of usersSnapshot.docs) {
+        const subsSnapshot = await userDoc.ref.collection('pushSubscriptions').get();
+        for (const subDoc of subsSnapshot.docs) {
+          const subscription = subDoc.data();
+          try {
+            await webPush.sendNotification(
+              subscription as any,
+              JSON.stringify({ title, body, url })
+            );
+            sendCount++;
+          } catch (err: any) {
+            if (err.statusCode === 404 || err.statusCode === 410) {
+              await subDoc.ref.delete();
+            } else {
+              console.error('Error sending push notification:', err);
+            }
+          }
+        }
+      }
+
+      res.status(200).json({ message: `Notificação enviada com sucesso para ${sendCount} dispositivos.` });
+    } catch (error) {
+      console.error('Erro ao enviar notificações push:', error);
+      res.status(500).json({ error: 'Falha ao enviar notificações' });
     }
   });
 

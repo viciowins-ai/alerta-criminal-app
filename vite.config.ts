@@ -11,10 +11,13 @@ export default defineConfig(({mode}) => {
       react(), 
       tailwindcss(),
       VitePWA({
+        strategies: 'injectManifest',
+        srcDir: 'src',
+        filename: 'sw.ts',
         registerType: 'autoUpdate',
         injectRegister: 'auto',
         includeAssets: ['favicon-32x32.png', 'apple-touch-icon-new.png', 'og-image-shield.png'],
-        workbox: {
+        injectManifest: {
           globIgnores: ["**/*.mp4", "**/*.webm", "**/*.mkv"],
         },
         manifest: {

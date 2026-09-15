@@ -12,11 +12,11 @@ import { handleFirestoreError, OperationType } from '../utils/firestoreErrorHand
 import { getLevelInfo } from '../utils/levelUtils';
 
 const INCIDENT_TYPES = [
-  { id: 'roubo', label: 'Roubo/Furto', icon: <Siren size={24} />, baseColor: 'red', desc: 'Assaltos ou furtos' },
-  { id: 'suspeito', label: 'Atividade Suspeita', icon: <Eye size={24} />, baseColor: 'orange', desc: 'Pessoas ou veículos' },
-  { id: 'zeladoria', label: 'Zeladoria / Risco', icon: <AlertTriangle size={24} />, baseColor: 'cyan', desc: 'Ruas escuras, alagamentos...' },
-  { id: 'vandalismo', label: 'Vandalismo', icon: <Flame size={24} />, baseColor: 'yellow', desc: 'Danos ao patrimônio' },
-  { id: 'outro', label: 'Outro', icon: <MoreHorizontal size={24} />, baseColor: 'slate', desc: 'Outras ocorrências' },
+  { id: 'roubo', label: 'Roubo/Furto', icon: <Siren size={24} />, baseColor: 'red', desc: 'Assaltos ou furtos', placeholder: 'Ex: Dois homens em uma moto preta, armados. Ocorreu há 10 min...' },
+  { id: 'suspeito', label: 'Atividade Suspeita', icon: <Eye size={24} />, baseColor: 'orange', desc: 'Pessoas ou veículos', placeholder: 'Ex: Veículo prata rondando o local devagar, placa XYZ...' },
+  { id: 'zeladoria', label: 'Zeladoria / Risco', icon: <AlertTriangle size={24} />, baseColor: 'cyan', desc: 'Ruas escuras, alagamentos...', placeholder: 'Ex: Poste apagado, buraco na via, enchente, bueiro entupido...' },
+  { id: 'vandalismo', label: 'Vandalismo', icon: <Flame size={24} />, baseColor: 'yellow', desc: 'Danos ao patrimônio', placeholder: 'Ex: Pichação recente, ponto de ônibus depredado...' },
+  { id: 'outro', label: 'Outro', icon: <MoreHorizontal size={24} />, baseColor: 'slate', desc: 'Outras ocorrências', placeholder: 'Forneça mais detalhes sobre o que aconteceu...' },
 ];
 
 const COLOR_MAP: Record<string, any> = {
@@ -312,6 +312,26 @@ export function ReportPage() {
         });
       }).catch(console.error);
 
+      // Trigger Push Notification Broadcast via Backend
+      try {
+        const typeLabel = INCIDENT_TYPES.find(t => t.id === selectedType)?.label || 'Ocorrência';
+        const idToken = await user.getIdToken();
+        await fetch('/api/push/broadcast', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${idToken}`
+          },
+          body: JSON.stringify({
+            title: `🚨 Alerta Criminal: ${typeLabel}`,
+            body: `Reportado em: ${address || 'Localização aproximada'}`,
+            url: `/?reportId=${reportRef.id}`
+          })
+        });
+      } catch (pushErr) {
+        console.error("Error triggering push broadcast:", pushErr);
+      }
+
       // Add points to user - non-blocking
       try {
         const userRef = doc(db, 'users', user.uid);
@@ -538,7 +558,7 @@ export function ReportPage() {
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Forneça mais detalhes sobre o que aconteceu..."
+            placeholder={INCIDENT_TYPES.find(t => t.id === selectedType)?.placeholder || "Forneça mais detalhes sobre o que aconteceu..."}
             className="w-full bg-slate-800 border border-slate-700 rounded-xl p-4 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none h-28"
           />
         </div>

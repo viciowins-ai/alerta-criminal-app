@@ -46,7 +46,7 @@ export function NotificationSettingsPage() {
       return false;
     }
 
-    if (!('Notification' in window)) {
+    if (!('Notification' in window) || !('serviceWorker' in navigator)) {
       setErrorMessage('Seu navegador não suporta notificações push.');
       return false;
     }
@@ -54,21 +54,53 @@ export function NotificationSettingsPage() {
     try {
       const permission = await Notification.requestPermission();
       if (permission === 'granted') {
-        const msg = await messaging();
-        if (msg) {
-          const token = await getToken(msg, VAPID_KEY ? { vapidKey: VAPID_KEY } : undefined);
-          
-          if (token && user) {
-            // Salvar o token no Firestore
-            const docRef = doc(db, 'users', user.uid);
-            await updateDoc(docRef, { fcmToken: token });
-            console.log('Token FCM salvo com sucesso!');
-            return true;
-          } else {
-            setErrorMessage('Não foi possível gerar o token de notificação.');
+        
+        // Registrar e buscar o Service Worker
+        const registration = await navigator.serviceWorker.ready;
+        
+        // Inscrever no servidor de push do navegador
+        // Chave pública configurada no backend
+        const publicVapidKey = 'BE_2bKQd-_sjqirzqxUyWDUzGXUMpsYdJAykxDmVySDs1wIfhDxZ7ngCaHFaZQslDjOHb3-vmechAxxMeqplwQE'; 
+        
+        // Função auxiliar para converter a VAPID string em Uint8Array
+        function urlBase64ToUint8Array(base64String: string) {
+          const padding = '='.repeat((4 - base64String.length % 4) % 4);
+          const base64 = (base64String + padding)
+            .replace(/\-/g, '+')
+            .replace(/_/g, '/');
+        
+          const rawData = window.atob(base64);
+          const outputArray = new Uint8Array(rawData.length);
+        
+          for (let i = 0; i < rawData.length; ++i) {
+            outputArray[i] = rawData.charCodeAt(i);
           }
+          return outputArray;
+        }
+
+        const subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
+        });
+
+        // Enviar a inscrição para o nosso backend Node.js
+        const idToken = await user?.getIdToken();
+        const response = await fetch('/api/push/subscribe', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${idToken}`
+          },
+          body: JSON.stringify(subscription),
+        });
+
+        if (response.ok) {
+          console.log('Inscrição no Push Server realizada com sucesso!');
+          return true;
         } else {
-          setErrorMessage('Serviço de mensageria não suportado neste navegador.');
+          console.error('Falha ao enviar inscrição pro backend');
+          setErrorMessage('Não foi possível concluir a inscrição de alertas em tempo real.');
+          return false;
         }
       } else {
         setErrorMessage('Permissão para notificações negada pelo navegador. Verifique as configurações do seu site.');

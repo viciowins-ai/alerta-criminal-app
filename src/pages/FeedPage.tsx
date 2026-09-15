@@ -444,7 +444,7 @@ export function FeedPage() {
                       </p>
                     </div>
                   </div>
-                  {user?.uid === item.authorId && (
+                  {(user?.uid === item.authorId || user?.email === 'viciowins@gmail.com') && (
                     <div className="flex items-center gap-1">
                       <button 
                         onClick={() => {
@@ -465,10 +465,11 @@ export function FeedPage() {
                     </div>
                   )}
                 </div>
+
                 <div className="mb-3 relative z-10">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-[10px] font-bold uppercase px-2 py-1 rounded-full bg-red-500/20 text-red-400">
-                      {item.visibility === 'group' ? '🔒 ' : ''}{item.type === 'roubo' ? 'Roubo/Furto' : item.type === 'suspeito' ? 'Atividade Suspeita' : item.type === 'vandalismo' ? 'Vandalismo' : 'Outro'}
+                      {item.visibility === 'group' ? '🔒 ' : ''}{item.type === 'roubo' ? 'Roubo/Furto' : item.type === 'suspeito' ? 'Atividade Suspeita' : item.type === 'vandalismo' ? 'Vandalismo' : item.type === 'zeladoria' ? 'Zeladoria / Risco' : 'Outro'}
                     </span>
                     <span className="text-xs text-slate-400 flex items-center gap-1 truncate">
                       <ShieldCheck size={12} />
@@ -530,7 +531,7 @@ export function FeedPage() {
                     <p className="text-xs text-slate-400">{formatTime(item.createdAt)} • {item.authorLevel}</p>
                   </div>
                 </div>
-                {user?.uid === item.authorId ? (
+                {(user?.uid === item.authorId || user?.email === 'viciowins@gmail.com') ? (
                   <button 
                     className="text-slate-500 hover:text-red-400 p-2" 
                     onClick={() => handleDeleteItem(item.id, 'post')}
