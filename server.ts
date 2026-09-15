@@ -186,15 +186,23 @@ async function startServer() {
   // Endpoint to broadcast a push notification
   app.post('/api/push/broadcast', verifyFirebaseToken, async (req, res) => {
     try {
-      const { title, body, url } = req.body;
+      const { title, body, url, htmlContent } = req.body;
       const uid = (req as any).user.uid;
 
       const db = admin.firestore();
       const usersSnapshot = await db.collection('users').get();
       
       let sendCount = 0;
+      let emailBccList: string[] = [];
       
       for (const userDoc of usersSnapshot.docs) {
+        const userData = userDoc.data();
+        
+        // Coletar emails para broadcast
+        if (htmlContent && userData.email && userData.notificationSettings?.email) {
+            emailBccList.push(userData.email);
+        }
+
         const subsSnapshot = await userDoc.ref.collection('pushSubscriptions').get();
         for (const subDoc of subsSnapshot.docs) {
           const subscription = subDoc.data();
@@ -214,7 +222,24 @@ async function startServer() {
         }
       }
 
-      res.status(200).json({ message: `Notificação enviada com sucesso para ${sendCount} dispositivos.` });
+      // Se houver emails e conteúdo html, cria os documentos na coleção mail
+      if (emailBccList.length > 0 && htmlContent) {
+        // Chunk emails to max 50 per document to avoid SMTP limits via BCC
+        const chunkSize = 50;
+        for (let i = 0; i < emailBccList.length; i += chunkSize) {
+            const chunk = emailBccList.slice(i, i + chunkSize);
+            await db.collection('mail').add({
+              bcc: chunk,
+              message: {
+                subject: title,
+                text: body,
+                html: htmlContent
+              }
+            });
+        }
+      }
+
+      res.status(200).json({ message: `Notificação enviada com sucesso para ${sendCount} dispositivos e ${emailBccList.length} emails.` });
     } catch (error) {
       console.error('Erro ao enviar notificações push:', error);
       res.status(500).json({ error: 'Falha ao enviar notificações' });
