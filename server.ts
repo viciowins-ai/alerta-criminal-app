@@ -106,7 +106,7 @@ async function startServer() {
       (req as any).user = decodedToken;
       next();
     } catch (error) {
-      console.error("Token de autenticação inválido ou expirado:", error);
+      fs.appendFileSync("server.log", "Token error: " + error.message + "\n"); console.error("Token de autenticação inválido ou expirado:", error);
       return res.status(403).json({ error: "Acesso negado. Sessão inválida ou expirada." });
     }
   };
@@ -211,7 +211,7 @@ async function startServer() {
       let sendCount = 0;
       let emailBccList: string[] = [];
       
-      console.log(`[Push Broadcast] Iniciando broadcast. htmlContent presente? ${!!htmlContent}`);
+      fs.appendFileSync("server.log", `[Push Broadcast] Iniciando...\n`); console.log(`[Push Broadcast] Iniciando...`);
 
       for (const userDoc of usersSnapshot.docs) {
         const userData = userDoc.data();
