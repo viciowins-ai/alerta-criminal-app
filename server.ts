@@ -29,10 +29,26 @@ try {
   if (fs.existsSync('./firebase-applet-config.json')) {
     const config = JSON.parse(fs.readFileSync('./firebase-applet-config.json', 'utf-8'));
     if (!admin.apps.length) {
-      admin.initializeApp({
-        projectId: config.projectId,
-      });
-      console.log("Firebase Admin initialized");
+      if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
+        try {
+          const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
+          admin.initializeApp({
+            credential: admin.credential.cert(serviceAccount),
+            projectId: config.projectId, // Fallback if missing in cert
+          });
+          console.log("Firebase Admin initialized WITH Service Account (Full Admin Privileges)");
+        } catch (parseError) {
+          console.error("Error parsing FIREBASE_SERVICE_ACCOUNT_KEY:", parseError);
+          // Fallback to basic initialization
+          admin.initializeApp({ projectId: config.projectId });
+          console.log("Firebase Admin initialized (Basic Mode - Parse Error)");
+        }
+      } else {
+        admin.initializeApp({
+          projectId: config.projectId,
+        });
+        console.log("Firebase Admin initialized (Basic Mode - No Service Account found)");
+      }
     }
     
     // Inicia o job de e-mails apenas se o Firebase Admin inicializar com sucesso
@@ -195,6 +211,8 @@ async function startServer() {
       let sendCount = 0;
       let emailBccList: string[] = [];
       
+      console.log(`[Push Broadcast] Iniciando broadcast. htmlContent presente? ${!!htmlContent}`);
+
       for (const userDoc of usersSnapshot.docs) {
         const userData = userDoc.data();
         
@@ -223,22 +241,33 @@ async function startServer() {
         }
       }
 
+      console.log(`[Push Broadcast] Total de emails coletados: ${emailBccList.length}`);
+
       // Se houver emails e conteúdo html, cria os documentos na coleção mail
       if (emailBccList.length > 0 && htmlContent) {
         // Chunk emails to max 50 per document to avoid SMTP limits via BCC
         const chunkSize = 50;
+        console.log(`[Push Broadcast] Criando documentos na coleção mail...`);
         for (let i = 0; i < emailBccList.length; i += chunkSize) {
             const chunk = emailBccList.slice(i, i + chunkSize);
-            await db.collection('mail').add({
-              to: 'alertacriminaloficial@gmail.com',
-              bcc: chunk,
-              message: {
-                subject: title,
-                text: body,
-                html: htmlContent
-              }
-            });
+            console.log(`[Push Broadcast] Enviando chunk de ${chunk.length} emails`);
+            try {
+              await db.collection('mail').add({
+                to: 'alertacriminaloficial@gmail.com',
+                bcc: chunk,
+                message: {
+                  subject: title,
+                  text: body,
+                  html: htmlContent
+                }
+              });
+              console.log(`[Push Broadcast] Documento mail adicionado com sucesso.`);
+            } catch (addErr) {
+              console.error(`[Push Broadcast] Erro ao adicionar documento mail:`, addErr);
+            }
         }
+      } else {
+         console.log(`[Push Broadcast] Não enviou emails porque: emailsList.length=${emailBccList.length}, htmlContent=${!!htmlContent}`);
       }
 
       res.status(200).json({ message: `Notificação enviada com sucesso para ${sendCount} dispositivos e ${emailBccList.length} emails.` });
