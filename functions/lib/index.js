@@ -108,7 +108,7 @@ app.post('/push/broadcast', verifyFirebaseToken, async (req, res) => {
             for (const subDoc of subsSnapshot.docs) {
                 const subscription = subDoc.data();
                 try {
-                    const privateVapidKey = process.env.FIREBASE_VAPID_PRIVATE_KEY || 'N23qQ3G1Z0mH3F3G1Z0mH3F3G1Z0mH3F3G1Z0mH3F3G1';
+                    const privateVapidKey = process.env.VAPID_PRIVATE_KEY || 'N23qQ3G1Z0mH3F3G1Z0mH3F3G1Z0mH3F3G1Z0mH3F3G1';
                     if (privateVapidKey) {
                         web_push_1.default.setVapidDetails('mailto:viciowins@gmail.com', 'BNGzXbZ7gK5_txezOTrpa0yJTr-84fPtacrezZNRD3Kvq8lj6WpC9bdouPm87Uu_vv5Uin0L0HupsQ35CscF56I', privateVapidKey);
                         await web_push_1.default.sendNotification(subscription, JSON.stringify({ title, body, url }));
@@ -168,7 +168,7 @@ app.post("/api/test-whatsapp", verifyFirebaseToken, async (req, res) => {
         res.status(500).json({ success: false, error: error.message });
     }
 });
-exports.api = (0, https_1.onRequest)({ cors: true, secrets: ["GEMINI_API_KEY", "TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN", "TWILIO_WHATSAPP_NUMBER", "FIREBASE_VAPID_PRIVATE_KEY"] }, app);
+exports.api = (0, https_1.onRequest)({ cors: true }, app);
 exports.weeklySummary = (0, scheduler_1.onSchedule)({
     schedule: "0 8 * * 0",
     timeZone: "America/Sao_Paulo",
