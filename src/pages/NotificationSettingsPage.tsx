@@ -13,7 +13,7 @@ const VAPID_KEY = import.meta.env.VITE_FIREBASE_VAPID_KEY;
 
 export function NotificationSettingsPage() {
   const { user } = useAuth();
-  const [settings, setSettings] = useState({ push: true, email: false, whatsapp: false });
+  const [settings, setSettings] = useState({ push: true, email: true, whatsapp: false });
   const [isRequesting, setIsRequesting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const navigate = useNavigate();

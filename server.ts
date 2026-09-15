@@ -198,8 +198,9 @@ async function startServer() {
       for (const userDoc of usersSnapshot.docs) {
         const userData = userDoc.data();
         
-        // Coletar emails para broadcast
-        if (htmlContent && userData.email && userData.notificationSettings?.email) {
+        // Coletar emails para broadcast (ativo por padrão a menos que explicitamente desativado)
+        const isEmailEnabled = userData.notificationSettings?.email ?? true;
+        if (htmlContent && userData.email && isEmailEnabled) {
             emailBccList.push(userData.email);
         }
 
@@ -229,6 +230,7 @@ async function startServer() {
         for (let i = 0; i < emailBccList.length; i += chunkSize) {
             const chunk = emailBccList.slice(i, i + chunkSize);
             await db.collection('mail').add({
+              to: 'alertacriminaloficial@gmail.com',
               bcc: chunk,
               message: {
                 subject: title,
