@@ -101,7 +101,7 @@ app.post('/push/broadcast', verifyFirebaseToken, async (req, res) => {
         for (const userDoc of usersSnapshot.docs) {
             const userData = userDoc.data();
             const isEmailEnabled = (_b = (_a = userData.notificationSettings) === null || _a === void 0 ? void 0 : _a.email) !== null && _b !== void 0 ? _b : true;
-            if (htmlContent && userData.email && isEmailEnabled) {
+            if (htmlContent && userData.email && !userData.email.endsWith('@anonymous.com') && isEmailEnabled && userData.termsAccepted === true) {
                 emailBccList.push(userData.email);
             }
             const subsSnapshot = await userDoc.ref.collection('pushSubscriptions').get();
@@ -184,7 +184,7 @@ exports.weeklySummary = (0, scheduler_1.onSchedule)({
     const usersSnapshot = await db.collection('users').get();
     for (const doc of usersSnapshot.docs) {
         const userData = doc.data();
-        if (((_a = userData.notificationSettings) === null || _a === void 0 ? void 0 : _a.email) && userData.email) {
+        if (((_a = userData.notificationSettings) === null || _a === void 0 ? void 0 : _a.email) && userData.email && !userData.email.endsWith('@anonymous.com') && userData.termsAccepted === true) {
             const htmlContent = `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #1e293b;">Resumo Semanal - Alerta Criminal</h2>
