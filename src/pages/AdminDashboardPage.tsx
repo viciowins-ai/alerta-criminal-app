@@ -129,12 +129,12 @@ export function AdminDashboardPage() {
               }
             },
             (error) => {
-              console.error("Erro de GPS:", error.message || 'Unknown error');
+              console.warn("Erro de GPS:", error.message || 'Unknown error');
             },
             { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
           );
         } catch (e) {
-          console.error("Synchronous GPS Error", e);
+          console.warn("Synchronous GPS Error", e);
         }
       }
     } else {

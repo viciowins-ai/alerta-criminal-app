@@ -218,7 +218,7 @@ async function startServer() {
         
         // Coletar emails para broadcast (ativo por padrão a menos que explicitamente desativado)
         const isEmailEnabled = userData.notificationSettings?.email ?? true;
-        if (htmlContent && userData.email && isEmailEnabled) {
+        if (htmlContent && userData.email && !userData.email.endsWith('@anonymous.com') && isEmailEnabled && userData.termsAccepted === true) {
             emailBccList.push(userData.email);
         }
 
@@ -243,27 +243,24 @@ async function startServer() {
 
       console.log(`[Push Broadcast] Total de emails coletados: ${emailBccList.length}`);
 
-      // Se houver emails e conteúdo html, cria os documentos na coleção mail
+      // Se houver emails e conteúdo html, envia via SMTP
       if (emailBccList.length > 0 && htmlContent) {
         // Chunk emails to max 50 per document to avoid SMTP limits via BCC
         const chunkSize = 50;
-        console.log(`[Push Broadcast] Criando documentos na coleção mail...`);
+        console.log(`[Push Broadcast] Iniciando disparo SMTP...`);
         for (let i = 0; i < emailBccList.length; i += chunkSize) {
             const chunk = emailBccList.slice(i, i + chunkSize);
             console.log(`[Push Broadcast] Enviando chunk de ${chunk.length} emails`);
             try {
-              await db.collection('mail').add({
-                to: 'alertacriminaloficial@gmail.com',
-                bcc: chunk,
-                message: {
-                  subject: title,
-                  text: body,
-                  html: htmlContent
-                }
-              });
-              console.log(`[Push Broadcast] Documento mail adicionado com sucesso.`);
+              await sendEmail(
+                'alertacriminaloficial@gmail.com', // To (oficial)
+                title,                             // Assunto
+                htmlContent,                       // HTML
+                chunk                              // BCC
+              );
+              console.log(`[Push Broadcast] Chunk enviado com sucesso via SMTP.`);
             } catch (addErr) {
-              console.error(`[Push Broadcast] Erro ao adicionar documento mail:`, addErr);
+              console.error(`[Push Broadcast] Erro ao disparar SMTP:`, addErr);
             }
         }
       } else {

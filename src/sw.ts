@@ -18,7 +18,7 @@ self.addEventListener('push', (event) => {
   try {
     const data = event.data.json();
     const title = data.title || 'Alerta Criminal';
-    const options: NotificationOptions = {
+    const options: any = {
       body: data.body || 'Nova notificação de segurança',
       icon: '/pwa-192x192.png',
       badge: '/favicon-32x32.png',

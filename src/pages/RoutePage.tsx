@@ -129,7 +129,7 @@ export function RoutePage() {
           });
         },
         (error) => {
-          console.warn(`Geolocation error ${error.code}: ${error.message}`);
+          console.warn('Geolocation warning: Unable to get location');
           setGeoError('Não foi possível obter sua localização.');
           setTimeout(() => setGeoError(null), 6000);
         },

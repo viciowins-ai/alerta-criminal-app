@@ -79,8 +79,8 @@ export function ReportPage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const newFiles = Array.from(e.target.files);
-      const firstImage = newFiles.find(f => f.type.startsWith('image/'));
-      const otherFiles = firstImage ? newFiles.filter(f => f !== firstImage) : newFiles;
+      const firstImage = newFiles.find((f: File) => f.type.startsWith('image/'));
+      const otherFiles = firstImage ? newFiles.filter((f: File) => f !== firstImage) : newFiles;
       
       if (firstImage) {
         setEditingImage(firstImage);
@@ -140,7 +140,7 @@ export function ReportPage() {
             }
           },
           (error) => {
-            console.warn(`Watch position error: ${error.message || 'Unknown error'}`);
+            console.warn('Watch position warning: Unable to get location');
           },
           { enableHighAccuracy: true, maximumAge: 5000 }
         );
@@ -178,7 +178,7 @@ export function ReportPage() {
               setIsLocating(false);
             }, 
             (error) => {
-              console.warn(`Error getting location ${error.code}: ${error.message}`);
+              console.warn('Geolocation warning: Unable to get location');
               setAddress('Não foi possível obter sua localização.');
               setIsLocating(false);
             },

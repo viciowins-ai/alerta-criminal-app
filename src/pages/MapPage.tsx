@@ -111,11 +111,12 @@ export function MapPage() {
           });
         },
         (error) => {
-          console.warn(`Geolocation error ${error.code}: ${error.message}`);
           let errorMessage = 'Erro desconhecido ao buscar localização.';
-          if (error.code === 1) errorMessage = 'Permissão negada. Autorize o uso do GPS. (No celular, talvez precise abrir em nova guia)';
-          if (error.code === 2) errorMessage = 'Sinal de GPS indisponível no momento.';
-          if (error.code === 3) errorMessage = 'Tempo limite excedido ao buscar GPS.';
+          if (error && error.code === 1) errorMessage = 'Permissão negada. Autorize o uso do GPS.';
+          else if (error && error.code === 2) errorMessage = 'Sinal de GPS indisponível no momento.';
+          else if (error && error.code === 3) errorMessage = 'Tempo limite excedido ao buscar GPS.';
+          
+          console.warn('Geolocation warning: ' + errorMessage);
           setGeoError(errorMessage);
           setTimeout(() => setGeoError(null), 6000);
         },

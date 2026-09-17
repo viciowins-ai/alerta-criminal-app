@@ -15,22 +15,28 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-export async function sendEmail(to: string, subject: string, html: string) {
+export async function sendEmail(to: string, subject: string, html: string, bcc?: string[]) {
   try {
     // Se não houver usuário SMTP configurado, avisamos no console e não tentamos enviar
     // para evitar travamentos no servidor de desenvolvimento.
     if (!process.env.SMTP_USER) {
-      console.warn(`[E-mail Simulado] Para: ${to} | Assunto: ${subject}`);
+      console.warn(`[E-mail Simulado] Para: ${to} | BCC: ${bcc ? bcc.join(',') : 'N/A'} | Assunto: ${subject}`);
       console.warn('Configure SMTP_USER e SMTP_PASS no .env para envio real.');
       return false;
     }
 
-    const info = await transporter.sendMail({
+    const mailOptions: any = {
       from: '"Alerta Criminal" <alertacriminaloficial@gmail.com>',
       to,
       subject,
       html,
-    });
+    };
+    
+    if (bcc && bcc.length > 0) {
+      mailOptions.bcc = bcc;
+    }
+
+    const info = await transporter.sendMail(mailOptions);
     console.log("E-mail enviado: %s", info.messageId);
     return true;
   } catch (error) {
