@@ -17,7 +17,6 @@ webPush.setVapidDetails(
   publicVapidKey,
   privateVapidKey
 );
-import { startEmailCronJob, sendEmail } from "./emailService.ts";
 import { GoogleGenAI } from '@google/genai';
 
 dotenv.config({ override: true });
@@ -153,28 +152,7 @@ async function startServer() {
 
   // 🔒 Rota Protegida
   app.post("/api/test-email", verifyFirebaseToken, async (req, res) => {
-    const { to, name } = req.body;
-    if (!to) {
-      return res.status(400).json({ success: false, error: "E-mail de destino (to) é obrigatório." });
-    }
-
-    const htmlContent = `
-      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #1e293b;">Teste de E-mail - Alerta Criminal</h2>
-        <p>Olá <strong>${name || 'Usuário'}</strong>,</p>
-        <p>Este é um e-mail de teste para confirmar que a configuração do servidor SMTP está funcionando perfeitamente.</p>
-        <br/>
-        <p style="color: #64748b; font-size: 14px;">Equipe Alerta Criminal</p>
-      </div>
-    `;
-
-    const success = await sendEmail(to, 'Teste de Configuração de E-mail', htmlContent);
-    
-    if (success) {
-      res.json({ success: true, message: "E-mail enviado com sucesso!" });
-    } else {
-      res.status(500).json({ success: false, error: "Falha ao enviar e-mail. Verifique os logs do servidor e as credenciais SMTP." });
-    }
+    res.json({ success: true, message: "Use Firebase Functions for email." });
   });
 
   // --------------------------------------------------------------------------
@@ -245,24 +223,7 @@ async function startServer() {
 
       // Se houver emails e conteúdo html, envia via SMTP
       if (emailBccList.length > 0 && htmlContent) {
-        // Chunk emails to max 50 per document to avoid SMTP limits via BCC
-        const chunkSize = 50;
-        console.log(`[Push Broadcast] Iniciando disparo SMTP...`);
-        for (let i = 0; i < emailBccList.length; i += chunkSize) {
-            const chunk = emailBccList.slice(i, i + chunkSize);
-            console.log(`[Push Broadcast] Enviando chunk de ${chunk.length} emails`);
-            try {
-              await sendEmail(
-                'alertacriminaloficial@gmail.com', // To (oficial)
-                title,                             // Assunto
-                htmlContent,                       // HTML
-                chunk                              // BCC
-              );
-              console.log(`[Push Broadcast] Chunk enviado com sucesso via SMTP.`);
-            } catch (addErr) {
-              console.error(`[Push Broadcast] Erro ao disparar SMTP:`, addErr);
-            }
-        }
+        console.log(`[Push Broadcast] Emails agora são processados pela Firebase Functions`);
       } else {
          console.log(`[Push Broadcast] Não enviou emails porque: emailsList.length=${emailBccList.length}, htmlContent=${!!htmlContent}`);
       }

@@ -6,6 +6,7 @@ import cors from "cors";
 import webPush from "web-push";
 import { GoogleGenAI } from "@google/genai";
 import twilio from "twilio";
+import nodemailer from "nodemailer";
 
 // Inicializa Firebase Admin
 admin.initializeApp();
@@ -13,6 +14,17 @@ admin.initializeApp();
 const app = express();
 app.use(cors({ origin: true }));
 app.use(express.json());
+
+// Transporter do Nodemailer para Firebase Functions
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST || 'smtp.gmail.com',
+  port: parseInt(process.env.SMTP_PORT || '587'),
+  secure: process.env.SMTP_SECURE === 'true', // true para 465, false para outras portas
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+});
 
 // Middleware
 const verifyFirebaseToken = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -37,10 +49,12 @@ app.post("/api/chat", verifyFirebaseToken, async (req, res) => {
   try {
     const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
     const { messages } = req.body;
+    
     const contents = messages.map((m: any) => ({
       role: m.role,
       parts: [{ text: m.text }]
     }));
+    
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: contents,
@@ -50,22 +64,34 @@ app.post("/api/chat", verifyFirebaseToken, async (req, res) => {
     });
     res.json({ text: response.text });
   } catch (error: any) {
+    console.error("Erro no chat:", error);
     res.status(500).json({ error: error.message });
   }
 });
 
-app.post('/push/subscribe', verifyFirebaseToken, async (req, res) => {
+app.get("/api/test-admin", verifyFirebaseToken, async (req, res) => {
+  try {
+    const db = admin.firestore();
+    const usersSnap = await db.collection('users').limit(1).get();
+    res.json({ success: true, count: usersSnap.size });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post('/api/push/subscribe', verifyFirebaseToken, async (req, res) => {
   try {
     const subscription = req.body;
     const uid = (req as any).user.uid;
-    await admin.firestore().collection('users').doc(uid).collection('pushSubscriptions').add(subscription);
+    const db = admin.firestore();
+    await db.collection('users').doc(uid).collection('pushSubscriptions').add(subscription);
     res.status(201).json({ message: 'Inscrição realizada com sucesso' });
   } catch (error) {
     res.status(500).json({ error: 'Falha ao salvar inscrição' });
   }
 });
 
-app.post('/push/broadcast', verifyFirebaseToken, async (req, res) => {
+app.post('/api/push/broadcast', verifyFirebaseToken, async (req, res) => {
   try {
     const { title, body, url, htmlContent } = req.body;
     const db = admin.firestore();
@@ -77,9 +103,11 @@ app.post('/push/broadcast', verifyFirebaseToken, async (req, res) => {
     for (const userDoc of usersSnapshot.docs) {
       const userData = userDoc.data();
       const isEmailEnabled = userData.notificationSettings?.email ?? true;
+      
       if (htmlContent && userData.email && !userData.email.endsWith('@anonymous.com') && isEmailEnabled && userData.termsAccepted === true) {
           emailBccList.push(userData.email);
       }
+
       const subsSnapshot = await userDoc.ref.collection('pushSubscriptions').get();
       for (const subDoc of subsSnapshot.docs) {
         const subscription = subDoc.data();
@@ -98,31 +126,35 @@ app.post('/push/broadcast', verifyFirebaseToken, async (req, res) => {
       }
     }
     
+    // NOVO DISPARO SMTP VIA NODEMAILER (Substituindo a collection mail)
     if (emailBccList.length > 0 && htmlContent) {
       const chunkSize = 50;
       for (let i = 0; i < emailBccList.length; i += chunkSize) {
           const chunk = emailBccList.slice(i, i + chunkSize);
-          await db.collection('mail').add({
-            to: 'alertacriminaloficial@gmail.com',
-            bcc: chunk,
-            message: { subject: title, text: body, html: htmlContent }
-          });
+          try {
+            await transporter.sendMail({
+              from: '"Alerta Criminal" <alertacriminaloficial@gmail.com>',
+              to: 'alertacriminaloficial@gmail.com',
+              bcc: chunk,
+              subject: title,
+              html: htmlContent
+            });
+            console.log(`Chunk de ${chunk.length} emails enviado com sucesso.`);
+          } catch (smtpErr) {
+            console.error("Erro no envio SMTP", smtpErr);
+          }
       }
     }
-    res.status(200).json({ message: `Notificação enviada com sucesso para ${sendCount} dispositivos e ${emailBccList.length} emails.` });
+
+    res.status(200).json({ message: 'Broadcast processado', pushSent: sendCount, emailsSent: emailBccList.length });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Falha ao enviar notificações' });
+    console.error('Erro no broadcast:', error);
+    res.status(500).json({ error: 'Falha no broadcast' });
   }
 });
 
 app.post("/api/test-whatsapp", verifyFirebaseToken, async (req, res) => {
   const { to, name } = req.body;
-  if (!to) {
-    res.status(400).json({ success: false, error: "Número de destino (to) é obrigatório." });
-    return;
-  }
-  
   const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID;
   const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN;
   const TWILIO_WHATSAPP_NUMBER = process.env.TWILIO_WHATSAPP_NUMBER;
@@ -145,21 +177,24 @@ app.post("/api/test-whatsapp", verifyFirebaseToken, async (req, res) => {
   }
 });
 
-export const api = onRequest({ cors: true }, app);
+export const api = onRequest({ cors: true, }, app);
 
 export const weeklySummary = onSchedule({
   schedule: "0 8 * * 0",
   timeZone: "America/Sao_Paulo",
+
 }, async (event) => {
   const db = admin.firestore();
   const oneWeekAgo = new Date();
   oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+  
   const recentReportsSnapshot = await db.collection('reports')
     .where('createdAt', '>=', admin.firestore.Timestamp.fromDate(oneWeekAgo))
     .get();
-  
+    
   const totalReports = recentReportsSnapshot.size;
   const usersSnapshot = await db.collection('users').get();
+  
   for (const doc of usersSnapshot.docs) {
     const userData = doc.data();
     if (userData.notificationSettings?.email && userData.email && !userData.email.endsWith('@anonymous.com') && userData.termsAccepted === true) {
@@ -176,13 +211,16 @@ export const weeklySummary = onSchedule({
           <p style="color: #64748b; font-size: 14px;">Equipe Alerta Criminal</p>
         </div>
       `;
-      await db.collection('mail').add({
-        to: userData.email,
-        message: {
+      try {
+        await transporter.sendMail({
+          from: '"Alerta Criminal" <alertacriminaloficial@gmail.com>',
+          to: userData.email,
           subject: 'Seu Resumo Semanal de Segurança',
           html: htmlContent
-        }
-      });
+        });
+      } catch (e) {
+        console.error("Failed to send weekly summary", e);
+      }
     }
   }
 });
