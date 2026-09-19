@@ -49,9 +49,6 @@ try {
         console.log("Firebase Admin initialized (Basic Mode - No Service Account found)");
       }
     }
-    
-    // Inicia o job de e-mails apenas se o Firebase Admin inicializar com sucesso
-    startEmailCronJob();
   }
 } catch (e) {
   console.error("Firebase Admin init error", e);

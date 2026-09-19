@@ -174,7 +174,7 @@ export function FeedPage() {
       let text = '';
 
       if (item.feedType === 'report') {
-        const typeName = item.type === 'roubo' ? 'Roubo/Furto' : item.type === 'suspeito' ? 'Atividade Suspeita' : item.type === 'vandalismo' ? 'Vandalismo' : 'Alerta';
+        const typeName = item.type === 'roubo' ? 'Roubo/Furto' : item.type === 'suspeito' ? 'Atividade Suspeita' : item.type === 'vandalismo' ? 'Vandalismo' : item.type === 'zeladoria' ? 'Zeladoria / Risco' : 'Outro';
         title = 'Alerta de Segurança - Guardian';
         text = `⚠️ Alerta de ${typeName} reportado em: ${item.location?.address || 'Localização não especificada'}. Fique atento!`;
       } else {
@@ -611,6 +611,7 @@ export function FeedPage() {
                 >
                   <option value="roubo">Roubo/Furto</option>
                   <option value="suspeito">Atividade Suspeita</option>
+                  <option value="zeladoria">Zeladoria / Risco</option>
                   <option value="vandalismo">Vandalismo</option>
                   <option value="outro">Outro</option>
                 </select>
