@@ -63,43 +63,31 @@ export function FeedPage() {
       handleFirestoreError(error, OperationType.LIST, 'posts');
     });
 
-    // Listen to reports
-    let unsubscribeReports = () => {};
-    const setupReportsListener = async () => {
-      let userGroupIds: string[] = [];
-      if (user) {
-        try {
-          const qGroups = query(collection(db, 'groups'), where('members', 'array-contains', user.uid));
-          const snap = await getDocs(qGroups);
-          userGroupIds = snap.docs.map(d => d.id);
-        } catch (e) {
-          console.error(e);
-        }
-      }
+    // Listen to reports (A Rede Comunitária exibe apenas ocorrências públicas)
+    const qReports = query(collection(db, 'reports'), orderBy('createdAt', 'desc'), limit(100));
+    const unsubscribeReports = onSnapshot(qReports, (snapshot) => {
+      let reportsData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        feedType: 'report',
+        ...(doc.data() as any)
+      }));
       
-      const qReports = query(collection(db, 'reports'), orderBy('createdAt', 'desc'), limit(100));
-      unsubscribeReports = onSnapshot(qReports, (snapshot) => {
-        let reportsData = snapshot.docs.map(doc => ({
-          id: doc.id,
-          feedType: 'report',
-          ...(doc.data() as any)
-        }));
-        
-        // Filter reports
-        reportsData = reportsData.filter((r: any) => 
-          !r.visibility || 
-          r.visibility === 'public' || 
-          (r.visibility === 'group' && userGroupIds.includes(r.groupId)) ||
-          r.authorId === user?.uid
-        );
-        
-        setReports(reportsData);
-        if (!snapshot.metadata.fromCache || reportsData.length > 0) setInitialLoading(false);
-      }, (error) => {
-        handleFirestoreError(error, OperationType.LIST, 'reports');
+      // Filter reports: A "Rede Comunitária" é o feed público aberto.
+      // Ocorrências de Rede Privada (visibility === 'group' ou 'private' ou vinculadas a grupo)
+      // NUNCA devem aparecer na Rede Comunitária de outros usuários!
+      reportsData = reportsData.filter((r: any) => {
+        const isPrivate = r.visibility === 'group' || r.visibility === 'private' || Boolean(r.groupId);
+        if (isPrivate) {
+          return false;
+        }
+        return !r.visibility || r.visibility === 'public';
       });
-    };
-    setupReportsListener();
+      
+      setReports(reportsData);
+      if (!snapshot.metadata.fromCache || reportsData.length > 0) setInitialLoading(false);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, 'reports');
+    });
 
     // Listen to user's likes
     const likesQuery = query(collection(db, 'likes'), where('userId', '==', user.uid));
@@ -469,7 +457,7 @@ export function FeedPage() {
                 <div className="mb-3 relative z-10">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-[10px] font-bold uppercase px-2 py-1 rounded-full bg-red-500/20 text-red-400">
-                      {item.visibility === 'group' ? '🔒 ' : ''}{item.type === 'roubo' ? 'Roubo/Furto' : item.type === 'suspeito' ? 'Atividade Suspeita' : item.type === 'vandalismo' ? 'Vandalismo' : item.type === 'zeladoria' ? 'Zeladoria / Risco' : 'Outro'}
+                      {item.type === 'roubo' ? 'Roubo/Furto' : item.type === 'suspeito' ? 'Atividade Suspeita' : item.type === 'vandalismo' ? 'Vandalismo' : item.type === 'zeladoria' ? 'Zeladoria / Risco' : 'Outro'}
                     </span>
                     <span className="text-xs text-slate-400 flex items-center gap-1 truncate">
                       <ShieldCheck size={12} />

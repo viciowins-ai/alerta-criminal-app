@@ -389,7 +389,7 @@ export function ReportPage() {
       if (error instanceof Error) {
         alert("Erro no upload: " + error.message);
       } else {
-        alert("Erro desconhecido: " + JSON.stringify(error));
+        alert("Erro desconhecido: " + (typeof error === 'object' && error !== null ? (error as any).message || 'Falha ao processar alerta' : String(error)));
       }
       setIsSubmitting(false);
       setUploadProgress(0);
@@ -460,7 +460,7 @@ export function ReportPage() {
               onMoveEnd={handleMoveEnd}
               mapStyle="mapbox://styles/mapbox/streets-v12"
               mapboxAccessToken={import.meta.env.VITE_MAPBOX_TOKEN}
-              onError={(e) => console.warn('Mapbox warning:', e.error?.message || e)}
+              onError={(e) => console.warn('Mapbox warning:', e.error?.message || 'Erro no mapa')}
             >
               {/* Custom User Location Marker */}
               {userLocation && (

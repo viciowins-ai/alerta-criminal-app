@@ -36,12 +36,13 @@ export function DashboardPage() {
         }));
         
         // Filter reports
-        reportsData = reportsData.filter((r: any) => 
-          !r.visibility || 
-          r.visibility === 'public' || 
-          (r.visibility === 'group' && userGroupIds.includes(r.groupId)) ||
-          r.authorId === user?.uid
-        );
+        reportsData = reportsData.filter((r: any) => {
+          const isPrivate = r.visibility === 'group' || r.visibility === 'private' || Boolean(r.groupId);
+          if (isPrivate) {
+            return (r.authorId === user?.uid) || (r.groupId && userGroupIds.includes(r.groupId));
+          }
+          return !r.visibility || r.visibility === 'public';
+        });
         
         setReports(reportsData);
 

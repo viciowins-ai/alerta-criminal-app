@@ -133,17 +133,22 @@ export function MapPage() {
     };
   }, []);
 
+  const [userGroupIds, setUserGroupIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!user) {
+      setUserGroupIds([]);
+      return;
+    }
+    const qGroups = query(collection(db, 'groups'), where('members', 'array-contains', user.uid));
+    const unsubscribeGroups = onSnapshot(qGroups, (snap) => {
+      setUserGroupIds(snap.docs.map(d => d.id));
+    }, (e) => console.error(e));
+    return () => unsubscribeGroups();
+  }, [user]);
+
   useEffect(() => {
     const q = query(collection(db, 'reports'), orderBy('createdAt', 'desc'), limit(50));
-    
-    // Fetch user groups for filtering
-    let userGroupIds: string[] = [];
-    if (user) {
-      const qGroups = query(collection(db, 'groups'), where('members', 'array-contains', user.uid));
-      getDocs(qGroups).then(snap => {
-        userGroupIds = snap.docs.map(d => d.id);
-      }).catch(e => console.error(e));
-    }
     
     const unsubscribeReports = onSnapshot(q, (snapshot) => {
       let reportsData = snapshot.docs.map(doc => ({
@@ -152,12 +157,13 @@ export function MapPage() {
       }));
       
       // Filter reports: show if public, OR if visibility == 'group' and user is in that group, OR user is author
-      reportsData = reportsData.filter(r => 
-        !r.visibility || 
-        r.visibility === 'public' || 
-        (r.visibility === 'group' && userGroupIds.includes(r.groupId)) ||
-        r.authorId === user?.uid
-      );
+      reportsData = reportsData.filter(r => {
+        const isPrivate = r.visibility === 'group' || r.visibility === 'private' || Boolean(r.groupId);
+        if (isPrivate) {
+          return (r.authorId === user?.uid) || (r.groupId && userGroupIds.includes(r.groupId));
+        }
+        return !r.visibility || r.visibility === 'public';
+      });
       setReports(reportsData);
       
       // Check for shared report in URL
@@ -710,7 +716,7 @@ export function MapPage() {
         mapStyle="mapbox://styles/mapbox/streets-v12"
         mapboxAccessToken={MAPBOX_TOKEN}
         style={{ width: '100%', height: '100%' }}
-        onError={(e) => console.warn('Mapbox warning:', e.error?.message || e)}
+        onError={(e) => console.warn('Mapbox warning:', e.error?.message || 'Erro no mapa')}
       >
         {/* Custom User Location Marker */}
         {userLocation && (

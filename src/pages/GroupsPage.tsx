@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Shield, Plus, Users, Search, ArrowRight, UserPlus, LogOut, Copy, Check } from 'lucide-react';
+import { Shield, Plus, Users, Search, ArrowRight, UserPlus, LogOut, Copy, Check, Lock, ChevronDown, ChevronUp, MapPin, AlertTriangle, Eye, Siren, Flame, MoreHorizontal, Clock } from 'lucide-react';
 import { TopBar } from '../components/TopBar';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
@@ -16,6 +16,35 @@ export function GroupsPage() {
   const [newGroupName, setNewGroupName] = useState('');
   const [joinCode, setJoinCode] = useState('');
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [expandedGroupId, setExpandedGroupId] = useState<string | null>(null);
+  const [groupReports, setGroupReports] = useState<Record<string, any[]>>({});
+  const [loadingReports, setLoadingReports] = useState<Record<string, boolean>>({});
+
+  const toggleGroupReports = async (groupId: string) => {
+    if (expandedGroupId === groupId) {
+      setExpandedGroupId(null);
+      return;
+    }
+    setExpandedGroupId(groupId);
+    if (!groupReports[groupId]) {
+      setLoadingReports(prev => ({ ...prev, [groupId]: true }));
+      try {
+        const qReports = query(collection(db, 'reports'), where('groupId', '==', groupId));
+        const snap = await getDocs(qReports);
+        const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        data.sort((a: any, b: any) => {
+          const tA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+          const tB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+          return tB - tA;
+        });
+        setGroupReports(prev => ({ ...prev, [groupId]: data }));
+      } catch (err) {
+        console.error("Error loading group reports", err);
+      } finally {
+        setLoadingReports(prev => ({ ...prev, [groupId]: false }));
+      }
+    }
+  };
 
   const fetchGroups = async () => {
     if (!user) return;
@@ -230,6 +259,77 @@ export function GroupsPage() {
                       )}
                       <span className="text-xs font-medium">{copiedCode === group.inviteCode ? 'Copiado' : 'Copiar'}</span>
                     </button>
+                  </div>
+                  
+                  <div className="pt-2">
+                    <button 
+                      onClick={() => toggleGroupReports(group.id)}
+                      className="w-full flex items-center justify-between py-2 px-3 bg-slate-900/60 hover:bg-slate-900 border border-slate-700/60 rounded-lg text-xs font-medium text-slate-300 transition-colors"
+                    >
+                      <span className="flex items-center gap-1.5 text-indigo-400">
+                        <Lock size={13} />
+                        <span className="text-white font-medium">Ocorrências desta Rede Privada</span>
+                        {groupReports[group.id] && (
+                          <span className="bg-indigo-500/20 text-indigo-300 text-[10px] px-1.5 py-0.5 rounded-full font-bold ml-1">
+                            {groupReports[group.id].length}
+                          </span>
+                        )}
+                      </span>
+                      {expandedGroupId === group.id ? <ChevronUp size={14} className="text-slate-400" /> : <ChevronDown size={14} className="text-slate-400" />}
+                    </button>
+
+                    {expandedGroupId === group.id && (
+                      <div className="mt-3 space-y-2 border-t border-slate-700/60 pt-3">
+                        {loadingReports[group.id] ? (
+                          <div className="flex items-center justify-center py-4 text-xs text-slate-400 gap-2">
+                            <div className="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                            Carregando ocorrências da rede privada...
+                          </div>
+                        ) : !groupReports[group.id] || groupReports[group.id].length === 0 ? (
+                          <div className="bg-slate-900/40 p-4 rounded-lg text-center border border-slate-800">
+                            <p className="text-xs text-slate-400">Nenhuma ocorrência relatada nesta rede privada ainda.</p>
+                            <p className="text-[11px] text-slate-500 mt-1">Ao relatar uma nova ocorrência, você pode direcioná-la exclusivamente para este grupo.</p>
+                          </div>
+                        ) : (
+                          groupReports[group.id].map(rep => {
+                            const typeLabel = rep.type === 'roubo' ? 'Roubo/Furto' : rep.type === 'suspeito' ? 'Atividade Suspeita' : rep.type === 'vandalismo' ? 'Vandalismo' : rep.type === 'zeladoria' ? 'Zeladoria / Risco' : 'Outro';
+                            return (
+                              <div key={rep.id} className="bg-slate-900/80 border border-indigo-500/20 rounded-lg p-3 text-xs">
+                                <div className="flex items-center justify-between gap-2 mb-1.5">
+                                  <span className="font-bold text-indigo-300 flex items-center gap-1">
+                                    <Lock size={11} className="text-indigo-400" />
+                                    {typeLabel}
+                                  </span>
+                                  <span className="text-[10px] text-slate-400">
+                                    {rep.createdAt?.toMillis ? new Date(rep.createdAt.toMillis()).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : ''}
+                                  </span>
+                                </div>
+                                <p className="text-slate-300 font-medium mb-1 truncate flex items-center gap-1 text-[11px]">
+                                  <MapPin size={11} className="text-red-400 shrink-0" />
+                                  {rep.location?.address || 'Localização não informada'}
+                                </p>
+                                {rep.description && (
+                                  <p className="text-slate-400 italic mb-2 line-clamp-2 text-[11px]">
+                                    "{rep.description}"
+                                  </p>
+                                )}
+                                <div className="flex items-center justify-between pt-1.5 border-t border-slate-800">
+                                  <span className="text-[10px] text-slate-500">
+                                    Por: {rep.isAnonymous ? 'Morador Anônimo' : (rep.authorName || 'Membro')}
+                                  </span>
+                                  <button
+                                    onClick={() => navigate(`/?reportId=${rep.id}`)}
+                                    className="text-[11px] text-indigo-400 hover:text-indigo-300 font-medium flex items-center gap-1 transition-colors"
+                                  >
+                                    Ver no Mapa <ArrowRight size={11} />
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })
+                        )}
+                      </div>
+                    )}
                   </div>
                   
                   <div className="flex justify-end mt-2">

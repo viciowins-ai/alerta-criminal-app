@@ -207,7 +207,7 @@ export function AdminDashboardPage() {
       setReplyText(prev => ({ ...prev, [feedbackId]: '' }));
     } catch (e: any) {
       console.error(e);
-      alert("Erro ao enviar resposta: " + (e.message || JSON.stringify(e)));
+      alert("Erro ao enviar resposta: " + (e?.message || String(e)));
     }
   };
 

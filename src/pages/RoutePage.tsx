@@ -574,7 +574,7 @@ export function RoutePage() {
           mapStyle="mapbox://styles/mapbox/streets-v12"
           mapboxAccessToken={MAPBOX_TOKEN}
           style={{ width: '100%', height: '100%' }}
-          onError={(e) => console.warn('Mapbox warning:', e.error?.message || e)}
+          onError={(e) => console.warn('Mapbox warning:', e.error?.message || 'Erro no mapa')}
         >
           {/* User Location */}
           {userLocation && (

@@ -58,8 +58,8 @@ export function LoginPage() {
           playsInline
           src="/bg-video.mp4?v=2"
           onError={(e) => {
-            console.error("Erro ao carregar o vídeo local:", e);
-            e.currentTarget.style.display = 'none'; // se falhar, esconde o video e mostra o fundo azul da div
+            // Se falhar o carregamento do vídeo no navegador, oculta graciosamente e mantém o fundo escuro
+            e.currentTarget.style.display = 'none';
           }}
           className="absolute inset-0 w-full h-full object-cover saturate-[1.5] contrast-[1.1] brightness-[1.05] scale-[1.15]"
         />

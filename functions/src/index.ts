@@ -112,9 +112,10 @@ app.post('/api/push/broadcast', verifyFirebaseToken, async (req, res) => {
       for (const subDoc of subsSnapshot.docs) {
         const subscription = subDoc.data();
         try {
-          const privateVapidKey = process.env.VAPID_PRIVATE_KEY || 'N23qQ3G1Z0mH3F3G1Z0mH3F3G1Z0mH3F3G1Z0mH3F3G1';
-          if (privateVapidKey) {
-             webPush.setVapidDetails('mailto:viciowins@gmail.com', 'BNGzXbZ7gK5_txezOTrpa0yJTr-84fPtacrezZNRD3Kvq8lj6WpC9bdouPm87Uu_vv5Uin0L0HupsQ35CscF56I', privateVapidKey);
+          const publicVapidKey = process.env.VAPID_PUBLIC_KEY || 'BE_2bKQd-_sjqirzqxUyWDUzGXUMpsYdJAykxDmVySDs1wIfhDxZ7ngCaHFaZQslDjOHb3-vmechAxxMeqplwQE';
+          const privateVapidKey = process.env.VAPID_PRIVATE_KEY || 'UGwEUtPz5_FqSPgPE4rPQ-Ep-x1AuHtVg92a3UMyIC4';
+          if (privateVapidKey && publicVapidKey) {
+             webPush.setVapidDetails('mailto:viciowins@gmail.com', publicVapidKey, privateVapidKey);
              await webPush.sendNotification(subscription as any, JSON.stringify({ title, body, url }));
              sendCount++;
           }
@@ -183,7 +184,7 @@ export const weeklySummary = onSchedule({
   schedule: "0 8 * * 0",
   timeZone: "America/Sao_Paulo",
 
-}, async (event) => {
+}, async (_event: any) => {
   const db = admin.firestore();
   const oneWeekAgo = new Date();
   oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
