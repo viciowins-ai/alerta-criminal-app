@@ -36,7 +36,7 @@ export function MapPage() {
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [showHeatmap, setShowHeatmap] = useState(false);
-  const [reports, setReports] = useState<any[]>([]);
+  const [rawReports, setRawReports] = useState<any[]>([]);
   const [activePatrols, setActivePatrols] = useState<any[]>([]);
 
   // Carregar Patrulhas Ativas
@@ -151,41 +151,11 @@ export function MapPage() {
     const q = query(collection(db, 'reports'), orderBy('createdAt', 'desc'), limit(50));
     
     const unsubscribeReports = onSnapshot(q, (snapshot) => {
-      let reportsData = snapshot.docs.map(doc => ({
+      const reportsData = snapshot.docs.map(doc => ({
         id: doc.id,
         ...(doc.data() as any)
       }));
-      
-      // Filter reports: show if public, OR if visibility == 'group' and user is in that group, OR user is author
-      reportsData = reportsData.filter(r => {
-        const isPrivate = r.visibility === 'group' || r.visibility === 'private' || Boolean(r.groupId);
-        if (isPrivate) {
-          return (r.authorId === user?.uid) || (r.groupId && userGroupIds.includes(r.groupId));
-        }
-        return !r.visibility || r.visibility === 'public';
-      });
-      setReports(reportsData);
-      
-      // Check for shared report in URL
-      const sharedReportId = searchParams.get('reportId');
-      if (sharedReportId) {
-        const sharedReport = reportsData.find(r => r.id === sharedReportId);
-        if (sharedReport) {
-          setSelectedLocation(sharedReport);
-          if (mapRef.current) {
-            mapRef.current.flyTo({
-              center: [sharedReport.location.lng, sharedReport.location.lat],
-              zoom: 16,
-              duration: 1500,
-              essential: true
-            });
-            initialCenterDone.current = true;
-            // Remove the parameter from URL without reloading
-            searchParams.delete('reportId');
-            setSearchParams(searchParams, { replace: true });
-          }
-        }
-      }
+      setRawReports(reportsData);
     }, (error) => {
       handleFirestoreError(error, OperationType.LIST, 'reports');
     });
@@ -206,6 +176,42 @@ export function MapPage() {
       unsubscribeZones();
     };
   }, []);
+
+  const reports = React.useMemo(() => {
+    return rawReports.filter(r => {
+      const isPrivate = 
+        r.visibility === 'group' || 
+        r.visibility === 'private' || 
+        r.visibility === 'privado' || 
+        Boolean(r.groupId) || 
+        Boolean(r.groupName);
+      if (isPrivate) {
+        return (r.authorId === user?.uid) || (r.groupId && userGroupIds.includes(r.groupId));
+      }
+      return !r.visibility || r.visibility === 'public';
+    });
+  }, [rawReports, user, userGroupIds]);
+
+  useEffect(() => {
+    const sharedReportId = searchParams.get('reportId');
+    if (sharedReportId && reports.length > 0) {
+      const sharedReport = reports.find(r => r.id === sharedReportId);
+      if (sharedReport) {
+        setSelectedLocation(sharedReport);
+        if (mapRef.current) {
+          mapRef.current.flyTo({
+            center: [sharedReport.location.lng, sharedReport.location.lat],
+            zoom: 16,
+            duration: 1500,
+            essential: true
+          });
+          initialCenterDone.current = true;
+          searchParams.delete('reportId');
+          setSearchParams(searchParams, { replace: true });
+        }
+      }
+    }
+  }, [searchParams, reports]);
 
   const filteredReports = React.useMemo(() => {
     if (!activeFilter) return reports;

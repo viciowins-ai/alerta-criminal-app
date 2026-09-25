@@ -52,11 +52,16 @@ export function FeedPage() {
     // Listen to posts
     const qPosts = query(collection(db, 'posts'), orderBy('createdAt', 'desc'), limit(100));
     const unsubscribePosts = onSnapshot(qPosts, (snapshot) => {
-      const postsData = snapshot.docs.map(doc => ({
+      let postsData = snapshot.docs.map(doc => ({
         id: doc.id,
         feedType: 'post',
         ...(doc.data() as any)
       }));
+      // Filter out any private/group posts from community feed
+      postsData = postsData.filter((p: any) => {
+        const isPrivate = p.visibility === 'group' || p.visibility === 'private' || p.visibility === 'privado' || Boolean(p.groupId) || Boolean(p.groupName);
+        return !isPrivate;
+      });
       setPosts(postsData);
       if (!snapshot.metadata.fromCache || postsData.length > 0) setInitialLoading(false);
     }, (error) => {
@@ -76,7 +81,12 @@ export function FeedPage() {
       // Ocorrências de Rede Privada (visibility === 'group' ou 'private' ou vinculadas a grupo)
       // NUNCA devem aparecer na Rede Comunitária de outros usuários!
       reportsData = reportsData.filter((r: any) => {
-        const isPrivate = r.visibility === 'group' || r.visibility === 'private' || Boolean(r.groupId);
+        const isPrivate = 
+          r.visibility === 'group' || 
+          r.visibility === 'private' || 
+          r.visibility === 'privado' || 
+          Boolean(r.groupId) || 
+          Boolean(r.groupName);
         if (isPrivate) {
           return false;
         }

@@ -350,24 +350,26 @@ export function ReportPage() {
         </div>
       `;
 
-      // Trigger Push Notification and Email Broadcast via Backend
-      try {
-        const idToken = await user.getIdToken();
-        await fetch('/api/push/broadcast', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${idToken}`
-          },
-          body: JSON.stringify({
-            title: `🚨 Alerta Criminal: ${typeLabel}`,
-            body: `Reportado em: ${address || 'Localização aproximada'}`,
-            url: `/?reportId=${reportRef.id}`,
-            htmlContent
-          })
-        });
-      } catch (pushErr) {
-        console.error("Error triggering broadcast:", pushErr);
+      // Trigger Push Notification and Email Broadcast via Backend (Apenas para ocorrências Públicas)
+      if (visibility === 'public') {
+        try {
+          const idToken = await user.getIdToken();
+          await fetch('/api/push/broadcast', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${idToken}`
+            },
+            body: JSON.stringify({
+              title: `🚨 Alerta Criminal: ${typeLabel}`,
+              body: `Reportado em: ${address || 'Localização aproximada'}`,
+              url: `/?reportId=${reportRef.id}`,
+              htmlContent
+            })
+          });
+        } catch (pushErr) {
+          console.error("Error triggering broadcast:", pushErr);
+        }
       }
 
       // Add points to user - non-blocking
