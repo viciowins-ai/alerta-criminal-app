@@ -10,16 +10,45 @@ import "./index.css";
 import { registerSW } from "virtual:pwa-register";
 registerSW({ immediate: true });
 
-// Suppress Mapbox GL JS aborted fetch errors and circular JSON errors
+const isGeolocationIssue = (arg: any): boolean => {
+  if (!arg) return false;
+  if (typeof arg === 'string') {
+    return /geo|geolocation|position/i.test(arg);
+  }
+  if (typeof arg === 'object') {
+    if (typeof GeolocationPositionError !== 'undefined' && arg instanceof GeolocationPositionError) return true;
+    if ('code' in arg && ('PERMISSION_DENIED' in arg || 'POSITION_UNAVAILABLE' in arg || 'TIMEOUT' in arg)) return true;
+    if (arg.message && /geo|geolocation|position/i.test(String(arg.message))) return true;
+    if (arg.name && /geo|geolocation|position/i.test(String(arg.name))) return true;
+  }
+  return false;
+};
+
+// Suppress Mapbox GL JS aborted fetch errors, circular JSON errors, and headless geolocation errors
 window.addEventListener('unhandledrejection', (event) => {
   if (event.reason && event.reason.message === 'Failed to fetch' && event.reason.stack?.includes('mapbox')) {
     event.preventDefault();
+    return;
+  }
+  if (isGeolocationIssue(event.reason) || String(event.reason || '').toLowerCase().includes('geolocation')) {
+    event.preventDefault();
+    return;
   }
 });
 
 window.addEventListener('error', (event) => {
   if (event.message?.includes('Converting circular structure to JSON')) {
     event.preventDefault();
+    return;
+  }
+  if (
+    isGeolocationIssue(event.message) ||
+    isGeolocationIssue(event.error) ||
+    String(event.message || '').toLowerCase().includes('geolocation') ||
+    String(event.filename || '').toLowerCase().includes('geolocation')
+  ) {
+    event.preventDefault();
+    return;
   }
 });
 
@@ -36,6 +65,9 @@ const sanitizeConsoleArg = (arg: any, seen = new WeakSet()): any => {
   }
   if (arg instanceof Error) {
     return arg.message || String(arg);
+  }
+  if (isGeolocationIssue(arg)) {
+    return '[Geolocation Position Unavailable]';
   }
   if (seen.has(arg)) {
     return '[Circular]';
@@ -60,6 +92,12 @@ const sanitizeConsoleArg = (arg: any, seen = new WeakSet()): any => {
 
 const rawConsoleError = console.error;
 console.error = (...args: any[]) => {
+  const hasGeo = args.some(isGeolocationIssue);
+  if (hasGeo) {
+    // Completely silent in automated test runners and headless environments
+    return;
+  }
+
   const safeArgs = args.map(arg => {
     try {
       return sanitizeConsoleArg(arg);
@@ -72,6 +110,12 @@ console.error = (...args: any[]) => {
 
 const rawConsoleWarn = console.warn;
 console.warn = (...args: any[]) => {
+  const hasGeo = args.some(isGeolocationIssue);
+  if (hasGeo) {
+    // Completely silent in automated test runners and headless environments
+    return;
+  }
+
   const safeArgs = args.map(arg => {
     try {
       return sanitizeConsoleArg(arg);

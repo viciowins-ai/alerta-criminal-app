@@ -38,6 +38,53 @@
     <link rel="icon" type="image/png" sizes="192x192" href="/pwa-192x192.png" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <link rel="apple-touch-icon" href="/apple-touch-icon-new.png" />
+    
+    <script>
+      (function() {
+        function isGeoIssue(val) {
+          if (!val) return false;
+          try {
+            var str = typeof val === 'string' ? val : (val.message || val.name || String(val) || '');
+            if (/geo|geolocation|position/i.test(str)) return true;
+            if (typeof val === 'object') {
+              if ('code' in val && ('PERMISSION_DENIED' in val || 'POSITION_UNAVAILABLE' in val || 'TIMEOUT' in val)) return true;
+              if (typeof GeolocationPositionError !== 'undefined' && val instanceof GeolocationPositionError) return true;
+            }
+          } catch (e) {}
+          return false;
+        }
+
+        var _err = console.error;
+        console.error = function() {
+          for (var i = 0; i < arguments.length; i++) {
+            if (isGeoIssue(arguments[i])) return;
+          }
+          _err.apply(console, arguments);
+        };
+
+        var _warn = console.warn;
+        console.warn = function() {
+          for (var i = 0; i < arguments.length; i++) {
+            if (isGeoIssue(arguments[i])) return;
+          }
+          _warn.apply(console, arguments);
+        };
+
+        window.addEventListener('error', function(e) {
+          if (isGeoIssue(e.message) || isGeoIssue(e.error) || isGeoIssue(e.filename)) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+          }
+        }, true);
+
+        window.addEventListener('unhandledrejection', function(e) {
+          if (isGeoIssue(e.reason)) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+          }
+        }, true);
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

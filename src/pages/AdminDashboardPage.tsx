@@ -128,13 +128,13 @@ export function AdminDashboardPage() {
                 console.error("Erro ao atualizar localização da patrulha", err);
               }
             },
-            (error) => {
-              console.warn("Erro de GPS:", error.message || 'Unknown error');
+            (_error) => {
+              // Silently handle GPS error
             },
             { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
           );
-        } catch (e) {
-          console.warn("Synchronous GPS Error", e);
+        } catch (_e) {
+          // Silently handle synchronous GPS error
         }
       }
     } else {

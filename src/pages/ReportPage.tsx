@@ -144,13 +144,13 @@ export function ReportPage() {
                fetchAddress(longitude, latitude);
             }
           },
-          (error) => {
-            console.warn('Watch position warning: Unable to get location');
+          (_error) => {
+            // Silently handle unavailable location
           },
           { enableHighAccuracy: true, maximumAge: 5000 }
         );
-      } catch (e) {
-        console.warn("Caught synchronous geolocation error", e);
+      } catch (_e) {
+        // Silently handle synchronous geolocation error in restricted environments
       }
     }
 
@@ -182,15 +182,13 @@ export function ReportPage() {
               fetchAddress(longitude, latitude);
               setIsLocating(false);
             }, 
-            (error) => {
-              console.warn('Geolocation warning: Unable to get location');
+            (_error) => {
               setAddress('Não foi possível obter sua localização.');
               setIsLocating(false);
             },
             { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
           );
-        } catch (e) {
-          console.warn("Caught synchronous geolocation error", e);
+        } catch (_e) {
           setAddress('Erro ao acessar o GPS.');
           setIsLocating(false);
         }

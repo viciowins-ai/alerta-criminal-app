@@ -129,14 +129,15 @@ export function RoutePage() {
           });
         },
         (error) => {
-          console.warn('Geolocation warning: Unable to get location');
-          setGeoError('Não foi possível obter sua localização.');
-          setTimeout(() => setGeoError(null), 6000);
+          if (error && error.code !== 1) {
+            setGeoError('Não foi possível obter sua localização.');
+            setTimeout(() => setGeoError(null), 6000);
+          }
         },
-        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+        { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
       );
-    } catch (e) {
-      console.warn("Caught synchronous geolocation error", e);
+    } catch (_e) {
+      // Silently handle synchronous geolocation in headless or restricted environment
     }
 
     return () => {

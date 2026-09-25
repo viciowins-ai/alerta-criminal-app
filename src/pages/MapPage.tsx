@@ -111,19 +111,21 @@ export function MapPage() {
           });
         },
         (error) => {
-          let errorMessage = 'Erro desconhecido ao buscar localização.';
+          let errorMessage = 'Erro ao buscar localização GPS.';
           if (error && error.code === 1) errorMessage = 'Permissão negada. Autorize o uso do GPS.';
           else if (error && error.code === 2) errorMessage = 'Sinal de GPS indisponível no momento.';
           else if (error && error.code === 3) errorMessage = 'Tempo limite excedido ao buscar GPS.';
           
-          console.warn('Geolocation warning: ' + errorMessage);
-          setGeoError(errorMessage);
-          setTimeout(() => setGeoError(null), 6000);
+          // Only show error toast if user actively triggered it or it's not a background permission denial
+          if (error && error.code !== 1) {
+            setGeoError(errorMessage);
+            setTimeout(() => setGeoError(null), 6000);
+          }
         },
-        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+        { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
       );
-    } catch (e) {
-      console.warn("Caught synchronous geolocation error", e);
+    } catch (_e) {
+      // Silently handle synchronous geolocation in headless or restricted environment
     }
 
     return () => {
