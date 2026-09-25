@@ -437,9 +437,23 @@ export function FeedPage() {
                 
                 <div className="flex justify-between items-start mb-3 relative z-10">
                   <div className="flex gap-3 items-center">
-                    <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center text-red-400">
-                      <AlertTriangle size={20} />
-                    </div>
+                    {item.isAnonymous || !item.authorAvatar ? (
+                      <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center text-red-400 shrink-0">
+                        <AlertTriangle size={20} />
+                      </div>
+                    ) : (
+                      <div className="relative shrink-0">
+                        <img 
+                          src={item.authorAvatar} 
+                          alt={item.authorName || 'Alerta'} 
+                          className="w-10 h-10 rounded-full object-cover border border-red-500/40" 
+                          referrerPolicy="no-referrer" 
+                        />
+                        <div className="absolute -bottom-1 -right-1 bg-red-600 rounded-full p-0.5 text-white border border-slate-900 shadow">
+                          <AlertTriangle size={10} />
+                        </div>
+                      </div>
+                    )}
                     <div>
                       <h4 className="text-sm font-bold text-white flex items-center gap-2 flex-wrap">
                         {item.authorName ? `Alerta por ${item.authorName}` : 'Alerta de Segurança'}
