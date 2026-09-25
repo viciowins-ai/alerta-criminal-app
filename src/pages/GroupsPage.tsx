@@ -332,12 +332,19 @@ export function GroupsPage() {
                     )}
                   </div>
                   
-                  <div className="flex justify-end mt-2">
+                  <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-700/40">
+                    <button
+                      onClick={() => navigate(`/report?groupId=${group.id}`)}
+                      className="bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 border border-indigo-500/30 rounded-lg px-3 py-1.5 text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                    >
+                      <Plus size={13} />
+                      Novo Alerta neste Grupo
+                    </button>
                     <button 
                       onClick={() => handleLeaveGroup(group.id, group.name)}
                       className="text-red-400 hover:text-red-300 text-xs font-medium flex items-center gap-1"
                     >
-                      <LogOut size={14} /> Sair do Grupo Privado
+                      <LogOut size={14} /> Sair do Grupo
                     </button>
                   </div>
                 </div>

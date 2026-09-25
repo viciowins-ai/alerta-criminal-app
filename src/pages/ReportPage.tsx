@@ -3,7 +3,7 @@ import { TopBar } from '../components/TopBar';
 import { ImageBlurEditor } from '../components/ImageBlurEditor';
 import { MapPin, Camera, Video, CheckCircle2, Siren, Eye, Flame, MoreHorizontal, Send, X, LocateFixed, AlertTriangle } from 'lucide-react';
 import Map, { ViewStateChangeEvent, MapRef, Marker } from 'react-map-gl/mapbox';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { db, storage } from '../firebase';
 import { collection, addDoc, serverTimestamp, doc, updateDoc, increment, getDoc, query, where, getDocs } from 'firebase/firestore';
@@ -39,9 +39,11 @@ export function ReportPage() {
   const [attachments, setAttachments] = useState<File[]>([]);
   const [editingImage, setEditingImage] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [searchParams] = useSearchParams();
+  const urlGroupId = searchParams.get('groupId');
   const [userGroups, setUserGroups] = useState<any[]>([]);
-  const [visibility, setVisibility] = useState<'public' | 'group'>('public');
-  const [selectedGroupId, setSelectedGroupId] = useState<string>('');
+  const [visibility, setVisibility] = useState<'public' | 'group'>(urlGroupId ? 'group' : 'public');
+  const [selectedGroupId, setSelectedGroupId] = useState<string>(urlGroupId || '');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
 
@@ -53,7 +55,10 @@ export function ReportPage() {
         const querySnapshot = await getDocs(q);
         const groupsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setUserGroups(groupsData);
-        if (groupsData.length > 0) {
+        if (urlGroupId && groupsData.some(g => g.id === urlGroupId)) {
+          setSelectedGroupId(urlGroupId);
+          setVisibility('group');
+        } else if (groupsData.length > 0 && !selectedGroupId) {
           setSelectedGroupId(groupsData[0].id);
         }
       } catch (err) {

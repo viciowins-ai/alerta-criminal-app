@@ -57,18 +57,20 @@ export function FeedPage() {
         feedType: 'post',
         ...(doc.data() as any)
       }));
-      // Filter out any private/group posts from community feed
+
+      // A Rede Comunitária exibe apenas postagens públicas
       postsData = postsData.filter((p: any) => {
         const isPrivate = p.visibility === 'group' || p.visibility === 'private' || p.visibility === 'privado' || Boolean(p.groupId) || Boolean(p.groupName);
         return !isPrivate;
       });
+
       setPosts(postsData);
       if (!snapshot.metadata.fromCache || postsData.length > 0) setInitialLoading(false);
     }, (error) => {
       handleFirestoreError(error, OperationType.LIST, 'posts');
     });
 
-    // Listen to reports (A Rede Comunitária exibe apenas ocorrências públicas)
+    // Listen to reports (A Rede Comunitária exibe APENAS ocorrências públicas)
     const qReports = query(collection(db, 'reports'), orderBy('createdAt', 'desc'), limit(100));
     const unsubscribeReports = onSnapshot(qReports, (snapshot) => {
       let reportsData = snapshot.docs.map(doc => ({
@@ -77,9 +79,8 @@ export function FeedPage() {
         ...(doc.data() as any)
       }));
       
-      // Filter reports: A "Rede Comunitária" é o feed público aberto.
-      // Ocorrências de Rede Privada (visibility === 'group' ou 'private' ou vinculadas a grupo)
-      // NUNCA devem aparecer na Rede Comunitária de outros usuários!
+      // TRAVA DE PRIVACIDADE:
+      // Ocorrências de Rede Privada NUNCA devem aparecer na Rede Comunitária (feed público geral).
       reportsData = reportsData.filter((r: any) => {
         const isPrivate = 
           r.visibility === 'group' || 
@@ -87,6 +88,7 @@ export function FeedPage() {
           r.visibility === 'privado' || 
           Boolean(r.groupId) || 
           Boolean(r.groupName);
+        
         if (isPrivate) {
           return false;
         }
@@ -172,7 +174,7 @@ export function FeedPage() {
       let text = '';
 
       if (item.feedType === 'report') {
-        const typeName = item.type === 'roubo' ? 'Roubo/Furto' : item.type === 'suspeito' ? 'Atividade Suspeita' : item.type === 'vandalismo' ? 'Vandalismo' : item.type === 'zeladoria' ? 'Zeladoria / Risco' : 'Outro';
+        const typeName = item.type === 'roubo' ? 'Roubo/Furto' : item.type === 'suspeito' ? 'Atividade Suspeita' : item.type === 'vandalismo' ? 'Vandalismo' : 'Alerta';
         title = 'Alerta de Segurança - Guardian';
         text = `⚠️ Alerta de ${typeName} reportado em: ${item.location?.address || 'Localização não especificada'}. Fique atento!`;
       } else {
@@ -317,6 +319,18 @@ export function FeedPage() {
     } else if (feedFilter === 'posts') {
       combined = posts;
     }
+
+    // TRAVA DUPLA DE SEGURANÇA:
+    // Garante categoricamente que nada de grupo privado passe para a Rede Comunitária
+    combined = combined.filter((item: any) => {
+      const isPrivate = 
+        item.visibility === 'group' || 
+        item.visibility === 'private' || 
+        item.visibility === 'privado' || 
+        Boolean(item.groupId) || 
+        Boolean(item.groupName);
+      return !isPrivate;
+    });
 
     return combined.sort((a, b) => {
       const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : Date.now();
@@ -609,7 +623,6 @@ export function FeedPage() {
                 >
                   <option value="roubo">Roubo/Furto</option>
                   <option value="suspeito">Atividade Suspeita</option>
-                  <option value="zeladoria">Zeladoria / Risco</option>
                   <option value="vandalismo">Vandalismo</option>
                   <option value="outro">Outro</option>
                 </select>
