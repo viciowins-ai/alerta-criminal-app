@@ -8,7 +8,22 @@ import "./index.css";
 
 // Automatically update PWA when new version is available
 import { registerSW } from "virtual:pwa-register";
-registerSW({ immediate: true });
+const updateSW = registerSW({ 
+  immediate: true,
+  onNeedRefresh() {
+    updateSW(true);
+  }
+});
+
+if ('serviceWorker' in navigator) {
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!refreshing) {
+      refreshing = true;
+      window.location.reload();
+    }
+  });
+}
 
 const isGeolocationIssue = (arg: any): boolean => {
   if (!arg) return false;
