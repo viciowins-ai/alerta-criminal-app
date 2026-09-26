@@ -23,6 +23,10 @@ if ('serviceWorker' in navigator) {
       window.location.reload();
     }
   });
+
+  navigator.serviceWorker.ready.then((reg) => {
+    reg.update();
+  }).catch(() => {});
 }
 
 const isGeolocationIssue = (arg: any): boolean => {

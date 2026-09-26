@@ -26,7 +26,7 @@ export function FeedPage() {
   const [editingReport, setEditingReport] = useState<any>(null);
   const [editType, setEditType] = useState<string>('');
   const [editDescription, setEditDescription] = useState<string>('');
-  const [feedFilter, setFeedFilter] = useState<'all' | 'reports' | 'private'>('all');
+  const [feedFilter, setFeedFilter] = useState<'reports' | 'private'>('reports');
   const [activeCommentItem, setActiveCommentItem] = useState<{id: string, type: 'post' | 'report', authorName: string} | null>(null);
   const [initialLoading, setInitialLoading] = useState(true);
 
@@ -437,11 +437,8 @@ export function FeedPage() {
       });
     }
 
+    // Public feed (Alertas Públicos)
     let combined = [...posts, ...reports];
-    
-    if (feedFilter === 'reports') {
-      combined = reports;
-    }
 
     // TRAVA DUPLA DE SEGURANÇA:
     // Garante categoricamente que nada de grupo privado passe para a aba pública
@@ -483,29 +480,37 @@ export function FeedPage() {
     <div className="flex flex-col h-full bg-slate-900">
       <TopBar title="Rede Comunitária" />
       
-      {/* Filters / Tabs */}
+      {/* Filters / Tabs (Apenas Alertas Públicos e Redes Privadas) */}
       <div className="px-4 pt-3 pb-1">
-        <div className="flex gap-1.5 bg-slate-800 p-1 rounded-xl">
-          <button
-            onClick={() => setFeedFilter('all')}
-            className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-colors flex items-center justify-center gap-1 ${feedFilter === 'all' ? 'bg-slate-700 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'}`}
-          >
-            Todos
-          </button>
+        <div className="flex gap-2 bg-slate-800/90 p-1.5 rounded-xl border border-slate-700/60 shadow-inner">
           <button
             onClick={() => setFeedFilter('reports')}
-            className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-colors flex items-center justify-center gap-1 ${feedFilter === 'reports' ? 'bg-red-500/20 text-red-400 shadow-sm' : 'text-slate-400 hover:text-slate-200'}`}
+            className={`flex-1 py-2 px-3 text-xs md:text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2 cursor-pointer ${
+              feedFilter === 'reports'
+                ? 'bg-red-500/20 text-red-300 border border-red-500/40 shadow-sm'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/40'
+            }`}
           >
-            🚨 Alertas Públicos
+            <span className="text-base leading-none">🚨</span>
+            <span className="whitespace-nowrap">Alertas Públicos</span>
           </button>
+
           <button
             onClick={() => setFeedFilter('private')}
-            className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-colors flex items-center justify-center gap-1.5 ${feedFilter === 'private' ? 'bg-indigo-600 text-white shadow-sm' : 'text-indigo-400 hover:text-indigo-300'}`}
+            className={`flex-1 py-2 px-3 text-xs md:text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2 cursor-pointer ${
+              feedFilter === 'private'
+                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30 border border-indigo-400/30'
+                : 'text-indigo-400 hover:text-indigo-300 hover:bg-indigo-950/30'
+            }`}
           >
-            <Lock size={12} />
-            <span>Redes Privadas</span>
+            <span className="text-base leading-none">🔒</span>
+            <span className="whitespace-nowrap">Redes Privadas</span>
             {userGroups.length > 0 && (
-              <span className="bg-indigo-900/80 text-indigo-200 text-[10px] px-1.5 py-0.2 rounded-full font-bold ml-0.5">
+              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold leading-none ml-0.5 ${
+                feedFilter === 'private'
+                  ? 'bg-indigo-900/90 text-indigo-100 border border-indigo-400/40'
+                  : 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
+              }`}>
                 {userGroups.length}
               </span>
             )}
