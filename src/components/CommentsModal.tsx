@@ -4,6 +4,7 @@ import { db } from '../firebase';
 import { collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp, doc, updateDoc, increment } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
 import { handleFirestoreError, OperationType } from '../utils/firestoreErrorHandler';
+import { useTranslation } from 'react-i18next';
 
 interface CommentsModalProps {
   isOpen: boolean;
@@ -14,6 +15,7 @@ interface CommentsModalProps {
 }
 
 export function CommentsModal({ isOpen, onClose, itemId, itemType, authorName }: CommentsModalProps) {
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const [comments, setComments] = useState<any[]>([]);
   const [newComment, setNewComment] = useState('');
@@ -92,8 +94,8 @@ export function CommentsModal({ isOpen, onClose, itemId, itemType, authorName }:
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-slate-800">
           <div>
-            <h3 className="text-lg font-bold text-white">Comentários</h3>
-            <p className="text-xs text-slate-400">em publicação de {authorName}</p>
+            <h3 className="text-lg font-bold text-white">{t('comments.title', 'Comentários')}</h3>
+            <p className="text-xs text-slate-400">{t('comments.inPostOf', 'em publicação de {{author}}', { author: authorName })}</p>
           </div>
           <button 
             onClick={onClose}
@@ -108,8 +110,8 @@ export function CommentsModal({ isOpen, onClose, itemId, itemType, authorName }:
           {comments.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-slate-500 space-y-2 opacity-50">
               <User size={32} />
-              <p className="text-sm">Nenhum comentário ainda.</p>
-              <p className="text-xs">Seja o primeiro a participar!</p>
+              <p className="text-sm">{t('comments.empty', 'Nenhum comentário ainda.')}</p>
+              <p className="text-xs">{t('comments.beFirst', 'Seja o primeiro a participar!')}</p>
             </div>
           ) : (
             comments.map(comment => (
@@ -117,7 +119,7 @@ export function CommentsModal({ isOpen, onClose, itemId, itemType, authorName }:
                 <img 
                   src={comment.authorAvatar || "https://i.pravatar.cc/150?u=" + comment.authorId} 
                   alt={comment.authorName} 
-                  className="w-8 h-8 rounded-full object-cover mt-1"
+                  className="w-8 h-8 rounded-full object-cover mt-1 shrink-0" 
                   referrerPolicy="no-referrer"
                 />
                 <div className="flex-1 bg-slate-800 p-3 rounded-2xl rounded-tl-sm">
@@ -125,15 +127,15 @@ export function CommentsModal({ isOpen, onClose, itemId, itemType, authorName }:
                     <span className="font-semibold text-sm text-white">{comment.authorName}</span>
                     <span className="text-xs text-slate-400">
                       {comment.createdAt ? 
-                        new Intl.DateTimeFormat('pt-BR', { 
+                        new Intl.DateTimeFormat(i18n.language || 'pt-BR', { 
                           hour: '2-digit', minute: '2-digit',
                           day: '2-digit', month: '2-digit'
                         }).format(comment.createdAt.toDate ? comment.createdAt.toDate() : new Date(comment.createdAt)) 
-                        : 'agora'
+                        : t('time.now', 'agora')
                       }
                     </span>
                   </div>
-                  <p className="text-sm text-slate-200">{comment.content}</p>
+                  <p dir="auto" className="text-sm text-slate-200 text-start">{comment.content}</p>
                 </div>
               </div>
             ))
@@ -144,10 +146,11 @@ export function CommentsModal({ isOpen, onClose, itemId, itemType, authorName }:
         <div className="p-4 border-t border-slate-800 bg-slate-900 pb-safe">
           <div className="flex gap-2 items-end">
             <textarea
+              dir="auto"
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
-              placeholder="Adicione um comentário..."
-              className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none max-h-32 min-h-[44px]"
+              placeholder={t('comments.placeholder', 'Adicione um comentário...')}
+              className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none max-h-32 min-h-[44px] text-start"
               rows={1}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {

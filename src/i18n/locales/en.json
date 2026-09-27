@@ -154,6 +154,64 @@
     "confirm": "Confirm",
     "back": "Back",
     "offlineNotice": "You are offline. The app continues working with cached data.",
-    "clear": "Clear"
+    "clear": "Clear",
+    "delete": "Delete",
+    "share": "Share",
+    "publish": "Publish",
+    "cancel": "Cancel",
+    "manage": "Manage",
+    "saveChanges": "Save Changes",
+    "user": "User"
+  },
+  "feed": {
+    "title": "Community Network",
+    "publicAlerts": "Public Alerts",
+    "privateNetworks": "Private Networks",
+    "sharePlaceholder": "Share something with the community...",
+    "publicVisibility": "Post visible to the entire community",
+    "alertBy": "Alert by {{name}}",
+    "alertByAnonymous": "Alert by Anonymous Neighbor",
+    "securityAlert": "Security Alert",
+    "viewOnMap": "View on Map",
+    "confirmations": "{{count}} confirmations",
+    "edit": "Edit",
+    "editReportTitle": "Edit Incident",
+    "loading": "Loading feed...",
+    "emptyPublic": "Your feed is empty",
+    "emptyPublicDesc": "Be the first to post something or raise an alert for your community!",
+    "emptyPrivate": "No posts in this network yet",
+    "emptyPrivateDesc": "Share a notice or report an incident restricted to your neighbors!",
+    "yourNetwork": "Your Network:",
+    "allNetworks": "All Networks",
+    "membersCount": "{{count}} participating members",
+    "inviteCode": "Code:",
+    "writeGroupNotice": "Write a notice for your private network...",
+    "writeGroupNoticeFor": "Write a notice for {{name}}...",
+    "newNetworkAlert": "New Alert in Network",
+    "publishToNetwork": "Post to Network",
+    "privateCircles": "Private Trust Circles",
+    "noGroupsDesc": "You are not part of any private network yet. Create a group for your street or building, or enter a neighbor's code.",
+    "createOrJoinGroup": "Create or Join a Group",
+    "mapLocation": "Location selected on map"
+  },
+  "time": {
+    "now": "Now",
+    "minutesAgo": "{{count}}m ago",
+    "hoursAgo": "{{count}}h ago",
+    "daysAgo": "{{count}}d ago"
+  },
+  "levels": {
+    "Iniciante": "Beginner",
+    "Guardião Prata": "Silver Guardian",
+    "Guardião Ouro": "Gold Guardian",
+    "Guardião Diamante": "Diamond Guardian",
+    "Mestre da Segurança": "Security Master"
+  },
+  "comments": {
+    "title": "Comments",
+    "inPostOf": "on {{author}}'s post",
+    "empty": "No comments yet.",
+    "beFirst": "Be the first to join in!",
+    "placeholder": "Add a comment..."
   }
 }

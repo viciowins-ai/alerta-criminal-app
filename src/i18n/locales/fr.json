@@ -154,6 +154,64 @@
     "confirm": "Confirmer",
     "back": "Retour",
     "offlineNotice": "Vous êtes hors ligne. L'application continue avec les données sauvegardées.",
-    "clear": "Effacer"
+    "clear": "Effacer",
+    "delete": "Supprimer",
+    "share": "Partager",
+    "publish": "Publier",
+    "cancel": "Annuler",
+    "manage": "Gérer",
+    "saveChanges": "Enregistrer les modifications",
+    "user": "Utilisateur"
+  },
+  "feed": {
+    "title": "Réseau Communautaire",
+    "publicAlerts": "Alertes Publiques",
+    "privateNetworks": "Réseaux Privés",
+    "sharePlaceholder": "Partagez quelque chose avec la communauté...",
+    "publicVisibility": "Publication visible par toute la communauté",
+    "alertBy": "Alerte par {{name}}",
+    "alertByAnonymous": "Alerte par un Voisin Anonyme",
+    "securityAlert": "Alerte de Sécurité",
+    "viewOnMap": "Voir sur la Carte",
+    "confirmations": "{{count}} confirmations",
+    "edit": "Modifier",
+    "editReportTitle": "Corriger le Signalement",
+    "loading": "Chargement du fil...",
+    "emptyPublic": "Votre fil est vide",
+    "emptyPublicDesc": "Soyez le premier à publier ou à donner une alerte pour votre communauté !",
+    "emptyPrivate": "Aucune publication dans ce réseau pour le moment",
+    "emptyPrivateDesc": "Partagez un avis ou signalez un incident réservé à vos voisins !",
+    "yourNetwork": "Votre Réseau :",
+    "allNetworks": "Tous les Réseaux",
+    "membersCount": "{{count}} membres participants",
+    "inviteCode": "Code :",
+    "writeGroupNotice": "Rédigez un avis pour votre réseau privé...",
+    "writeGroupNoticeFor": "Rédigez un avis pour {{name}}...",
+    "newNetworkAlert": "Nouvelle Alerte Réseau",
+    "publishToNetwork": "Publier sur le Réseau",
+    "privateCircles": "Cercles de Confiance Privés",
+    "noGroupsDesc": "Vous ne faites encore partie d'aucun réseau privé. Créez un groupe pour votre rue ou votre immeuble, ou entrez le code d'un voisin.",
+    "createOrJoinGroup": "Créer ou Rejoindre un Groupe",
+    "mapLocation": "Emplacement sélectionné sur la carte"
+  },
+  "time": {
+    "now": "Maintenant",
+    "minutesAgo": "Il y a {{count}} min",
+    "hoursAgo": "Il y a {{count}} h",
+    "daysAgo": "Il y a {{count}} j"
+  },
+  "levels": {
+    "Iniciante": "Débutant",
+    "Guardião Prata": "Gardien Argent",
+    "Guardião Ouro": "Gardien Or",
+    "Guardião Diamante": "Gardien Diamant",
+    "Mestre da Segurança": "Maître de la Sécurité"
+  },
+  "comments": {
+    "title": "Commentaires",
+    "inPostOf": "sur la publication de {{author}}",
+    "empty": "Aucun commentaire pour le moment.",
+    "beFirst": "Soyez le premier à participer !",
+    "placeholder": "Ajoutez un commentaire..."
   }
 }

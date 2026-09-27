@@ -154,6 +154,64 @@
     "confirm": "تأكيد",
     "back": "رجوع",
     "offlineNotice": "أنت غير متصل بالإنترنت. يواصل التطبيق العمل بالبيانات المحفوظة.",
-    "clear": "مسح"
+    "clear": "مسح",
+    "delete": "حذف",
+    "share": "مشاركة",
+    "publish": "نشر",
+    "cancel": "إلغاء",
+    "manage": "إدارة",
+    "saveChanges": "حفظ التغييرات",
+    "user": "مستخدم"
+  },
+  "feed": {
+    "title": "شبكة المجتمع",
+    "publicAlerts": "تنبيهات عامة",
+    "privateNetworks": "شبكات خاصة",
+    "sharePlaceholder": "شارك شيئاً مع المجتمع...",
+    "publicVisibility": "المنشور مرئي لجميع أفراد المجتمع",
+    "alertBy": "تنبيه بواسطة {{name}}",
+    "alertByAnonymous": "تنبيه من مواطن مجهول",
+    "securityAlert": "تنبيه أمني",
+    "viewOnMap": "عرض على الخريطة",
+    "confirmations": "{{count}} تأكيدات",
+    "edit": "تعديل",
+    "editReportTitle": "تعديل البلاغ",
+    "loading": "جارٍ تحميل الخلاصة...",
+    "emptyPublic": "خلاصتك فارغة",
+    "emptyPublicDesc": "كن أول من ينشر أو يرسل تنبيهاً لمجتمعك!",
+    "emptyPrivate": "لا توجد منشورات في هذه الشبكة بعد",
+    "emptyPrivateDesc": "شارك إشعاراً أو أبلغ عن حادثة مقتصرة على جيرانك!",
+    "yourNetwork": "شبكتك:",
+    "allNetworks": "جميع الشبكات",
+    "membersCount": "{{count}} أعضاء مشاركون",
+    "inviteCode": "الرمز:",
+    "writeGroupNotice": "اكتب إشعاراً لشبكتك الخاصة...",
+    "writeGroupNoticeFor": "اكتب إشعاراً لـ {{name}}...",
+    "newNetworkAlert": "تنبيه جديد في الشبكة",
+    "publishToNetwork": "نشر في الشبكة",
+    "privateCircles": "دوائر الثقة الخاصة",
+    "noGroupsDesc": "أنت لست عضواً في أي شبكة خاصة بعد. أنشئ مجموعة لشارعك أو مجمعك، أو أدخل رمز الجار.",
+    "createOrJoinGroup": "إنشاء مجموعة أو الانضمام إليها",
+    "mapLocation": "الموقع المحدد على الخريطة"
+  },
+  "time": {
+    "now": "الآن",
+    "minutesAgo": "منذ {{count}} دقيقة",
+    "hoursAgo": "منذ {{count}} ساعة",
+    "daysAgo": "منذ {{count}} يوم"
+  },
+  "levels": {
+    "Iniciante": "مبتدئ",
+    "Guardião Prata": "حارس فضي",
+    "Guardião Ouro": "حارس ذهبي",
+    "Guardião Diamante": "حارس ماسي",
+    "Mestre da Segurança": "خبير الأمان"
+  },
+  "comments": {
+    "title": "التعليقات",
+    "inPostOf": "على منشور {{author}}",
+    "empty": "لا توجد تعليقات بعد.",
+    "beFirst": "كن أول المشاركين!",
+    "placeholder": "أضف تعليقاً..."
   }
 }

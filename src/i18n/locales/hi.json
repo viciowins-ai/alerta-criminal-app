@@ -154,6 +154,64 @@
     "confirm": "पुष्टि करें",
     "back": "वापस",
     "offlineNotice": "आप ऑफ़लाइन हैं। ऐप सहेजे गए डेटा के साथ काम करना जारी रखता है।",
-    "clear": "साफ़ करें"
+    "clear": "साफ़ करें",
+    "delete": "हटाएं",
+    "share": "साझा करें",
+    "publish": "प्रकाशित करें",
+    "cancel": "रद्द करें",
+    "manage": "प्रबंधित करें",
+    "saveChanges": "बदलाव सहेजें",
+    "user": "उपयोगकर्ता"
+  },
+  "feed": {
+    "title": "कम्युनिटी नेटवर्क",
+    "publicAlerts": "सार्वजनिक अलर्ट",
+    "privateNetworks": "निजी नेटवर्क",
+    "sharePlaceholder": "समुदाय के साथ कुछ साझा करें...",
+    "publicVisibility": "पूरी कम्युनिटी के लिए पोस्ट दृश्यमान",
+    "alertBy": "{{name}} द्वारा अलर्ट",
+    "alertByAnonymous": "अनाम निवासी द्वारा अलर्ट",
+    "securityAlert": "सुरक्षा अलर्ट",
+    "viewOnMap": "मानचित्र पर देखें",
+    "confirmations": "{{count}} पुष्टियां",
+    "edit": "संपादित करें",
+    "editReportTitle": "घटना संपादित करें",
+    "loading": "फ़ीड लोड हो रहा है...",
+    "emptyPublic": "आपकी फ़ीड खाली है",
+    "emptyPublicDesc": "अपनी कम्युनिटी के लिए पहला पोस्ट या अलर्ट बनाएं!",
+    "emptyPrivate": "इस नेटवर्क में अभी कोई पोस्ट नहीं है",
+    "emptyPrivateDesc": "अपने पड़ोसियों के लिए कोई सूचना या घटना साझा करें!",
+    "yourNetwork": "आपका नेटवर्क:",
+    "allNetworks": "सभी नेटवर्क",
+    "membersCount": "{{count}} सदस्य शामिल",
+    "inviteCode": "कोड:",
+    "writeGroupNotice": "अपने निजी नेटवर्क के लिए सूचना लिखें...",
+    "writeGroupNoticeFor": "{{name}} के लिए सूचना लिखें...",
+    "newNetworkAlert": "नेटवर्क पर नया अलर्ट",
+    "publishToNetwork": "नेटवर्क पर पोस्ट करें",
+    "privateCircles": "निजी विश्वास समूह",
+    "noGroupsDesc": "आप अभी तक किसी निजी नेटवर्क का हिस्सा नहीं हैं। अपनी गली या भवन के लिए समूह बनाएं।",
+    "createOrJoinGroup": "समूह बनाएं या जुड़ें",
+    "mapLocation": "मानचित्र पर चयनित स्थान"
+  },
+  "time": {
+    "now": "अभी",
+    "minutesAgo": "{{count}} मिनट पहले",
+    "hoursAgo": "{{count}} घंटे पहले",
+    "daysAgo": "{{count}} दिन पहले"
+  },
+  "levels": {
+    "Iniciante": "शुरुआती",
+    "Guardião Prata": "सिल्वर गार्जियन",
+    "Guardião Ouro": "गोल्ड गार्जियन",
+    "Guardião Diamante": "डायमंड गार्जियन",
+    "Mestre da Segurança": "सुरक्षा मास्टर"
+  },
+  "comments": {
+    "title": "टिप्पणियाँ",
+    "inPostOf": "{{author}} के पोस्ट पर",
+    "empty": "अभी कोई टिप्पणी नहीं है।",
+    "beFirst": "सबसे पहले टिप्पणी करें!",
+    "placeholder": "एक टिप्पणी जोड़ें..."
   }
 }

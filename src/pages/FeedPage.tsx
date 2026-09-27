@@ -9,8 +9,11 @@ import { handleFirestoreError, OperationType } from '../utils/firestoreErrorHand
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { CommentsModal } from '../components/CommentsModal';
 import { getLevelInfo } from '../utils/levelUtils';
+import { useTranslation } from 'react-i18next';
 
 export function FeedPage() {
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === 'ar';
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -409,17 +412,40 @@ export function FeedPage() {
   };
 
   const formatTime = (timestamp: any) => {
-    if (!timestamp) return 'Agora';
-    const date = timestamp.toDate();
+    if (!timestamp) return t('time.now', 'Agora');
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
+    const diffMins = Math.max(0, Math.floor(diffMs / 60000));
     const diffHours = Math.floor(diffMins / 60);
     const diffDays = Math.floor(diffHours / 24);
 
-    if (diffMins < 60) return `Há ${diffMins} min`;
-    if (diffHours < 24) return `Há ${diffHours} h`;
-    return `Há ${diffDays} d`;
+    if (diffMins < 1) return t('time.now', 'Agora');
+    if (diffMins < 60) return t('time.minutesAgo', 'Há {{count}} min', { count: diffMins });
+    if (diffHours < 24) return t('time.hoursAgo', 'Há {{count}} h', { count: diffHours });
+    return t('time.daysAgo', 'Há {{count}} d', { count: diffDays });
+  };
+
+  const formatLevel = (levelName?: string) => {
+    if (!levelName) return '';
+    return t(`levels.${levelName}`, levelName);
+  };
+
+  const getReportTypeBadge = (rawType?: string) => {
+    const norm = (rawType || '').toLowerCase().trim();
+    if (norm.includes('roubo') || norm.includes('furto')) {
+      return { label: t('report.types.roubo', 'Roubo/Furto'), color: 'bg-red-500/20 text-red-400 border-red-500/30' };
+    }
+    if (norm.includes('suspeito')) {
+      return { label: t('report.types.suspeito', 'Atividade Suspeita'), color: 'bg-orange-500/20 text-orange-400 border-orange-500/30' };
+    }
+    if (norm.includes('zeladoria') || norm.includes('risco')) {
+      return { label: t('report.types.zeladoria', 'Zeladoria / Risco'), color: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30' };
+    }
+    if (norm.includes('vandalismo')) {
+      return { label: t('report.types.vandalismo', 'Vandalismo'), color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' };
+    }
+    return { label: t('report.types.outro', 'Outro'), color: 'bg-slate-500/20 text-slate-300 border-slate-500/30' };
   };
 
   const currentSelectedGroup = React.useMemo(() => {
@@ -478,7 +504,7 @@ export function FeedPage() {
 
   return (
     <div className="flex flex-col h-full bg-slate-900">
-      <TopBar title="Rede Comunitária" />
+      <TopBar title={t('feed.title', 'Rede Comunitária')} />
       
       {/* Filters / Tabs (Apenas Alertas Públicos e Redes Privadas) */}
       <div className="px-4 pt-3 pb-1">
@@ -492,7 +518,7 @@ export function FeedPage() {
             }`}
           >
             <span className="text-base leading-none">🚨</span>
-            <span className="whitespace-nowrap">Alertas Públicos</span>
+            <span className="whitespace-nowrap">{t('feed.publicAlerts', 'Alertas Públicos')}</span>
           </button>
 
           <button
@@ -504,9 +530,9 @@ export function FeedPage() {
             }`}
           >
             <span className="text-base leading-none">🔒</span>
-            <span className="whitespace-nowrap">Redes Privadas</span>
+            <span className="whitespace-nowrap">{t('feed.privateNetworks', 'Redes Privadas')}</span>
             {userGroups.length > 0 && (
-              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold leading-none ml-0.5 ${
+              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold leading-none ${isRTL ? 'mr-0.5' : 'ml-0.5'} ${
                 feedFilter === 'private'
                   ? 'bg-indigo-900/90 text-indigo-100 border border-indigo-400/40'
                   : 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
@@ -527,15 +553,15 @@ export function FeedPage() {
                 <div className="w-14 h-14 bg-indigo-500/10 text-indigo-400 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-indigo-500/20">
                   <Lock size={26} />
                 </div>
-                <h3 className="text-white font-bold text-base mb-1.5">Círculos de Confiança Privados</h3>
+                <h3 className="text-white font-bold text-base mb-1.5">{t('feed.privateCircles', 'Círculos de Confiança Privados')}</h3>
                 <p className="text-slate-400 text-xs leading-relaxed max-w-xs mx-auto mb-5">
-                  Você ainda não faz parte de nenhuma rede privada. Crie um grupo para sua rua ou condomínio, ou entre com o código de um vizinho.
+                  {t('feed.noGroupsDesc', 'Você ainda não faz parte de nenhuma rede privada. Crie um grupo para sua rua ou condomínio, ou entre com o código de um vizinho.')}
                 </p>
                 <button
                   onClick={() => navigate('/groups')}
                   className="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-xl text-xs font-bold inline-flex items-center gap-2 transition-colors shadow-sm cursor-pointer"
                 >
-                  <Plus size={16} /> Criar ou Entrar em um Grupo
+                  <Plus size={16} /> {t('feed.createOrJoinGroup', 'Criar ou Entrar em um Grupo')}
                 </button>
               </div>
             ) : (
@@ -544,7 +570,7 @@ export function FeedPage() {
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-xs font-bold text-indigo-300 flex items-center gap-1.5">
                       <Shield size={14} className="text-indigo-400" />
-                      Sua Rede:
+                      {t('feed.yourNetwork', 'Sua Rede:')}
                     </span>
                     {userGroups.length > 1 ? (
                       <select
@@ -552,7 +578,7 @@ export function FeedPage() {
                         onChange={(e) => setSelectedGroupId(e.target.value)}
                         className="bg-slate-900 border border-indigo-500/40 text-white text-xs font-bold rounded-lg px-2.5 py-1 outline-none cursor-pointer"
                       >
-                        <option value="all">Todas as Redes ({userGroups.length})</option>
+                        <option value="all">{t('feed.allNetworks', 'Todas as Redes')} ({userGroups.length})</option>
                         {userGroups.map(g => (
                           <option key={g.id} value={g.id}>{g.name}</option>
                         ))}
@@ -568,7 +594,7 @@ export function FeedPage() {
                     onClick={() => navigate('/groups')}
                     className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold flex items-center gap-1 transition-colors cursor-pointer shrink-0"
                   >
-                    Gerenciar <ArrowRight size={12} />
+                    {t('common.manage', 'Gerenciar')} <ArrowRight size={12} className={isRTL ? 'rotate-180' : ''} />
                   </button>
                 </div>
 
@@ -576,10 +602,10 @@ export function FeedPage() {
                   <div className="flex items-center justify-between pt-2 border-t border-slate-700/60 text-[11px] text-slate-400">
                     <span className="flex items-center gap-1">
                       <Users size={12} className="text-indigo-400" />
-                      {currentSelectedGroup.members?.length || 1} membros participantes
+                      {t('feed.membersCount', '{{count}} membros participantes', { count: currentSelectedGroup.members?.length || 1 })}
                     </span>
                     <span className="font-mono text-slate-300 bg-slate-900 px-2 py-0.5 rounded border border-slate-700 text-[10px]">
-                      Código: {currentSelectedGroup.inviteCode}
+                      {t('feed.inviteCode', 'Código:')} {currentSelectedGroup.inviteCode}
                     </span>
                   </div>
                 )}
@@ -597,20 +623,21 @@ export function FeedPage() {
               <img 
                 src={userProfile?.avatar || user?.photoURL || "https://i.pravatar.cc/150?u=me"} 
                 alt="Me" 
-                className={`w-10 h-10 rounded-full object-cover ${feedFilter === 'private' ? 'border border-indigo-400/40' : ''}`} 
+                className={`w-10 h-10 rounded-full object-cover shrink-0 ${feedFilter === 'private' ? 'border border-indigo-400/40' : ''}`} 
                 referrerPolicy="no-referrer" 
               />
               <input 
                 type="text" 
+                dir="auto"
                 value={newPostContent}
                 onChange={(e) => setNewPostContent(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleCreatePost()}
                 placeholder={
                   feedFilter === 'private'
-                    ? (currentSelectedGroup ? `Escreva um aviso para ${currentSelectedGroup.name}...` : "Escreva um aviso para sua rede privada...")
-                    : "Compartilhe algo com a comunidade..."
+                    ? (currentSelectedGroup ? t('feed.writeGroupNoticeFor', 'Escreva um aviso para {{name}}...', { name: currentSelectedGroup.name }) : t('feed.writeGroupNotice', 'Escreva um aviso para sua rede privada...'))
+                    : t('feed.sharePlaceholder', 'Compartilhe algo com a comunidade...')
                 } 
-                className="flex-1 bg-slate-900 rounded-full px-4 py-2 text-sm text-white placeholder-slate-400 outline-none focus:ring-2 focus:ring-indigo-500 border border-slate-700"
+                className="flex-1 bg-slate-900 rounded-full px-4 py-2 text-sm text-white placeholder-slate-400 outline-none focus:ring-2 focus:ring-indigo-500 border border-slate-700 text-start min-w-0"
               />
             </div>
             
@@ -621,11 +648,11 @@ export function FeedPage() {
                   className="text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors border border-red-500/20 cursor-pointer"
                 >
                   <AlertTriangle size={13} />
-                  Novo Alerta na Rede
+                  {t('feed.newNetworkAlert', 'Novo Alerta na Rede')}
                 </button>
               ) : (
                 <span className="text-[11px] text-slate-500">
-                  Publicação visível para toda a comunidade
+                  {t('feed.publicVisibility', 'Publicação visível para toda a comunidade')}
                 </span>
               )}
 
@@ -637,7 +664,7 @@ export function FeedPage() {
                   }`}
                 >
                   {feedFilter === 'private' ? <Lock size={12} /> : <Send size={12} />}
-                  {feedFilter === 'private' ? 'Publicar na Rede' : 'Publicar'}
+                  {feedFilter === 'private' ? t('feed.publishToNetwork', 'Publicar na Rede') : t('common.publish', 'Publicar')}
                 </button>
               )}
             </div>
@@ -648,7 +675,7 @@ export function FeedPage() {
         {initialLoading ? (
           <div className="flex flex-col items-center justify-center p-10 text-center opacity-70 mt-10">
             <div className="w-10 h-10 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mb-4"></div>
-            <p className="text-slate-400 text-sm font-medium">Carregando feed...</p>
+            <p className="text-slate-400 text-sm font-medium">{t('feed.loading', 'Carregando feed...')}</p>
           </div>
         ) : feedItems.length === 0 && (
           <div className="flex flex-col items-center justify-center p-10 text-center space-y-4 opacity-70 mt-6">
@@ -656,12 +683,12 @@ export function FeedPage() {
               {feedFilter === 'private' ? <Lock size={32} /> : <MessageSquare size={32} />}
             </div>
             <h3 className="text-white font-bold text-lg">
-              {feedFilter === 'private' ? 'Nenhuma publicação nesta rede ainda' : 'Seu feed está vazio'}
+              {feedFilter === 'private' ? t('feed.emptyPrivate', 'Nenhuma publicação nesta rede ainda') : t('feed.emptyPublic', 'Seu feed está vazio')}
             </h3>
             <p className="text-sm text-slate-400 max-w-xs">
               {feedFilter === 'private'
-                ? 'Compartilhe um aviso ou relate uma ocorrência restrita aos seus vizinhos!'
-                : 'Seja o primeiro a publicar algo ou fazer um alerta para sua comunidade!'}
+                ? t('feed.emptyPrivateDesc', 'Compartilhe um aviso ou relate uma ocorrência restrita aos seus vizinhos!')
+                : t('feed.emptyPublicDesc', 'Seja o primeiro a publicar algo ou fazer um alerta para sua comunidade!')}
             </p>
           </div>
         )}
@@ -671,6 +698,7 @@ export function FeedPage() {
           const isPrivateItem = Boolean(item.groupId || item.groupName || item.visibility === 'group');
 
           if (item.feedType === 'report') {
+            const reportBadge = getReportTypeBadge(item.type);
             return (
               <div 
                 key={`report-${item.id}`} 
@@ -709,42 +737,48 @@ export function FeedPage() {
                     )}
                     <div>
                       <h4 className="text-sm font-bold text-white flex items-center gap-2 flex-wrap">
-                        {item.authorName ? `Alerta por ${item.authorName}` : 'Alerta de Segurança'}
+                        {item.isAnonymous || !item.authorName 
+                          ? t('feed.alertByAnonymous', 'Alerta por Morador Anônimo') 
+                          : t('feed.alertBy', 'Alerta por {{name}}', { name: item.authorName })}
                         {item.verified && <ShieldCheck size={14} className="text-blue-400" />}
                         {isRecent && (
                           <span className="bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded flex items-center gap-1 animate-pulse tracking-wider">
-                            <span className="w-1 h-1 bg-white rounded-full"></span> AGORA
+                            <span className="w-1 h-1 bg-white rounded-full"></span> {t('time.now', 'AGORA').toUpperCase()}
                           </span>
                         )}
                         {isPrivateItem && (
                           <span className="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
-                            <Lock size={10} /> {item.groupName || 'Rede Privada'}
+                            <Lock size={10} /> {item.groupName || t('feed.privateNetworks', 'Rede Privada')}
                           </span>
                         )}
                       </h4>
-                      <p className="text-xs text-slate-400">
-                        {formatTime(item.createdAt)}
-                        {item.authorLevel ? ` • ${item.authorLevel}` : ''}
+                      <p className="text-xs text-slate-400 flex items-center gap-1.5 flex-wrap">
+                        <span>{formatTime(item.createdAt)}</span>
+                        {item.authorLevel && <span>• {formatLevel(item.authorLevel)}</span>}
                       </p>
                     </div>
                   </div>
                   {(user?.uid === item.authorId || user?.email === 'viciowins@gmail.com') && (
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 shrink-0">
                       <button 
                         onClick={() => {
                           setEditingReport(item);
                           setEditType(item.type || 'outro');
                           setEditDescription(item.description || '');
                         }}
-                        className="text-slate-400 hover:text-white p-2"
+                        className="text-slate-400 hover:text-white p-1"
                       >
-                        <span className="text-xs bg-slate-700/50 px-2 py-1 rounded hover:bg-slate-700 transition-colors">Corrigir</span>
+                        <span className="text-xs bg-slate-700/50 px-2 py-1 rounded hover:bg-slate-700 transition-colors">
+                          {t('feed.edit', 'Corrigir')}
+                        </span>
                       </button>
                       <button 
                         onClick={() => handleDeleteItem(item.id, 'report')}
-                        className="text-slate-400 hover:text-red-400 p-2"
+                        className="text-slate-400 hover:text-red-400 p-1"
                       >
-                        <span className="text-xs bg-slate-700/50 px-2 py-1 rounded hover:bg-red-500/20 transition-colors">Excluir</span>
+                        <span className="text-xs bg-slate-700/50 px-2 py-1 rounded hover:bg-red-500/20 transition-colors">
+                          {t('common.delete', 'Excluir')}
+                        </span>
                       </button>
                     </div>
                   )}
@@ -753,16 +787,22 @@ export function FeedPage() {
                 {/* Report Content */}
                 <div className="mb-3 relative z-10">
                   <div className="flex items-center gap-2 mb-2 flex-wrap">
-                    <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/30">
-                      {item.type?.toUpperCase()}
+                    <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full border ${reportBadge.color}`}>
+                      {reportBadge.label.toUpperCase()}
                     </span>
-                    <span className="text-xs text-slate-400 flex items-center gap-1 truncate max-w-[200px] sm:max-w-none">
-                      <MapPin size={12} className="text-red-400 shrink-0" />
-                      {item.location?.address || 'Localização no Mapa'}
-                    </span>
+                    <div className="flex items-center gap-1.5 min-w-0 flex-1 text-xs text-slate-400 max-w-full">
+                      <MapPin size={13} className="text-red-400 shrink-0" />
+                      <span 
+                        dir="auto" 
+                        className="truncate text-slate-300 font-medium max-w-full inline-block"
+                        title={item.location?.address || t('feed.mapLocation', 'Localização selecionada no mapa')}
+                      >
+                        {item.location?.address || t('feed.mapLocation', 'Localização selecionada no mapa')}
+                      </span>
+                    </div>
                   </div>
                   {item.description && (
-                    <p className="text-sm text-slate-200 leading-relaxed italic bg-slate-900/40 p-3 rounded-xl border border-slate-700/40 mb-2">
+                    <p dir="auto" className="text-sm text-slate-200 leading-relaxed italic bg-slate-900/40 p-3 rounded-xl border border-slate-700/40 mb-2 text-start">
                       "{item.description}"
                     </p>
                   )}
@@ -780,14 +820,14 @@ export function FeedPage() {
                     }`}
                   >
                     <ShieldCheck size={18} className={item.upvotedBy?.includes(user?.uid) ? 'fill-current' : ''} />
-                    <span className="text-xs font-medium">{item.upvotes || 0} confirmações</span>
+                    <span className="text-xs font-medium">{t('feed.confirmations', '{{count}} confirmações', { count: item.upvotes || 0 })}</span>
                   </button>
                   <button 
                     onClick={() => navigate(`/?reportId=${item.id}`)}
                     className="flex items-center gap-1.5 text-slate-400 hover:text-white transition-colors"
                   >
                     <MapPin size={18} />
-                    <span className="text-xs font-medium">Ver no Mapa</span>
+                    <span className="text-xs font-medium">{t('feed.viewOnMap', 'Ver no Mapa')}</span>
                   </button>
                   <button 
                     onClick={() => handleComment(item, 'report')}
@@ -801,6 +841,7 @@ export function FeedPage() {
                     className="flex items-center gap-1.5 text-slate-400 hover:text-green-400 transition-colors"
                   >
                     <Share2 size={18} />
+                    <span className="text-xs font-medium">{t('common.share', 'Compartilhar')}</span>
                   </button>
                 </div>
               </div>
@@ -821,31 +862,36 @@ export function FeedPage() {
                   <img 
                     src={item.authorAvatar} 
                     alt={item.authorName} 
-                    className={`w-10 h-10 rounded-full object-cover ${isPrivateItem ? 'border border-indigo-400/40' : ''}`} 
+                    className={`w-10 h-10 rounded-full object-cover shrink-0 ${isPrivateItem ? 'border border-indigo-400/40' : ''}`} 
                     referrerPolicy="no-referrer" 
                   />
                   <div>
                     <h4 className="text-sm font-bold text-white flex items-center gap-1.5 flex-wrap">
-                      {item.authorName}
+                      {item.authorName || t('common.user', 'Usuário')}
                       {item.verified && <ShieldCheck size={14} className="text-blue-400" />}
                       {isPrivateItem && (
                         <span className="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
-                          <Lock size={10} /> {item.groupName || 'Rede Privada'}
+                          <Lock size={10} /> {item.groupName || t('feed.privateNetworks', 'Rede Privada')}
                         </span>
                       )}
                     </h4>
-                    <p className="text-xs text-slate-400">{formatTime(item.createdAt)} • {item.authorLevel}</p>
+                    <p className="text-xs text-slate-400 flex items-center gap-1.5 flex-wrap">
+                      <span>{formatTime(item.createdAt)}</span>
+                      {item.authorLevel && <span>• {formatLevel(item.authorLevel)}</span>}
+                    </p>
                   </div>
                 </div>
                 {(user?.uid === item.authorId || user?.email === 'viciowins@gmail.com') ? (
                   <button 
-                    className="text-slate-500 hover:text-red-400 p-2" 
+                    className="text-slate-500 hover:text-red-400 p-1 shrink-0" 
                     onClick={() => handleDeleteItem(item.id, 'post')}
                   >
-                    <span className="text-xs bg-slate-700/50 px-2 py-1 rounded hover:bg-red-500/20 transition-colors">Excluir</span>
+                    <span className="text-xs bg-slate-700/50 px-2 py-1 rounded hover:bg-red-500/20 transition-colors">
+                      {t('common.delete', 'Excluir')}
+                    </span>
                   </button>
                 ) : (
-                  <button className="text-slate-500 hover:text-slate-300">
+                  <button className="text-slate-500 hover:text-slate-300 shrink-0">
                     <MoreHorizontal size={20} />
                   </button>
                 )}
@@ -853,7 +899,7 @@ export function FeedPage() {
 
               {/* Content */}
               <div className="mb-3">
-                <div className="flex items-center gap-2 mb-2">
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
                   <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded-full ${
                     isPrivateItem 
                       ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
@@ -861,12 +907,14 @@ export function FeedPage() {
                   }`}>
                     {item.type}
                   </span>
-                  <span className="text-xs text-slate-400 flex items-center gap-1">
-                    {isPrivateItem ? <Lock size={12} className="text-indigo-400" /> : <AlertTriangle size={12} />}
-                    {item.location}
-                  </span>
+                  <div className="flex items-center gap-1.5 min-w-0 flex-1 text-xs text-slate-400 max-w-full">
+                    {isPrivateItem ? <Lock size={12} className="text-indigo-400 shrink-0" /> : <AlertTriangle size={12} className="shrink-0" />}
+                    <span dir="auto" className="truncate text-slate-300 font-medium max-w-full inline-block">
+                      {item.location}
+                    </span>
+                  </div>
                 </div>
-                <p className="text-sm text-slate-200 leading-relaxed">{item.content}</p>
+                <p dir="auto" className="text-sm text-slate-200 leading-relaxed text-start">{item.content}</p>
                 {item.attachments && item.attachments.length > 0 && (
                   <AttachmentGallery attachments={item.attachments} />
                 )}
@@ -895,7 +943,7 @@ export function FeedPage() {
                   className="flex items-center gap-1.5 text-slate-400 hover:text-green-400 transition-colors"
                 >
                   <Share2 size={18} />
-                  <span className="text-xs font-medium">Compartilhar</span>
+                  <span className="text-xs font-medium">{t('common.share', 'Compartilhar')}</span>
                 </button>
               </div>
             </div>
@@ -907,30 +955,31 @@ export function FeedPage() {
       {editingReport && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md p-6 overflow-hidden">
-            <h3 className="text-lg font-bold text-white mb-4">Corrigir Ocorrência</h3>
+            <h3 className="text-lg font-bold text-white mb-4">{t('feed.editReportTitle', 'Corrigir Ocorrência')}</h3>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm text-slate-400 mb-2">Tipo de Ocorrência</label>
+                <label className="block text-sm text-slate-400 mb-2">{t('report.typeLabel', 'Tipo de Ocorrência')}</label>
                 <select 
                   value={editType} 
                   onChange={(e) => setEditType(e.target.value)}
                   className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white outline-none"
                 >
-                  <option value="roubo">Roubo/Furto</option>
-                  <option value="suspeito">Atividade Suspeita</option>
-                  <option value="vandalismo">Vandalismo</option>
-                  <option value="outro">Outro</option>
+                  <option value="roubo">{t('report.types.roubo', 'Roubo/Furto')}</option>
+                  <option value="suspeito">{t('report.types.suspeito', 'Atividade Suspeita')}</option>
+                  <option value="zeladoria">{t('report.types.zeladoria', 'Zeladoria / Risco')}</option>
+                  <option value="vandalismo">{t('report.types.vandalismo', 'Vandalismo')}</option>
+                  <option value="outro">{t('report.types.outro', 'Outro')}</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm text-slate-400 mb-2">Descrição</label>
+                <label className="block text-sm text-slate-400 mb-2">{t('report.descriptionLabel', 'Descrição')}</label>
                 <textarea 
                   value={editDescription}
                   onChange={(e) => setEditDescription(e.target.value)}
                   className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white outline-none resize-none h-24"
-                  placeholder="Descreva o que aconteceu..."
+                  placeholder={t('report.descriptionPlaceholder', 'Descreva o que aconteceu...')}
                 />
               </div>
 
@@ -939,13 +988,13 @@ export function FeedPage() {
                   onClick={() => setEditingReport(null)}
                   className="flex-1 py-3 rounded-xl border border-slate-700 text-slate-300 font-bold"
                 >
-                  Cancelar
+                  {t('common.cancel', 'Cancelar')}
                 </button>
                 <button 
                   onClick={handleUpdateReport}
                   className="flex-1 py-3 rounded-xl bg-blue-600 text-white font-bold"
                 >
-                  Salvar
+                  {t('common.saveChanges', 'Salvar')}
                 </button>
               </div>
             </div>

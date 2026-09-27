@@ -154,6 +154,64 @@
     "confirm": "Confirmar",
     "back": "Volver",
     "offlineNotice": "Estás desconectado. La app sigue funcionando con datos guardados.",
-    "clear": "Limpiar"
+    "clear": "Limpiar",
+    "delete": "Eliminar",
+    "share": "Compartir",
+    "publish": "Publicar",
+    "cancel": "Cancelar",
+    "manage": "Administrar",
+    "saveChanges": "Guardar Cambios",
+    "user": "Usuario"
+  },
+  "feed": {
+    "title": "Red Comunitaria",
+    "publicAlerts": "Alertas Públicas",
+    "privateNetworks": "Redes Privadas",
+    "sharePlaceholder": "Comparte algo con la comunidad...",
+    "publicVisibility": "Publicación visible para toda la comunidad",
+    "alertBy": "Alerta por {{name}}",
+    "alertByAnonymous": "Alerta por Vecino Anónimo",
+    "securityAlert": "Alerta de Seguridad",
+    "viewOnMap": "Ver en el Mapa",
+    "confirmations": "{{count}} confirmaciones",
+    "edit": "Editar",
+    "editReportTitle": "Corregir Incidente",
+    "loading": "Cargando feed...",
+    "emptyPublic": "Tu feed está vacío",
+    "emptyPublicDesc": "¡Sé el primero en publicar algo o dar una alerta para tu comunidad!",
+    "emptyPrivate": "No hay publicaciones en esta red todavía",
+    "emptyPrivateDesc": "¡Comparte un aviso o reporta un incidente restringido a tus vecinos!",
+    "yourNetwork": "Tu Red:",
+    "allNetworks": "Todas las Redes",
+    "membersCount": "{{count}} miembros participantes",
+    "inviteCode": "Código:",
+    "writeGroupNotice": "Escribe un aviso para tu red privada...",
+    "writeGroupNoticeFor": "Escribe un aviso para {{name}}...",
+    "newNetworkAlert": "Nueva Alerta en la Red",
+    "publishToNetwork": "Publicar en la Red",
+    "privateCircles": "Círculos de Confianza Privados",
+    "noGroupsDesc": "Aún no formas parte de ninguna red privada. Crea un grupo para tu calle o edificio, o ingresa el código de un vecino.",
+    "createOrJoinGroup": "Crear o Unirse a un Grupo",
+    "mapLocation": "Ubicación seleccionada en el mapa"
+  },
+  "time": {
+    "now": "Ahora",
+    "minutesAgo": "Hace {{count}} min",
+    "hoursAgo": "Hace {{count}} h",
+    "daysAgo": "Hace {{count}} d"
+  },
+  "levels": {
+    "Iniciante": "Principiante",
+    "Guardião Prata": "Guardián Plata",
+    "Guardião Ouro": "Guardián Oro",
+    "Guardião Diamante": "Guardián Diamante",
+    "Mestre da Segurança": "Maestro de Seguridad"
+  },
+  "comments": {
+    "title": "Comentarios",
+    "inPostOf": "en la publicación de {{author}}",
+    "empty": "Sin comentarios aún.",
+    "beFirst": "¡Sé el primero en participar!",
+    "placeholder": "Añade un comentario..."
   }
 }
