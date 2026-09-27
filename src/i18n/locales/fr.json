@@ -6,7 +6,7 @@
     "heroTitle": "Comment utiliser Alerte Criminelle",
     "heroDesc": "Apprenez à utiliser la carte des risques, le bouton SOS, Mon Gardien, le Mode Panique, les itinéraires sûrs, les signalements et toutes les fonctionnalités de sécurité.",
     "mapTitle": "🗺️ Comment fonctionne la Carte des Risques ?",
-    "mapDesc": "La Carte des Risques est l'écran principal de l'application. Elle affiche en temps réel les incidents signalés dans votre région avec des marqueurs détaillés et une vue <strong>Carte de Chaleur</strong>. En appuyant sur un marqueur, vous pouvez voir les détails, photos et vidéos en plein écran. Utilisez les boutons latéraux pour filtrer les incidents, activer Mon Gardien, lancer le Mode Panique ou calibrer le GPS.",
+    "mapDesc": "La Carte des Risques est l'écran principal de l'application. Elle affiche en temps réel les incidents enregistrés dans votre région avec des marqueurs détaillés et une vue <strong>Carte Thermique</strong>. En haut, utilisez la <strong>barre de recherche</strong> et le <strong>sélecteur de langue ([🇫🇷] FR)</strong>. Utilisez les boutons flottants pour le Mode Gardien, le Mode Panique, le SOS ou la calibration GPS.",
     "sosTitle": "🚨 Comment fonctionne le SOS ?",
     "sosDesc": "Le bouton SOS (rouge) est réservé aux urgences réelles. Lorsqu'il est déclenché :",
     "sosL1": "Il enregistre discrètement l'audio ambiant (10 secondes).",
@@ -47,7 +47,10 @@
     "shareDesc": "Aidez votre quartier à se protéger ! Copiez le lien <code>https://alertacriminal.com.br/</code> et partagez-le dans vos groupes WhatsApp. En collant le lien sur WhatsApp, patientez 3 secondes pour que le blason officiel s'affiche avant d'envoyer.",
     "footer": "© {{year}} Alerte Criminelle. Tous droits réservés.",
     "groupsTitle": "👥 Comment fonctionnent les Groupes Privés ?",
-    "groupsDesc": "Créez ou rejoignez des Réseaux Privés avec vos voisins ou votre famille. Lors d'un signalement, vous pouvez choisir s'il est <strong>Public</strong> ou <strong>Privé</strong> (restreint uniquement aux membres de votre groupe, avec icône cadenas 🔒)."
+    "groupsDesc": "Créez ou rejoignez des Réseaux Privés avec vos voisins ou votre famille. Lors d'un signalement, vous pouvez choisir s'il est <strong>Public</strong> ou <strong>Privé</strong> (restreint uniquement aux membres de votre groupe, avec icône cadenas 🔒).",
+    "languageTitle": "🌐 Comment changer la Langue de l'application ?",
+    "languageDesc": "En haut de la carte (à côté de la barre de recherche) et dans le menu <strong>Profil > Paramètres > Langue</strong>, appuyez sur le bouton avec le drapeau et le code (ex: <strong>[🇫🇷] FR</strong>). Choisissez parmi 7 langues : portugais, anglais, espagnol, français, italien, hindi et arabe. Toutes les pages et alertes sont traduites instantanément avec des drapeaux vectoriels HD sur PC et mobile.",
+    "availableLanguages": "Langues disponibles :"
   },
   "nav": {
     "map": "Carte",

@@ -59,13 +59,77 @@ export function TutorialPage() {
                   <strong className="text-blue-400">Mídias no Mapa:</strong> Ao tocar em qualquer alerta no mapa, você pode visualizar as <strong>fotos e vídeos</strong> da ocorrência diretamente na janelinha! Toque na mídia para abri-la em tela cheia.
                 </p>
                 
-                <h4 className="text-xs font-bold text-slate-300 mb-2 uppercase">Botões de Controle do Mapa (Direita):</h4>
+                <h4 className="text-xs font-bold text-slate-300 mb-2 uppercase">Controles no Topo do Mapa:</h4>
+                <ul className="text-sm text-slate-400 space-y-2 mb-3">
+                  <li><strong>Busca de Endereço (🔍):</strong> Digite qualquer rua, bairro ou ponto de interesse para navegar rapidamente pelo mapa com autocompletar inteligente.</li>
+                  <li><strong>Seletor de Idiomas ([🇧🇷] PT):</strong> Toque no botão com a bandeira e sigla ao lado da busca para alternar o idioma do aplicativo instantaneamente com bandeiras em alta definição.</li>
+                  <li><strong>Filtro (Funil):</strong> Filtre as ocorrências por tipo (Roubos, Suspeitos, Zeladoria, Vandalismo) e ative/desative a camada do <strong>Mapa de Calor</strong>.</li>
+                </ul>
+
+                <h4 className="text-xs font-bold text-slate-300 mb-2 uppercase">Botões Flutuantes de Ação (Direita):</h4>
                 <ul className="text-sm text-slate-400 space-y-2">
-                  <li><strong>Filtro (Lupa/Funil):</strong> Escolha ver apenas roubos, atitudes suspeitas, zeladoria ou filtre por tempo (ex: últimas 24h, 7 dias).</li>
-                  <li><strong>Escudo Azul:</strong> Ativa instantaneamente o "Meu Guardião", transmitindo sua rota para pessoas de confiança.</li>
-                  <li><strong>Lua (Modo Pânico):</strong> Ativa a tela escura anti-assalto com disfarce.</li>
+                  <li><strong>Escudo Azul (Meu Guardião):</strong> Ativa o monitoramento contínuo de trajeto com aviso automático aos contatos caso você não confirme chegada.</li>
+                  <li><strong>Lua (Modo Pânico):</strong> Ativa a tela preta anti-assalto simulando aparelho desligado, com acionamento secreto de SOS.</li>
+                  <li><strong>Escudo Vermelho (SOS):</strong> Dispara socorro emergencial com gravação secreta de áudio e link de rastreio GPS ao vivo para seus contatos.</li>
                   <li><strong>Alvo (Mira GPS):</strong> Centraliza o mapa na sua posição atual e recalibra a antena com máxima precisão.</li>
                 </ul>
+              </div>
+            </div>
+
+            {/* 2. Seletor de Idiomas & Acessibilidade Global */}
+            <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
+              <div className="bg-blue-500/20 p-2 rounded-lg shrink-0 mt-1">
+                <Globe size={20} className="text-blue-400" />
+              </div>
+              <div>
+                <h3 className="text-white font-semibold mb-1 flex items-center gap-2 flex-wrap">
+                  Seletor de Idiomas & Acessibilidade Global
+                  <span className="inline-flex items-center gap-1 bg-slate-800 px-2 py-0.5 rounded-full border border-slate-700 text-xs">
+                    <FlagIcon code="br" size="xs" />
+                    <FlagIcon code="us" size="xs" />
+                    <FlagIcon code="es" size="xs" />
+                  </span>
+                </h3>
+                <p className="text-sm text-slate-400 leading-relaxed mb-3">
+                  O Alerta Criminal é uma rede inclusiva projetada para proteger moradores, viajantes e turistas internacionais. O aplicativo é traduzido em tempo real em 7 idiomas principais.
+                </p>
+                <div className="bg-slate-800/60 p-3 rounded-xl border border-slate-700/60 text-sm text-slate-300 space-y-2 mb-3">
+                  <div className="flex items-start gap-2">
+                    <strong className="text-blue-400 shrink-0">No Topo do Mapa:</strong>
+                    <span>Toque no botão com a bandeira e sigla do país ativo (ex: <code className="bg-slate-900 px-1.5 py-0.5 rounded text-blue-300 text-xs font-mono">[🇧🇷] PT</code>) localizado ao lado da barra de pesquisa para abrir a troca instantânea.</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <strong className="text-blue-400 shrink-0">No Perfil / Ajustes:</strong>
+                    <span>Acesse a aba <strong>Perfil</strong> &gt; <strong>Configurações</strong> &gt; <strong>Idioma</strong> para escolher sua língua de preferência a qualquer momento.</span>
+                  </div>
+                </div>
+                <h4 className="text-xs font-bold text-slate-300 mb-2 uppercase">Idiomas Suportados & Bandeiras em Alta Resolução:</h4>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-3 text-xs text-slate-300">
+                  <div className="flex items-center gap-1.5 p-1.5 rounded-lg bg-slate-800/40 border border-slate-700/40">
+                    <FlagIcon code="br" size="xs" /> <span>Português (Brasil)</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 p-1.5 rounded-lg bg-slate-800/40 border border-slate-700/40">
+                    <FlagIcon code="us" size="xs" /> <span>English (USA)</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 p-1.5 rounded-lg bg-slate-800/40 border border-slate-700/40">
+                    <FlagIcon code="es" size="xs" /> <span>Español (España)</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 p-1.5 rounded-lg bg-slate-800/40 border border-slate-700/40">
+                    <FlagIcon code="fr" size="xs" /> <span>Français (France)</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 p-1.5 rounded-lg bg-slate-800/40 border border-slate-700/40">
+                    <FlagIcon code="it" size="xs" /> <span>Italiano (Italia)</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 p-1.5 rounded-lg bg-slate-800/40 border border-slate-700/40">
+                    <FlagIcon code="in" size="xs" /> <span>हिन्दी (Hindi)</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 p-1.5 rounded-lg bg-slate-800/40 border border-slate-700/40">
+                    <FlagIcon code="sa" size="xs" /> <span>العربية (Arabic)</span>
+                  </div>
+                </div>
+                <p className="text-xs text-slate-400">
+                  💡 <strong>Bandeiras Vetoriais Nativas:</strong> Todas as bandeiras são vetoriais (SVG) e aparecem com perfeição tanto no Computador (PC/Windows) quanto no Celular (Android e iPhone).
+                </p>
               </div>
             </div>
 

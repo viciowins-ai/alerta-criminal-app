@@ -6,7 +6,7 @@
     "heroTitle": "How to use Criminal Alert",
     "heroDesc": "Learn how to use the risk map, SOS button, My Guardian, Panic Mode, safe routes, reporting, and other features of Criminal Alert.",
     "mapTitle": "🗺️ How does the Risk Map work?",
-    "mapDesc": "The Risk Map is the main screen of the application. It displays real-time incidents registered in your area with detailed markers and <strong>Heatmap</strong> view. Tapping any marker allows you to view details, photos, and videos in full screen. Use the side buttons to filter incidents, activate My Guardian, trigger Panic Mode, or calibrate GPS.",
+    "mapDesc": "The Risk Map is the primary screen of the application. It displays real-time incidents in your area with detailed pins and a <strong>Heatmap</strong> view. At the top, use the <strong>search bar</strong> to find any address and the <strong>language button ([🇺🇸] EN)</strong> to change languages with one tap. Tap any pin to see photos and videos in full screen. Use the floating action buttons for Guardian Mode, Panic Mode, SOS, or GPS calibration.",
     "sosTitle": "🚨 How does the SOS work?",
     "sosDesc": "The SOS button (red) is for real emergencies. When activated, it:",
     "sosL1": "Secretly records ambient audio (10 seconds).",
@@ -47,7 +47,10 @@
     "shareDesc": "Help your street protect itself! Just copy the link <code>https://alertacriminal.com.br/</code> and send it to WhatsApp groups or Facebook. When pasting on WhatsApp, wait 3 seconds for the official thumbnail with the Shield to load before sending.",
     "footer": "© {{year}} Criminal Alert. All rights reserved.",
     "groupsTitle": "👥 How do Private Groups (Neighbor Networks) work?",
-    "groupsDesc": "Create or join Private Networks with your neighbors or family. When reporting an incident, you can choose if it will be <strong>Public</strong> (visible to everyone in the app) or <strong>Private</strong> (restricted only to your group members). Private alerts appear on the map with a padlock icon (🔒)."
+    "groupsDesc": "Create or join Private Networks with your neighbors or family. When reporting an incident, you can choose if it will be <strong>Public</strong> (visible to everyone in the app) or <strong>Private</strong> (restricted only to your group members). Private alerts appear on the map with a padlock icon (🔒).",
+    "languageTitle": "🌐 How to change the App Language?",
+    "languageDesc": "At the top of the map (next to the search bar) and in the <strong>Profile > Settings > Language</strong> menu, tap the button with the flag and code (e.g. <strong>[🇺🇸] EN</strong>). A modal will open allowing you to choose between 7 languages: Portuguese, English, Spanish, French, Italian, Hindi, and Arabic. All screens, alerts, and buttons update in real time. Flags are rendered in crisp vector format (SVG) on both PC and mobile.",
+    "availableLanguages": "Available languages:"
   },
   "nav": {
     "map": "Map",

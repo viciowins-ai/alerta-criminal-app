@@ -6,7 +6,7 @@
     "heroTitle": "Cómo usar Alerta Criminal",
     "heroDesc": "Aprende a utilizar el mapa de riesgo, botón SOS, Mi Guardián, Modo Pánico, rutas seguras, reportes y otras funciones de Alerta Criminal.",
     "mapTitle": "🗺️ ¿Cómo funciona el Mapa de Riesgo?",
-    "mapDesc": "El Mapa de Riesgo es la pantalla principal de la aplicación. Muestra en tiempo real los incidentes registrados en tu área con marcadores detallados y vista de <strong>Mapa de Calor</strong>. Al tocar cualquier marcador, puedes ver fotos y videos adjuntos en pantalla completa. Usa los botones laterales para filtrar incidentes, activar Mi Guardián, entrar en Modo Pánico o calibrar el GPS.",
+    "mapDesc": "El Mapa de Riesgo es la pantalla principal de la aplicación. Muestra en tiempo real los incidentes reportados en tu área con marcadores detallados y <strong>Mapa de Calor</strong>. En la parte superior, usa la <strong>barra de búsqueda</strong> de direcciones y el <strong>botón de idioma ([🇪🇸] ES)</strong> para cambiar de lengua con un toque. Usa los botones flotantes para Modo Guardián, Modo Pánico, SOS o calibrar el GPS.",
     "sosTitle": "🚨 ¿Cómo funciona el SOS?",
     "sosDesc": "El botón SOS (rojo) es para emergencias reales. Al activarse:",
     "sosL1": "Graba audio del entorno en secreto (10 segundos).",
@@ -47,7 +47,10 @@
     "shareDesc": "¡Ayuda a tu calle a protegerse! Solo copia el enlace <code>https://alertacriminal.com.br/</code> y envíalo en grupos de WhatsApp o en Facebook. Al pegar en WhatsApp, espera 3 segundos para que se cargue la miniatura oficial con el Escudo antes de enviar.",
     "footer": "© {{year}} Alerta Criminal. Todos los derechos reservados.",
     "groupsTitle": "👥 ¿Cómo funcionan los Grupos Privados?",
-    "groupsDesc": "Crea o únete a Redes Privadas con tus vecinos o familiares. Al reportar un incidente, puedes elegir si será <strong>Público</strong> (visible para todos en la aplicación) o <strong>Privado</strong> (restringido solo a los miembros de tu grupo). Las alertas privadas aparecen en el mapa con un icono de candado (🔒)."
+    "groupsDesc": "Crea o únete a Redes Privadas con tus vecinos o familiares. Al reportar un incidente, puedes elegir si será <strong>Público</strong> (visible para todos en la aplicación) o <strong>Privado</strong> (restringido solo a los miembros de tu grupo). Las alertas privadas aparecen en el mapa con un icono de candado (🔒).",
+    "languageTitle": "🌐 ¿Cómo cambiar el Idioma de la aplicación?",
+    "languageDesc": "En la parte superior del mapa (junto a la barra de búsqueda) y en el menú <strong>Perfil > Configuración > Idioma</strong>, toca el botão con la bandera y el código (ej: <strong>[🇪🇸] ES</strong>). Podrás elegir entre 7 idiomas: portugués, inglés, español, francés, italiano, hindi y árabe. Todas las pantallas, alertas y botones se traducen instantáneamente con banderas vectoriales nítidas en PC y móvil.",
+    "availableLanguages": "Idiomas disponibles:"
   },
   "nav": {
     "map": "Mapa",

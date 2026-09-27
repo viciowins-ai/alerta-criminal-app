@@ -145,6 +145,42 @@ export function ComoUsarPage({ lang = "pt" }: { lang?: string }) {
 
           <section className="bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-800 shadow-xl">
             <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-3">
+              {t("tutorial.languageTitle")}
+            </h2>
+            <p
+              className="text-slate-400 leading-relaxed mb-4"
+              dangerouslySetInnerHTML={{ __html: t("tutorial.languageDesc") }}
+            />
+            <div className="flex flex-wrap items-center gap-2 pt-2">
+              <span className="text-xs text-slate-400 font-bold uppercase tracking-wider mr-2">
+                {t("tutorial.availableLanguages")}
+              </span>
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-800/80 border border-slate-700 text-xs text-slate-300">
+                <FlagIcon code="br" size="xs" /> <span>Português</span>
+              </div>
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-800/80 border border-slate-700 text-xs text-slate-300">
+                <FlagIcon code="us" size="xs" /> <span>English</span>
+              </div>
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-800/80 border border-slate-700 text-xs text-slate-300">
+                <FlagIcon code="es" size="xs" /> <span>Español</span>
+              </div>
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-800/80 border border-slate-700 text-xs text-slate-300">
+                <FlagIcon code="fr" size="xs" /> <span>Français</span>
+              </div>
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-800/80 border border-slate-700 text-xs text-slate-300">
+                <FlagIcon code="it" size="xs" /> <span>Italiano</span>
+              </div>
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-800/80 border border-slate-700 text-xs text-slate-300">
+                <FlagIcon code="in" size="xs" /> <span>हिन्दी</span>
+              </div>
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-800/80 border border-slate-700 text-xs text-slate-300">
+                <FlagIcon code="sa" size="xs" /> <span>العربية</span>
+              </div>
+            </div>
+          </section>
+
+          <section className="bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-800 shadow-xl">
+            <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-3">
               {t("tutorial.sosTitle")}
             </h2>
             <p className="text-slate-400 leading-relaxed mb-4">
