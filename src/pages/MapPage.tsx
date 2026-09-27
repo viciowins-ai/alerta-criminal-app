@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import Map, { Source, Layer, Marker, MapRef } from 'react-map-gl/mapbox';
 import { AttachmentGallery } from '../components/AttachmentGallery';
-import { Search, Filter, ShieldAlert, Navigation, Building2, Landmark, Coffee, Train, LocateFixed, X, AlertCircle, ThumbsUp, Moon, ShieldCheck, Share2, MapPin, Play, Car, Bike, Globe } from 'lucide-react';
+import { Search, Filter, ShieldAlert, Navigation, Building2, Landmark, Coffee, Train, LocateFixed, X, AlertCircle, ThumbsUp, Moon, ShieldCheck, Share2, MapPin, Play, Car, Bike, Globe, Siren, Eye, Flame, AlertTriangle } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { LanguageSelectorModal, SUPPORTED_LANGUAGES } from '../components/LanguageSelectorModal';
@@ -16,12 +16,27 @@ import { useAudioRecorder } from '../hooks/useAudioRecorder';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || '';
 
-const colorStyles: Record<string, string> = {
-  roubo: "border-red-400 text-red-400 shadow-[0_0_15px_rgba(248,113,113,0.6)]",
-  suspeito: "border-orange-400 text-orange-400 shadow-[0_0_15px_rgba(251,146,60,0.6)]",
-  zeladoria: "border-cyan-400 text-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.6)]",
-  vandalismo: "border-yellow-400 text-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.6)]",
-  outro: "border-slate-400 text-slate-400 shadow-[0_0_15px_rgba(148,163,184,0.6)]",
+const markerStyles: Record<string, { border: string; bg: string; shadow: string; pinBg: string; textColor: string }> = {
+  roubo: { border: "border-red-500", bg: "bg-red-500", shadow: "shadow-[0_0_12px_rgba(239,68,68,0.6)]", pinBg: "bg-slate-950", textColor: "text-red-400" },
+  suspeito: { border: "border-orange-500", bg: "bg-orange-500", shadow: "shadow-[0_0_12px_rgba(249,115,22,0.6)]", pinBg: "bg-slate-950", textColor: "text-orange-400" },
+  zeladoria: { border: "border-cyan-500", bg: "bg-cyan-500", shadow: "shadow-[0_0_12px_rgba(6,182,212,0.6)]", pinBg: "bg-slate-950", textColor: "text-cyan-400" },
+  vandalismo: { border: "border-yellow-500", bg: "bg-yellow-500", shadow: "shadow-[0_0_12px_rgba(234,179,8,0.6)]", pinBg: "bg-slate-950", textColor: "text-yellow-400" },
+  outro: { border: "border-slate-400", bg: "bg-slate-500", shadow: "shadow-[0_0_10px_rgba(148,163,184,0.5)]", pinBg: "bg-slate-950", textColor: "text-slate-300" },
+};
+
+const getMarkerIcon = (type: string) => {
+  switch (type) {
+    case 'roubo':
+      return <Siren size={15} className="text-red-400" />;
+    case 'suspeito':
+      return <Eye size={15} className="text-orange-400" />;
+    case 'zeladoria':
+      return <AlertTriangle size={15} className="text-cyan-400" />;
+    case 'vandalismo':
+      return <Flame size={15} className="text-yellow-400" />;
+    default:
+      return <AlertCircle size={15} className="text-slate-300" />;
+  }
 };
 
 export function MapPage() {
@@ -546,28 +561,24 @@ export function MapPage() {
 
     return filteredReports.map((report) => {
       const isSelected = selectedLocation?.id === report.id;
-      const colorClass = colorStyles[report.type] || colorStyles['outro'];
+      const style = markerStyles[report.type] || markerStyles['outro'];
       
       // Temporal Decay Logic
       const reportTime = report.createdAt?.toMillis ? report.createdAt.toMillis() : now;
       const ageInHours = (now - reportTime) / (1000 * 60 * 60);
       
       let opacityClass = 'opacity-100';
-      let pulseClass = '';
-      let scaleClass = isSelected ? 'scale-125' : 'hover:scale-110';
+      let scaleClass = isSelected ? 'scale-125 z-40' : 'hover:scale-110 z-10';
 
       if (ageInHours > 24) {
-        // Older than 24h: Very faded, no pulse, smaller
-        opacityClass = 'opacity-40 grayscale';
-        pulseClass = '';
-        scaleClass = isSelected ? 'scale-110' : 'scale-90 hover:scale-100';
+        // Older than 24h: Faded, smaller
+        opacityClass = 'opacity-50 grayscale';
+        scaleClass = isSelected ? 'scale-110 z-40' : 'scale-90 hover:scale-100 z-0';
       } else if (ageInHours > 2) {
-        // 2 to 24h: Slightly faded, no pulse
-        opacityClass = 'opacity-80';
-        pulseClass = '';
+        // 2 to 24h: Slightly faded
+        opacityClass = 'opacity-85';
       }
 
-      
       const isGroup = report.visibility === 'group';
       return (
         <Marker 
@@ -581,14 +592,23 @@ export function MapPage() {
           }}
         >
           <div 
-            className={`flex flex-col items-center cursor-pointer transition-all duration-500 ${scaleClass} ${opacityClass}`}
+            className={`flex flex-col items-center cursor-pointer transition-all duration-300 ${scaleClass} ${opacityClass}`}
           >
-            <div className={`w-10 h-10 bg-gray-900 rounded-full border-2 flex items-center justify-center ${colorClass} ${pulseClass}`}>
-              <AlertCircle size={18} />
+            <div className={`relative w-8 h-8 rounded-full border-2 ${style.border} ${style.pinBg} ${style.shadow} flex items-center justify-center transition-all`}>
+              {getMarkerIcon(report.type)}
+              {isGroup && (
+                <span className="absolute -top-1 -right-1 text-[8px] bg-slate-900 border border-slate-700 rounded-full px-0.5 leading-none">🔒</span>
+              )}
             </div>
-            <span className="mt-1.5 text-[10px] font-medium text-gray-200 drop-shadow-md bg-gray-900 px-2 py-0.5 rounded-md border border-gray-700">
-              {isGroup ? `🔒 ${isGroup ? `🔒 ${getLabel(report.type)}` : getLabel(report.type)}` : getLabel(report.type)}
-            </span>
+            {/* Pointer point at base */}
+            <div className={`w-1.5 h-1.5 -mt-0.5 rotate-45 ${style.pinBg} border-r-2 border-b-2 ${style.border}`} />
+            
+            {/* Show badge ONLY when selected to avoid overlapping clutter on mobile */}
+            {isSelected && (
+              <span className="mt-1 text-[10px] font-bold text-white drop-shadow-md bg-slate-950/95 px-2 py-0.5 rounded-md border border-slate-700 whitespace-nowrap animate-fade-in pointer-events-none">
+                {isGroup ? `🔒 ${getLabel(report.type)}` : getLabel(report.type)}
+              </span>
+            )}
           </div>
         </Marker>
       );
@@ -598,20 +618,20 @@ export function MapPage() {
   return (
     <div className="relative w-full h-full bg-slate-900">
       {/* Search Bar Overlay */}
-      <div className="absolute top-0 left-0 right-0 p-4 z-10 flex gap-3 mt-2">
+      <div className="absolute top-0 left-0 right-0 p-3 pt-[calc(0.75rem+env(safe-area-inset-top))] z-30 flex items-center gap-2">
         <div className="flex-1 relative">
-          <div className="bg-slate-900/95 rounded-2xl shadow-lg flex items-center px-4 py-3 border border-slate-700/50 transition-all focus-within:border-blue-500/50 focus-within:bg-slate-900">
-            <Search size={20} className="text-blue-400 mr-3" />
+          <div className="bg-slate-900/95 backdrop-blur-md rounded-2xl shadow-lg flex items-center px-3.5 h-11 border border-slate-700/50 transition-all focus-within:border-blue-500/50 focus-within:bg-slate-900">
+            <Search size={18} className="text-blue-400 mr-2.5 shrink-0" />
             <input 
               type="text" 
               value={searchQuery}
               onChange={handleSearchInput}
               onKeyDown={handleKeyDown}
-              placeholder="Buscar local ou endereço..." 
-              className="flex-1 outline-none bg-transparent text-sm text-slate-100 placeholder-slate-400 font-medium"
+              placeholder={t('map.searchPlaceholder', 'Buscar local ou endereço...')} 
+              className="flex-1 outline-none bg-transparent text-xs sm:text-sm text-slate-100 placeholder-slate-400 font-medium truncate"
             />
             {searchQuery && (
-              <button onClick={() => { setSearchQuery(''); setSearchResults([]); }} className="text-slate-400 hover:text-white transition-colors">
+              <button onClick={() => { setSearchQuery(''); setSearchResults([]); }} className="text-slate-400 hover:text-white transition-colors p-1">
                 <X size={16} />
               </button>
             )}
@@ -643,14 +663,14 @@ export function MapPage() {
             </div>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 shrink-0">
           <button 
             onClick={() => setIsLangModalOpen(true)}
-            className="bg-slate-900/95 p-3 rounded-2xl shadow-lg transition-colors border border-slate-700/50 hover:bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center gap-1.5"
+            className="bg-slate-900/95 backdrop-blur-md h-11 px-2.5 rounded-2xl shadow-lg transition-colors border border-slate-700/50 hover:bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center gap-1 shrink-0"
             title={t('settings.language', 'Idioma')}
           >
-            <Globe size={18} className="text-blue-400" />
-            <span className="text-xs font-bold uppercase text-slate-300">
+            <Globe size={16} className="text-blue-400 shrink-0" />
+            <span className="text-[11px] font-bold uppercase text-slate-300">
               {(i18n.language || 'pt').slice(0, 2)}
             </span>
           </button>
@@ -658,9 +678,13 @@ export function MapPage() {
           <div className="relative">
             <button 
               onClick={() => setShowFilters(!showFilters)}
-              className={`bg-slate-900/95 p-3 rounded-2xl shadow-lg transition-colors border flex items-center justify-center ${activeFilter ? 'text-blue-400 border-blue-500/50' : 'text-slate-400 border-slate-700/50 hover:bg-slate-800'}`}
+              className={`bg-slate-900/95 backdrop-blur-md h-11 w-11 rounded-2xl shadow-lg transition-colors border flex items-center justify-center relative shrink-0 ${activeFilter ? 'text-blue-400 border-blue-500/50' : 'text-slate-400 border-slate-700/50 hover:bg-slate-800'}`}
+              title="Filtros"
             >
-              <Filter size={20} />
+              <Filter size={18} />
+              {activeFilter && (
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-blue-500 ring-2 ring-slate-900" />
+              )}
             </button>
           
           {showFilters && (
@@ -813,10 +837,10 @@ export function MapPage() {
       </Map>
 
       {/* Floating Action Buttons */}
-      <div className={`absolute right-4 flex flex-col gap-3 z-30 items-center transition-all duration-300 ${selectedLocation ? 'opacity-0 pointer-events-none translate-x-12 bottom-[100px]' : 'opacity-100 bottom-[100px] translate-x-0'}`}>
+      <div className={`absolute right-3.5 flex flex-col gap-2.5 z-30 items-center transition-all duration-300 ${selectedLocation ? 'opacity-0 pointer-events-none translate-x-12 bottom-24' : 'opacity-100 bottom-[calc(5.75rem+env(safe-area-inset-bottom))] translate-x-0'}`}>
         <button 
           onClick={() => setIsGuardianMode(true)}
-          className="bg-blue-600 text-white p-3.5 rounded-2xl shadow-lg border border-blue-400/30 hover:bg-blue-500 transition-all active:scale-95 flex items-center justify-center"
+          className="bg-blue-600 text-white w-11 h-11 rounded-2xl shadow-lg border border-blue-400/30 hover:bg-blue-500 transition-all active:scale-95 flex items-center justify-center"
           aria-label="Meu Guardião"
           title="Meu Guardião (Acompanhamento)"
         >
@@ -824,29 +848,30 @@ export function MapPage() {
         </button>
         <button 
           onClick={() => setIsPanicMode(true)}
-          className="bg-slate-900 text-slate-400 p-3.5 rounded-2xl shadow-lg border border-slate-700/50 hover:bg-slate-800 hover:text-white transition-all active:scale-95 flex items-center justify-center"
+          className="bg-slate-900/90 backdrop-blur-md text-slate-300 w-11 h-11 rounded-2xl shadow-lg border border-slate-700/60 hover:bg-slate-800 hover:text-white transition-all active:scale-95 flex items-center justify-center"
           aria-label="Modo Pânico (Tela Escura)"
           title="Modo Pânico (Tela Escura)"
         >
-          <Moon size={24} />
+          <Moon size={20} />
         </button>
         <button 
           onClick={handleSOS}
           disabled={isSOSActive}
-          className={`bg-red-600 text-white p-2 rounded-2xl shadow-lg border border-red-400/30 hover:bg-red-500 transition-all active:scale-95 flex flex-col items-center justify-center min-w-[52px] min-h-[52px] ${isSOSActive ? 'opacity-50 cursor-not-allowed' : 'animate-pulse'}`}
+          className={`bg-red-600 text-white w-11 h-11 rounded-2xl shadow-lg border border-red-400/40 hover:bg-red-500 transition-all active:scale-95 flex flex-col items-center justify-center ${isSOSActive ? 'opacity-50 cursor-not-allowed' : 'animate-pulse'}`}
           aria-label="SOS Emergência"
+          title="SOS Emergência"
         >
           <ShieldAlert size={16} />
-          <span className="text-[10px] font-black leading-none mt-1">S.O.S</span>
+          <span className="text-[8px] font-black leading-none mt-0.5">S.O.S</span>
         </button>
         <button 
           onClick={triggerGPS}
-          className="bg-slate-900 text-blue-400 p-3.5 rounded-2xl shadow-lg border border-slate-700/50 hover:bg-slate-800 transition-all active:scale-95 flex items-center justify-center"
+          className="bg-slate-900/90 backdrop-blur-md text-blue-400 w-11 h-11 rounded-2xl shadow-lg border border-slate-700/60 hover:bg-slate-800 transition-all active:scale-95 flex items-center justify-center"
           aria-label="Minha Localização"
+          title="Minha Localização"
         >
-          <LocateFixed size={24} />
+          <LocateFixed size={20} />
         </button>
-
       </div>
 
       <PanicModeOverlay 
@@ -866,9 +891,18 @@ export function MapPage() {
 
       {/* Bottom Sheet Summary */}
       {selectedLocation && (
-        <div className="absolute bottom-0 left-0 right-0 bg-slate-950 rounded-t-[2.5rem] shadow-[0_-10px_40px_rgba(0,0,0,0.5)] p-6 pb-6 z-20 transition-transform transform translate-y-0 border-t border-white/10 animate-in slide-in-from-bottom-full max-h-[40vh] flex flex-col">
-          <div className="w-12 h-1.5 bg-slate-700/50 rounded-full mx-auto mb-6 cursor-pointer shrink-0" onClick={() => setSelectedLocation(null)} />
-          <div className="flex-1 overflow-y-auto hide-scrollbar -mx-6 px-6 pb-2">
+        <div className="absolute bottom-0 left-0 right-0 bg-slate-950/95 backdrop-blur-xl rounded-t-[2rem] shadow-[0_-10px_40px_rgba(0,0,0,0.7)] p-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] z-50 transition-transform border-t border-slate-700/60 animate-in slide-in-from-bottom-full max-h-[50vh] flex flex-col">
+          <div className="relative flex items-center justify-center mb-4 shrink-0">
+            <div className="w-12 h-1.5 bg-slate-700 rounded-full cursor-pointer hover:bg-slate-600 transition-colors" onClick={() => setSelectedLocation(null)} />
+            <button 
+              onClick={() => setSelectedLocation(null)}
+              className="absolute right-0 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-slate-800 text-slate-400 hover:text-white transition-colors"
+              title="Fechar"
+            >
+              <X size={16} />
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto hide-scrollbar -mx-5 px-5 pb-2">
             <div className="flex justify-between items-start mb-4">
             <div className="flex-1 pr-4">
               <h2 className="text-xl font-black text-white tracking-tight mb-1 line-clamp-2">{selectedLocation.location.address || getLabel(selectedLocation.type)}</h2>
@@ -913,10 +947,10 @@ export function MapPage() {
           )}
           </div>
 
-          <div className="flex gap-4 overflow-x-auto pt-4 pb-2 hide-scrollbar shrink-0 border-t border-white/10 mt-2">
+          <div className="flex gap-3 overflow-x-auto pt-3 pb-1 hide-scrollbar shrink-0 border-t border-slate-800 mt-2">
             <button 
               onClick={() => navigate(`/route?destination=${encodeURIComponent(selectedLocation.location.address || '')}`)}
-              className="flex flex-col items-center gap-2 min-w-[72px]"
+              className="flex flex-col items-center gap-1.5 min-w-[68px]"
             >
               <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white shadow-lg active:scale-95 transition-transform">
                 <Navigation size={18} />
@@ -925,7 +959,7 @@ export function MapPage() {
             </button>
             <button 
               onClick={() => handleUpvote(selectedLocation.id)}
-              className="flex flex-col items-center gap-2 min-w-[72px]"
+              className="flex flex-col items-center gap-1.5 min-w-[68px]"
             >
               <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-all duration-300 ${
                 selectedLocation.upvotedBy?.includes(user?.uid) 
@@ -940,7 +974,7 @@ export function MapPage() {
             </button>
             <button 
               onClick={handleShareLocation}
-              className="flex flex-col items-center gap-2 min-w-[72px]"
+              className="flex flex-col items-center gap-1.5 min-w-[68px]"
             >
               <div className="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-white shadow-lg active:scale-95 transition-transform">
                 <Share2 size={18} />
@@ -950,7 +984,7 @@ export function MapPage() {
             {(user?.uid === selectedLocation.authorId || user?.email === 'viciowins@gmail.com') && (
               <button 
                 onClick={handleDeleteReport}
-                className="flex flex-col items-center gap-2 min-w-[72px]"
+                className="flex flex-col items-center gap-1.5 min-w-[68px]"
               >
                 <div className="w-10 h-10 rounded-full bg-slate-800 border border-red-500/50 flex items-center justify-center text-red-500 shadow-lg active:scale-95 transition-transform">
                   <X size={18} />
