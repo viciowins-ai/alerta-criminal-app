@@ -48,5 +48,58 @@
     "footer": "© {{year}} Alerta Criminal. Tutti i diritti riservati.",
     "groupsTitle": "👥 Come funzionano i Gruppi Privati?",
     "groupsDesc": "Crea o unisciti a Reti Private con vicini o familiari. Quando segnali un evento, puoi renderlo <strong>Pubblico</strong> o <strong>Privato</strong> (visibile solo ai membri del gruppo con icona lucchetto 🔒)."
+  },
+  "nav": {
+    "map": "Mappa",
+    "routes": "Percorsi",
+    "report": "Segnala",
+    "feed": "Feed",
+    "profile": "Profilo"
+  },
+  "settings": {
+    "title": "Impostazioni",
+    "language": "Lingua dell'applicazione",
+    "selectLanguage": "Seleziona lingua",
+    "languageHelp": "Cambia la lingua per l'intera interfaccia dell'applicazione",
+    "myAccount": "Il Mio Account",
+    "notifications": "Notifiche",
+    "privacy": "Privacy",
+    "security": "Sicurezza",
+    "logout": "Disconnetti"
+  },
+  "profile": {
+    "title": "Profilo",
+    "howToUse": "Come usare l'app",
+    "feedback": "Valuta l'applicazione",
+    "groups": "Gruppi Privati",
+    "contributionLevel": "Livello di Contributo",
+    "referral": "Invita e Guadagna",
+    "trustedContacts": "Contatti di Fiducia",
+    "notifications": "Notifiche",
+    "help": "Centro Assistenza",
+    "settings": "Impostazioni",
+    "language": "Lingua"
+  },
+  "report": {
+    "title": "Segnala Evento",
+    "selectType": "Seleziona il tipo",
+    "types": {
+      "roubo": "Rapina / Furto",
+      "suspeito": "Attività Sospetta",
+      "zeladoria": "Dissesto / Allagamento",
+      "vandalismo": "Vandalismo",
+      "outro": "Altro"
+    },
+    "submit": "Pubblica Segnalazione",
+    "anonymous": "Pubblica in forma anonima",
+    "public": "Avviso Pubblico",
+    "private": "Gruppo Privato"
+  },
+  "common": {
+    "close": "Chiudi",
+    "save": "Salva",
+    "confirm": "Conferma",
+    "back": "Indietro",
+    "offlineNotice": "Sei offline. L'applicazione continua a funzionare con i dati salvati."
   }
 }

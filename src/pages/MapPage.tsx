@@ -1,8 +1,10 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import Map, { Source, Layer, Marker, MapRef } from 'react-map-gl/mapbox';
 import { AttachmentGallery } from '../components/AttachmentGallery';
-import { Search, Filter, ShieldAlert, Navigation, Building2, Landmark, Coffee, Train, LocateFixed, X, AlertCircle, ThumbsUp, Moon, ShieldCheck, Share2, MapPin, Play, Car, Bike } from 'lucide-react';
+import { Search, Filter, ShieldAlert, Navigation, Building2, Landmark, Coffee, Train, LocateFixed, X, AlertCircle, ThumbsUp, Moon, ShieldCheck, Share2, MapPin, Play, Car, Bike, Globe } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { LanguageSelectorModal, SUPPORTED_LANGUAGES } from '../components/LanguageSelectorModal';
 import { db } from '../firebase';
 import { collection, query, onSnapshot, limit, orderBy, doc, updateDoc, arrayUnion, increment, addDoc, serverTimestamp, getDoc, getDocs, writeBatch, where, deleteDoc } from 'firebase/firestore';
 import { handleFirestoreError, OperationType } from '../utils/firestoreErrorHandler';
@@ -23,11 +25,13 @@ const colorStyles: Record<string, string> = {
 };
 
 export function MapPage() {
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
   const { isRecording, startRecording } = useAudioRecorder();
   const [isMapLoaded, setIsMapLoaded] = useState(false);
+  const [isLangModalOpen, setIsLangModalOpen] = useState(false);
   const [geoError, setGeoError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -639,13 +643,25 @@ export function MapPage() {
             </div>
           )}
         </div>
-        <div className="relative">
+        <div className="flex items-center gap-2">
           <button 
-            onClick={() => setShowFilters(!showFilters)}
-            className={`bg-slate-900/95 p-3 rounded-2xl shadow-lg transition-colors border flex items-center justify-center ${activeFilter ? 'text-blue-400 border-blue-500/50' : 'text-slate-400 border-slate-700/50 hover:bg-slate-800'}`}
+            onClick={() => setIsLangModalOpen(true)}
+            className="bg-slate-900/95 p-3 rounded-2xl shadow-lg transition-colors border border-slate-700/50 hover:bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center gap-1.5"
+            title={t('settings.language', 'Idioma')}
           >
-            <Filter size={20} />
+            <Globe size={18} className="text-blue-400" />
+            <span className="text-xs font-bold uppercase text-slate-300">
+              {(i18n.language || 'pt').slice(0, 2)}
+            </span>
           </button>
+
+          <div className="relative">
+            <button 
+              onClick={() => setShowFilters(!showFilters)}
+              className={`bg-slate-900/95 p-3 rounded-2xl shadow-lg transition-colors border flex items-center justify-center ${activeFilter ? 'text-blue-400 border-blue-500/50' : 'text-slate-400 border-slate-700/50 hover:bg-slate-800'}`}
+            >
+              <Filter size={20} />
+            </button>
           
           {showFilters && (
             <div className="absolute top-full right-0 mt-2 w-48 bg-slate-900 rounded-xl shadow-xl border border-slate-700/50 overflow-hidden z-50 animate-fade-in">
@@ -699,6 +715,7 @@ export function MapPage() {
               </div>
             </div>
           )}
+          </div>
         </div>
       </div>
 
@@ -954,6 +971,11 @@ export function MapPage() {
         onVideoUpload={() => {
           alert('Vídeo anexado com sucesso! (Simulado - Requer Firebase Storage para envio real)');
         }}
+      />
+
+      <LanguageSelectorModal
+        isOpen={isLangModalOpen}
+        onClose={() => setIsLangModalOpen(false)}
       />
     </div>
   );

@@ -10,6 +10,7 @@ import { collection, addDoc, serverTimestamp, doc, updateDoc, increment, getDoc,
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { handleFirestoreError, OperationType } from '../utils/firestoreErrorHandler';
 import { getLevelInfo } from '../utils/levelUtils';
+import { useTranslation } from 'react-i18next';
 
 const INCIDENT_TYPES = [
   { id: 'roubo', label: 'Roubo/Furto', icon: <Siren size={24} />, baseColor: 'red', desc: 'Assaltos ou furtos', placeholder: 'Ex: Dois homens em uma moto preta, armados. Ocorreu há 10 min...' },
@@ -28,6 +29,7 @@ const COLOR_MAP: Record<string, any> = {
 };
 
 export function ReportPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [selectedType, setSelectedType] = useState<string | null>(null);
@@ -422,7 +424,7 @@ export function ReportPage() {
 
   return (
     <div className="flex flex-col h-full bg-slate-900">
-      <TopBar title="Reportar Ocorrência" />
+      <TopBar title={t('report.title', 'Reportar Ocorrência')} />
       
       <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-4 flex flex-col gap-6">
         {/* Location Selection */}
@@ -496,11 +498,14 @@ export function ReportPage() {
 
         {/* Incident Type */}
         <div>
-          <h3 className="text-sm font-semibold text-white mb-3">Tipo de Ocorrência</h3>
+          <h3 className="text-sm font-semibold text-white mb-3">
+            {t('report.selectType', 'Tipo de Ocorrência')}
+          </h3>
           <div className="grid grid-cols-2 gap-3">
             {INCIDENT_TYPES.map(type => {
               const isSelected = selectedType === type.id;
               const colors = COLOR_MAP[type.baseColor];
+              const translatedLabel = t(`report.types.${type.id}`, type.label);
               
               return (
                 <button
@@ -525,7 +530,7 @@ export function ReportPage() {
                   <span className={`text-sm font-bold relative z-10 transition-colors duration-300 ${
                     isSelected ? 'text-white' : 'text-slate-400 group-hover:text-slate-200'
                   }`}>
-                    {type.label}
+                    {translatedLabel}
                   </span>
                   <span className={`text-[10px] mt-1 relative z-10 transition-colors duration-300 text-center leading-tight ${
                     isSelected ? 'text-slate-300' : 'text-slate-500 group-hover:text-slate-400'

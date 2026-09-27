@@ -48,5 +48,58 @@
     "footer": "© {{year}} Alerta Criminal. Todos los derechos reservados.",
     "groupsTitle": "👥 ¿Cómo funcionan los Grupos Privados?",
     "groupsDesc": "Crea o únete a Redes Privadas con tus vecinos o familiares. Al reportar un incidente, puedes elegir si será <strong>Público</strong> (visible para todos en la aplicación) o <strong>Privado</strong> (restringido solo a los miembros de tu grupo). Las alertas privadas aparecen en el mapa con un icono de candado (🔒)."
+  },
+  "nav": {
+    "map": "Mapa",
+    "routes": "Rutas",
+    "report": "Reportar",
+    "feed": "Feed",
+    "profile": "Perfil"
+  },
+  "settings": {
+    "title": "Configuración",
+    "language": "Idioma de la Aplicación",
+    "selectLanguage": "Seleccionar Idioma",
+    "languageHelp": "Cambia el idioma en toda la interfaz de la aplicación",
+    "myAccount": "Mi Cuenta",
+    "notifications": "Notificaciones",
+    "privacy": "Privacidad",
+    "security": "Seguridad",
+    "logout": "Cerrar Sesión"
+  },
+  "profile": {
+    "title": "Perfil",
+    "howToUse": "Cómo Usar la App",
+    "feedback": "Calificar Aplicación",
+    "groups": "Grupos Privados",
+    "contributionLevel": "Mi Nivel de Contribución",
+    "referral": "Invita y Gana",
+    "trustedContacts": "Contactos de Confianza",
+    "notifications": "Notificaciones",
+    "help": "Centro de Ayuda",
+    "settings": "Configuración",
+    "language": "Idioma"
+  },
+  "report": {
+    "title": "Reportar Incidente",
+    "selectType": "Seleccionar Tipo",
+    "types": {
+      "roubo": "Robo / Hurto",
+      "suspeito": "Actividad Sospechosa",
+      "zeladoria": "Riesgo Urbano / Inundación",
+      "vandalismo": "Vandalismo",
+      "outro": "Otro"
+    },
+    "submit": "Publicar Incidente",
+    "anonymous": "Publicar como Anónimo",
+    "public": "Alerta Pública",
+    "private": "Grupo Privado"
+  },
+  "common": {
+    "close": "Cerrar",
+    "save": "Guardar",
+    "confirm": "Confirmar",
+    "back": "Volver",
+    "offlineNotice": "Estás desconectado. La app sigue funcionando con datos guardados."
   }
 }

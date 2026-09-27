@@ -48,5 +48,58 @@
     "footer": "© {{year}} Criminal Alert. All rights reserved.",
     "groupsTitle": "👥 How do Private Groups (Neighbor Networks) work?",
     "groupsDesc": "Create or join Private Networks with your neighbors or family. When reporting an incident, you can choose if it will be <strong>Public</strong> (visible to everyone in the app) or <strong>Private</strong> (restricted only to your group members). Private alerts appear on the map with a padlock icon (🔒)."
+  },
+  "nav": {
+    "map": "Map",
+    "routes": "Routes",
+    "report": "Report",
+    "feed": "Feed",
+    "profile": "Profile"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "App Language",
+    "selectLanguage": "Select Language",
+    "languageHelp": "Change language across the entire application interface",
+    "myAccount": "My Account",
+    "notifications": "Notifications",
+    "privacy": "Privacy",
+    "security": "Security",
+    "logout": "Log Out"
+  },
+  "profile": {
+    "title": "Profile",
+    "howToUse": "How to Use the App",
+    "feedback": "Rate the App",
+    "groups": "Private Groups",
+    "contributionLevel": "My Contribution Level",
+    "referral": "Refer & Earn",
+    "trustedContacts": "Trusted Contacts",
+    "notifications": "Notifications",
+    "help": "Help Center",
+    "settings": "Settings",
+    "language": "Language"
+  },
+  "report": {
+    "title": "Report Incident",
+    "selectType": "Select Incident Type",
+    "types": {
+      "roubo": "Robbery / Theft",
+      "suspeito": "Suspicious Activity",
+      "zeladoria": "City Risk / Flooding",
+      "vandalismo": "Vandalism",
+      "outro": "Other"
+    },
+    "submit": "Submit Incident",
+    "anonymous": "Post Anonymously",
+    "public": "Public Alert",
+    "private": "Private Group"
+  },
+  "common": {
+    "close": "Close",
+    "save": "Save",
+    "confirm": "Confirm",
+    "back": "Back",
+    "offlineNotice": "You are offline. The app continues working with cached data."
   }
 }

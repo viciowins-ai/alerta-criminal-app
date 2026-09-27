@@ -48,5 +48,58 @@
     "footer": "© {{year}} Alerta Criminal. Todos os direitos reservados.",
     "groupsTitle": "👥 Como funcionam os Grupos Privados?",
     "groupsDesc": "Crie ou participe de Redes Privadas com seus vizinhos ou familiares. Ao relatar uma ocorrência, você pode escolher se ela será <strong>Pública</strong> (visível para todos no aplicativo) ou <strong>Privada</strong> (restrita apenas aos membros do seu grupo). Alertas privados aparecem no mapa com um ícone de cadeado (🔒)."
+  },
+  "nav": {
+    "map": "Mapa",
+    "routes": "Rotas",
+    "report": "Reportar",
+    "feed": "Feed",
+    "profile": "Perfil"
+  },
+  "settings": {
+    "title": "Configurações",
+    "language": "Idioma do Aplicativo",
+    "selectLanguage": "Selecionar Idioma",
+    "languageHelp": "Altere o idioma de toda a interface do aplicativo",
+    "myAccount": "Minha Conta",
+    "notifications": "Notificações",
+    "privacy": "Privacidade",
+    "security": "Segurança",
+    "logout": "Sair da Conta"
+  },
+  "profile": {
+    "title": "Perfil",
+    "howToUse": "Como Usar o App",
+    "feedback": "Avaliar Aplicativo",
+    "groups": "Grupos Privados",
+    "contributionLevel": "Meu Nível de Contribuição",
+    "referral": "Indique e Ganhe",
+    "trustedContacts": "Contatos de Confiança",
+    "notifications": "Notificações",
+    "help": "Central de Ajuda",
+    "settings": "Configurações",
+    "language": "Idioma"
+  },
+  "report": {
+    "title": "Reportar Ocorrência",
+    "selectType": "Selecione o Tipo",
+    "types": {
+      "roubo": "Roubo/Furto",
+      "suspeito": "Atividade Suspeita",
+      "zeladoria": "Zeladoria / Risco",
+      "vandalismo": "Vandalismo",
+      "outro": "Outro"
+    },
+    "submit": "Publicar Ocorrência",
+    "anonymous": "Publicar como Anônimo",
+    "public": "Alerta Público",
+    "private": "Grupo Privado"
+  },
+  "common": {
+    "close": "Fechar",
+    "save": "Salvar",
+    "confirm": "Confirmar",
+    "back": "Voltar",
+    "offlineNotice": "Você está offline. O app continua funcionando com dados salvos."
   }
 }

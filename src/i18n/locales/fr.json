@@ -48,5 +48,58 @@
     "footer": "© {{year}} Alerte Criminelle. Tous droits réservés.",
     "groupsTitle": "👥 Comment fonctionnent les Groupes Privés ?",
     "groupsDesc": "Créez ou rejoignez des Réseaux Privés avec vos voisins ou votre famille. Lors d'un signalement, vous pouvez choisir s'il est <strong>Public</strong> ou <strong>Privé</strong> (restreint uniquement aux membres de votre groupe, avec icône cadenas 🔒)."
+  },
+  "nav": {
+    "map": "Carte",
+    "routes": "Itinéraires",
+    "report": "Signaler",
+    "feed": "Fil",
+    "profile": "Profil"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "language": "Langue de l'application",
+    "selectLanguage": "Choisir la langue",
+    "languageHelp": "Changer la langue sur toute l'interface de l'application",
+    "myAccount": "Mon Compte",
+    "notifications": "Notifications",
+    "privacy": "Confidentialité",
+    "security": "Sécurité",
+    "logout": "Déconnexion"
+  },
+  "profile": {
+    "title": "Profil",
+    "howToUse": "Comment utiliser l'app",
+    "feedback": "Évaluer l'application",
+    "groups": "Groupes Privés",
+    "contributionLevel": "Mon Niveau de Contribution",
+    "referral": "Parrainer et Gagner",
+    "trustedContacts": "Contacts de Confiance",
+    "notifications": "Notifications",
+    "help": "Centre d'Aide",
+    "settings": "Paramètres",
+    "language": "Langue"
+  },
+  "report": {
+    "title": "Signaler un Incident",
+    "selectType": "Sélectionner le type",
+    "types": {
+      "roubo": "Vol / Agression",
+      "suspeito": "Activité Suspecte",
+      "zeladoria": "Voirie / Inondation",
+      "vandalismo": "Vandalisme",
+      "outro": "Autre"
+    },
+    "submit": "Publier l'incident",
+    "anonymous": "Publier anonymement",
+    "public": "Alerte Publique",
+    "private": "Groupe Privé"
+  },
+  "common": {
+    "close": "Fermer",
+    "save": "Enregistrer",
+    "confirm": "Confirmer",
+    "back": "Retour",
+    "offlineNotice": "Vous êtes hors ligne. L'application continue avec les données sauvegardées."
   }
 }

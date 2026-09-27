@@ -9,6 +9,8 @@ import it from './locales/it.json';
 import hi from './locales/hi.json';
 import ar from './locales/ar.json';
 
+const savedLang = typeof window !== 'undefined' ? localStorage.getItem('i18nextLng') || 'pt' : 'pt';
+
 i18n
   .use(initReactI18next)
   .init({
@@ -21,11 +23,20 @@ i18n
       hi: { translation: hi },
       ar: { translation: ar }
     },
-    lng: 'pt', // Default language
+    lng: savedLang,
     fallbackLng: 'pt',
     interpolation: {
       escapeValue: false // React already safes from xss
     }
   });
+
+if (typeof document !== 'undefined') {
+  document.documentElement.lang = savedLang;
+  if (savedLang === 'ar') {
+    document.documentElement.dir = 'rtl';
+  } else {
+    document.documentElement.dir = 'ltr';
+  }
+}
 
 export default i18n;

@@ -3,12 +3,14 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Map, Navigation, Plus, User, Users, WifiOff } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { useTranslation } from 'react-i18next';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
 export function Layout() {
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const hideBottomNav = ['/login', '/dashboard'].includes(location.pathname);
@@ -32,7 +34,7 @@ export function Layout() {
       {isOffline && (
         <div className="bg-amber-600 text-white text-xs font-medium py-1.5 px-4 flex items-center justify-center gap-2 z-[60] shrink-0">
           <WifiOff size={14} />
-          <span>Você está offline. O app continua funcionando com dados salvos.</span>
+          <span>{t('common.offlineNotice', 'Você está offline. O app continua funcionando com dados salvos.')}</span>
         </div>
       )}
       <main className="flex-1 overflow-y-auto pb-20">
@@ -41,8 +43,8 @@ export function Layout() {
       
       {!hideBottomNav && (
         <nav className="absolute bottom-0 w-full bg-slate-950 border-t border-white/10 flex justify-around items-center h-20 px-2 pb-safe z-50">
-          <NavItem to="/" icon={<Map size={24} />} label="Mapa" />
-          <NavItem to="/route" icon={<Navigation size={24} />} label="Rotas" />
+          <NavItem to="/" icon={<Map size={24} />} label={t('nav.map', 'Mapa')} />
+          <NavItem to="/route" icon={<Navigation size={24} />} label={t('nav.routes', 'Rotas')} />
           
           {/* Central Report Button */}
           <div className="relative -top-6 group">
@@ -50,13 +52,14 @@ export function Layout() {
             <button 
               onClick={() => navigate('/report')}
               className="relative bg-gradient-to-b from-blue-500 to-blue-700 text-white rounded-full p-4 shadow-[0_0_20px_rgba(59,130,246,0.4)] hover:from-blue-600 hover:to-blue-800 transition-all active:scale-95 flex flex-col items-center justify-center border-4 border-slate-900"
+              title={t('nav.report', 'Reportar')}
             >
               <Plus size={28} strokeWidth={3} />
             </button>
           </div>
           
-          <NavItem to="/feed" icon={<Users size={24} />} label="Feed" />
-          <NavItem to="/profile" icon={<User size={24} />} label="Perfil" />
+          <NavItem to="/feed" icon={<Users size={24} />} label={t('nav.feed', 'Feed')} />
+          <NavItem to="/profile" icon={<User size={24} />} label={t('nav.profile', 'Perfil')} />
         </nav>
       )}
     </div>
