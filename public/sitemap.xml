@@ -1,9 +1,50 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://alertacriminal.com.br/</loc>
-    <lastmod>2024-11-20</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://alertacriminal.com.br/como-usar</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://alertacriminal.com.br/como-usar"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://alertacriminal.com.br/en/how-to-use"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://alertacriminal.com.br/es/como-usar"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://alertacriminal.com.br/fr/comment-utiliser"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://alertacriminal.com.br/it/come-usare"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://alertacriminal.com.br/hi/kaise-upyog-kare"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://alertacriminal.com.br/ar/kayfiat-alastikhdam"/>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://alertacriminal.com.br/en/how-to-use</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://alertacriminal.com.br/es/como-usar</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://alertacriminal.com.br/fr/comment-utiliser</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://alertacriminal.com.br/it/come-usare</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://alertacriminal.com.br/hi/kaise-upyog-kare</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://alertacriminal.com.br/ar/kayfiat-alastikhdam</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
 </urlset>

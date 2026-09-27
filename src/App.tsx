@@ -193,6 +193,10 @@ export default function App() {
             <Route path="/como-usar" element={<ComoUsarPage lang="pt" />} />
             <Route path="/en/how-to-use" element={<ComoUsarPage lang="en" />} />
             <Route path="/es/como-usar" element={<ComoUsarPage lang="es" />} />
+            <Route path="/fr/comment-utiliser" element={<ComoUsarPage lang="fr" />} />
+            <Route path="/it/come-usare" element={<ComoUsarPage lang="it" />} />
+            <Route path="/hi/kaise-upyog-kare" element={<ComoUsarPage lang="hi" />} />
+            <Route path="/ar/kayfiat-alastikhdam" element={<ComoUsarPage lang="ar" />} />
 
             {/* Term Acceptance is a separate flow but protected */}
             <Route

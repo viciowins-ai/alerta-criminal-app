@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { TopBar } from '../components/TopBar';
 import { 
   ShieldCheck, 
@@ -19,7 +20,8 @@ import {
   Wrench, 
   PhoneCall, 
   Crosshair, 
-  Lock 
+  Lock,
+  Globe
 } from 'lucide-react';
 
 export function TutorialPage() {
@@ -358,6 +360,42 @@ export function TutorialPage() {
               </span>
             </li>
           </ul>
+        </div>
+
+        {/* Bloco de Idiomas Internacionais */}
+        <div className="bg-slate-800 rounded-3xl p-6 border border-slate-700">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-3 bg-blue-500/20 text-blue-400 rounded-xl">
+              <Globe size={24} />
+            </div>
+            <h2 className="text-xl font-bold text-white">Versões em Outros Idiomas</h2>
+          </div>
+          <p className="text-slate-300 text-sm mb-4 leading-relaxed">
+            O Alerta Criminal disponibiliza páginas de instruções otimizadas para turistas, residentes e motores de busca globais em 7 idiomas principais:
+          </p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <Link to="/como-usar" className="p-3 bg-slate-900 hover:bg-slate-700/60 transition-all rounded-xl border border-slate-700 text-sm text-white font-medium flex items-center gap-2">
+              <span>🇧🇷</span> Português
+            </Link>
+            <Link to="/en/how-to-use" className="p-3 bg-slate-900 hover:bg-slate-700/60 transition-all rounded-xl border border-slate-700 text-sm text-white font-medium flex items-center gap-2">
+              <span>🇺🇸</span> English
+            </Link>
+            <Link to="/es/como-usar" className="p-3 bg-slate-900 hover:bg-slate-700/60 transition-all rounded-xl border border-slate-700 text-sm text-white font-medium flex items-center gap-2">
+              <span>🇪🇸</span> Español
+            </Link>
+            <Link to="/fr/comment-utiliser" className="p-3 bg-slate-900 hover:bg-slate-700/60 transition-all rounded-xl border border-slate-700 text-sm text-white font-medium flex items-center gap-2">
+              <span>🇫🇷</span> Français
+            </Link>
+            <Link to="/it/come-usare" className="p-3 bg-slate-900 hover:bg-slate-700/60 transition-all rounded-xl border border-slate-700 text-sm text-white font-medium flex items-center gap-2">
+              <span>🇮🇹</span> Italiano
+            </Link>
+            <Link to="/hi/kaise-upyog-kare" className="p-3 bg-slate-900 hover:bg-slate-700/60 transition-all rounded-xl border border-slate-700 text-sm text-white font-medium flex items-center gap-2">
+              <span>🇮🇳</span> हिन्दी
+            </Link>
+            <Link to="/ar/kayfiat-alastikhdam" className="p-3 bg-slate-900 hover:bg-slate-700/60 transition-all rounded-xl border border-slate-700 text-sm text-white font-medium flex items-center gap-2">
+              <span>🇸🇦</span> العربية
+            </Link>
+          </div>
         </div>
 
       </div>

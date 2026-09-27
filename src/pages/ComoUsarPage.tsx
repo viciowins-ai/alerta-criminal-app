@@ -43,6 +43,26 @@ export function ComoUsarPage({ lang = "pt" }: { lang?: string }) {
         />
         <link
           rel="alternate"
+          hrefLang="fr"
+          href="https://alertacriminal.com.br/fr/comment-utiliser"
+        />
+        <link
+          rel="alternate"
+          hrefLang="it"
+          href="https://alertacriminal.com.br/it/come-usare"
+        />
+        <link
+          rel="alternate"
+          hrefLang="hi"
+          href="https://alertacriminal.com.br/hi/kaise-upyog-kare"
+        />
+        <link
+          rel="alternate"
+          hrefLang="ar"
+          href="https://alertacriminal.com.br/ar/kayfiat-alastikhdam"
+        />
+        <link
+          rel="alternate"
           hrefLang="x-default"
           href="https://alertacriminal.com.br/como-usar"
         />
@@ -58,14 +78,97 @@ export function ComoUsarPage({ lang = "pt" }: { lang?: string }) {
             <span className="font-medium">{t("tutorial.back")}</span>
           </Link>
           <div className="flex items-center gap-3">
-            <img
-              src="/escudo-logo.png"
-              alt="Logo"
-              className="w-8 h-8 drop-shadow-lg"
-            />
-            <span className="text-white font-bold tracking-wide">
-              Alerta Criminal
-            </span>
+            {/* Language Selector */}
+            <div className="flex items-center gap-1 bg-slate-800/80 p-1 rounded-xl border border-slate-700 text-xs">
+              <Link
+                to="/como-usar"
+                className={`px-2 py-1 rounded-lg font-bold transition-all ${
+                  lang === "pt"
+                    ? "bg-blue-600 text-white shadow"
+                    : "text-slate-400 hover:text-white"
+                }`}
+                title="Português"
+              >
+                🇧🇷 PT
+              </Link>
+              <Link
+                to="/en/how-to-use"
+                className={`px-2 py-1 rounded-lg font-bold transition-all ${
+                  lang === "en"
+                    ? "bg-blue-600 text-white shadow"
+                    : "text-slate-400 hover:text-white"
+                }`}
+                title="English"
+              >
+                🇺🇸 EN
+              </Link>
+              <Link
+                to="/es/como-usar"
+                className={`px-2 py-1 rounded-lg font-bold transition-all ${
+                  lang === "es"
+                    ? "bg-blue-600 text-white shadow"
+                    : "text-slate-400 hover:text-white"
+                }`}
+                title="Español"
+              >
+                🇪🇸 ES
+              </Link>
+              <Link
+                to="/fr/comment-utiliser"
+                className={`px-2 py-1 rounded-lg font-bold transition-all ${
+                  lang === "fr"
+                    ? "bg-blue-600 text-white shadow"
+                    : "text-slate-400 hover:text-white"
+                }`}
+                title="Français"
+              >
+                🇫🇷 FR
+              </Link>
+              <Link
+                to="/it/come-usare"
+                className={`px-2 py-1 rounded-lg font-bold transition-all ${
+                  lang === "it"
+                    ? "bg-blue-600 text-white shadow"
+                    : "text-slate-400 hover:text-white"
+                }`}
+                title="Italiano"
+              >
+                🇮🇹 IT
+              </Link>
+              <Link
+                to="/hi/kaise-upyog-kare"
+                className={`px-2 py-1 rounded-lg font-bold transition-all ${
+                  lang === "hi"
+                    ? "bg-blue-600 text-white shadow"
+                    : "text-slate-400 hover:text-white"
+                }`}
+                title="हिन्दी"
+              >
+                🇮🇳 HI
+              </Link>
+              <Link
+                to="/ar/kayfiat-alastikhdam"
+                className={`px-2 py-1 rounded-lg font-bold transition-all ${
+                  lang === "ar"
+                    ? "bg-blue-600 text-white shadow"
+                    : "text-slate-400 hover:text-white"
+                }`}
+                title="العربية"
+              >
+                🇸🇦 AR
+              </Link>
+            </div>
+
+            <div className="hidden sm:flex items-center gap-2 pl-2 border-l border-slate-700">
+              <img
+                src="/escudo-logo.png"
+                alt="Logo"
+                className="w-7 h-7 drop-shadow-lg"
+              />
+              <span className="text-white font-bold text-sm tracking-wide">
+                Alerta Criminal
+              </span>
+            </div>
           </div>
         </div>
       </header>
