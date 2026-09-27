@@ -97,7 +97,11 @@
     "confirmAction": "Confirm",
     "confirmedAction": "Confirmed",
     "share": "Share",
-    "delete": "Delete"
+    "delete": "Delete",
+    "youAreHere": "You",
+    "noReportsInFilter": "No alerts of this type in this area",
+    "reportCountOne": "alert shown",
+    "reportCountMany": "alerts shown"
   },
   "settings": {
     "title": "Settings",

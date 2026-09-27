@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import Map, { Source, Layer, Marker, MapRef } from 'react-map-gl/mapbox';
 import { AttachmentGallery } from '../components/AttachmentGallery';
-import { Search, Filter, ShieldAlert, Navigation, Building2, Landmark, Coffee, Train, LocateFixed, X, AlertCircle, ThumbsUp, Moon, ShieldCheck, Share2, MapPin, Play, Car, Bike, Globe, Siren, Eye, Flame, AlertTriangle, Check } from 'lucide-react';
+import { Search, Filter, ShieldAlert, Navigation, Building2, Landmark, Coffee, Train, LocateFixed, X, AlertCircle, ThumbsUp, Moon, ShieldCheck, Share2, MapPin, Play, Car, Bike, Globe, Siren, Eye, Flame, AlertTriangle, Check, Layers } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { LanguageSelectorModal, SUPPORTED_LANGUAGES } from '../components/LanguageSelectorModal';
@@ -17,26 +17,61 @@ import { useAudioRecorder } from '../hooks/useAudioRecorder';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || '';
 
-const markerStyles: Record<string, { border: string; bg: string; shadow: string; pinBg: string; textColor: string }> = {
-  roubo: { border: "border-red-500", bg: "bg-red-500", shadow: "shadow-[0_0_12px_rgba(239,68,68,0.6)]", pinBg: "bg-slate-950", textColor: "text-red-400" },
-  suspeito: { border: "border-orange-500", bg: "bg-orange-500", shadow: "shadow-[0_0_12px_rgba(249,115,22,0.6)]", pinBg: "bg-slate-950", textColor: "text-orange-400" },
-  zeladoria: { border: "border-cyan-500", bg: "bg-cyan-500", shadow: "shadow-[0_0_12px_rgba(6,182,212,0.6)]", pinBg: "bg-slate-950", textColor: "text-cyan-400" },
-  vandalismo: { border: "border-yellow-500", bg: "bg-yellow-500", shadow: "shadow-[0_0_12px_rgba(234,179,8,0.6)]", pinBg: "bg-slate-950", textColor: "text-yellow-400" },
-  outro: { border: "border-slate-400", bg: "bg-slate-500", shadow: "shadow-[0_0_10px_rgba(148,163,184,0.5)]", pinBg: "bg-slate-950", textColor: "text-slate-300" },
+const markerStyles: Record<string, { border: string; bg: string; shadow: string; pinBg: string; pointerBg: string; textColor: string }> = {
+  roubo: { 
+    border: "border-white", 
+    bg: "bg-red-600", 
+    shadow: "shadow-[0_0_16px_rgba(239,68,68,0.85)]", 
+    pinBg: "bg-red-600", 
+    pointerBg: "bg-red-600",
+    textColor: "text-red-400" 
+  },
+  suspeito: { 
+    border: "border-white", 
+    bg: "bg-orange-500", 
+    shadow: "shadow-[0_0_16px_rgba(249,115,22,0.85)]", 
+    pinBg: "bg-orange-500", 
+    pointerBg: "bg-orange-500",
+    textColor: "text-orange-400" 
+  },
+  zeladoria: { 
+    border: "border-white", 
+    bg: "bg-cyan-500", 
+    shadow: "shadow-[0_0_16px_rgba(6,182,212,0.85)]", 
+    pinBg: "bg-cyan-500", 
+    pointerBg: "bg-cyan-500",
+    textColor: "text-cyan-400" 
+  },
+  vandalismo: { 
+    border: "border-slate-900", 
+    bg: "bg-yellow-400", 
+    shadow: "shadow-[0_0_16px_rgba(234,179,8,0.85)]", 
+    pinBg: "bg-yellow-400", 
+    pointerBg: "bg-yellow-400",
+    textColor: "text-yellow-400" 
+  },
+  outro: { 
+    border: "border-white", 
+    bg: "bg-slate-600", 
+    shadow: "shadow-[0_0_12px_rgba(148,163,184,0.7)]", 
+    pinBg: "bg-slate-600", 
+    pointerBg: "bg-slate-600",
+    textColor: "text-slate-300" 
+  },
 };
 
 const getMarkerIcon = (type: string) => {
   switch (type) {
     case 'roubo':
-      return <Siren size={15} className="text-red-400" />;
+      return <Siren size={15} className="text-white drop-shadow-sm" />;
     case 'suspeito':
-      return <Eye size={15} className="text-orange-400" />;
+      return <Eye size={15} className="text-white drop-shadow-sm" />;
     case 'zeladoria':
-      return <AlertTriangle size={15} className="text-cyan-400" />;
+      return <AlertTriangle size={15} className="text-white drop-shadow-sm" />;
     case 'vandalismo':
-      return <Flame size={15} className="text-yellow-400" />;
+      return <Flame size={15} className="text-slate-950 drop-shadow-sm" />;
     default:
-      return <AlertCircle size={15} className="text-slate-300" />;
+      return <AlertCircle size={15} className="text-white drop-shadow-sm" />;
   }
 };
 
@@ -602,7 +637,7 @@ export function MapPage() {
               )}
             </div>
             {/* Pointer point at base */}
-            <div className={`w-1.5 h-1.5 -mt-0.5 rotate-45 ${style.pinBg} border-r-2 border-b-2 ${style.border}`} />
+            <div className={`w-2 h-2 -mt-1 rotate-45 ${style.pointerBg} border-r-2 border-b-2 ${style.border}`} />
             
             {/* Show badge ONLY when selected to avoid overlapping clutter on mobile */}
             {isSelected && (
@@ -737,7 +772,7 @@ export function MapPage() {
                         className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all ${!activeFilter ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30' : 'text-slate-300 hover:bg-slate-800/80 border border-transparent'}`}
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
-                          <span className="w-2.5 h-2.5 rounded-full bg-blue-400 shrink-0" />
+                          <Layers size={14} className="text-blue-400 shrink-0" />
                           <span className="truncate">{t('map.filters.all', 'Todos os Alertas')}</span>
                         </div>
                         {!activeFilter && <Check size={16} className={`text-blue-400 shrink-0 ${isRTL ? 'mr-2' : 'ml-2'}`} />}
@@ -837,6 +872,26 @@ export function MapPage() {
         </div>
       )}
 
+      {/* Floating Active Filter Status Badge */}
+      {activeFilter && (
+        <div className="absolute top-[calc(4.5rem+env(safe-area-inset-top))] left-1/2 -translate-x-1/2 z-20 animate-fade-in pointer-events-none">
+          <div className="bg-slate-950/90 backdrop-blur-md border border-slate-700/80 px-3.5 py-1 rounded-full shadow-xl flex items-center gap-2 text-xs">
+            <span className={`w-2 h-2 rounded-full animate-pulse ${
+              activeFilter === 'roubo' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]' :
+              activeFilter === 'suspeito' ? 'bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.8)]' :
+              activeFilter === 'zeladoria' ? 'bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.8)]' :
+              activeFilter === 'vandalismo' ? 'bg-yellow-400 shadow-[0_0_8px_rgba(234,179,8,0.8)]' : 'bg-slate-400'
+            }`} />
+            <span className="text-slate-200 font-medium whitespace-nowrap">
+              {filteredReports.length === 0 
+                ? t('map.noReportsInFilter', 'Nenhum alerta deste tipo nesta área')
+                : `${filteredReports.length} ${filteredReports.length === 1 ? t('map.reportCountOne', 'alerta exibido') : t('map.reportCountMany', 'alertas exibidos')}`
+              }
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Map */}
       <Map
         ref={mapRef}
@@ -853,12 +908,15 @@ export function MapPage() {
         style={{ width: '100%', height: '100%' }}
         onError={(e) => console.warn('Mapbox warning:', e.error?.message || 'Erro no mapa')}
       >
-        {/* Custom User Location Marker */}
+        {/* Custom User Location Marker (Você está aqui) */}
         {userLocation && (
           <Marker longitude={userLocation.lng} latitude={userLocation.lat} anchor="center">
-            <div className="relative flex items-center justify-center">
-              <div className="absolute w-12 h-12 bg-blue-500/30 rounded-full animate-ping" />
-              <div className="relative w-4 h-4 bg-blue-500 border-[2px] border-white rounded-full shadow-[0_0_15px_rgba(59,130,246,0.8)]" />
+            <div className="relative flex flex-col items-center justify-center pointer-events-none">
+              <div className="absolute w-10 h-10 bg-blue-500/25 rounded-full animate-ping" />
+              <div className="relative w-4 h-4 bg-blue-600 border-2 border-white rounded-full shadow-[0_0_14px_rgba(37,99,235,0.9)]" />
+              <span className="mt-1 text-[9px] font-bold text-blue-200 bg-slate-950/90 px-1.5 py-0.5 rounded-full border border-blue-500/40 shadow-sm backdrop-blur-sm whitespace-nowrap">
+                {t('map.youAreHere', 'Você')}
+              </span>
             </div>
           </Marker>
         )}

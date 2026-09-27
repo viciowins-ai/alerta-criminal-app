@@ -97,7 +97,11 @@
     "confirmAction": "Conferma",
     "confirmedAction": "Confermato",
     "share": "Condividi",
-    "delete": "Elimina"
+    "delete": "Elimina",
+    "youAreHere": "Tu",
+    "noReportsInFilter": "Nessun avviso di questo tipo in questa zona",
+    "reportCountOne": "avviso visualizzato",
+    "reportCountMany": "avvisi visualizzati"
   },
   "settings": {
     "title": "Impostazioni",

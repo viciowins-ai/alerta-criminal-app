@@ -97,7 +97,11 @@
     "confirmAction": "تأكيد",
     "confirmedAction": "تم التأكيد",
     "share": "مشاركة",
-    "delete": "حذف"
+    "delete": "حذف",
+    "youAreHere": "أنت هنا",
+    "noReportsInFilter": "لا توجد تنبيهات من هذا النوع في هذه المنطقة",
+    "reportCountOne": "تنبيه معروض",
+    "reportCountMany": "تنبيهات معروضة"
   },
   "settings": {
     "title": "الإعدادات",

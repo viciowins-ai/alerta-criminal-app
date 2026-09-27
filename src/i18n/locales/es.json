@@ -97,7 +97,11 @@
     "confirmAction": "Confirmar",
     "confirmedAction": "Confirmado",
     "share": "Compartir",
-    "delete": "Eliminar"
+    "delete": "Eliminar",
+    "youAreHere": "Tú",
+    "noReportsInFilter": "Sin alertas de este tipo en esta área",
+    "reportCountOne": "alerta mostrada",
+    "reportCountMany": "alertas mostradas"
   },
   "settings": {
     "title": "Configuración",

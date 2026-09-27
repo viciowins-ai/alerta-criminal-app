@@ -97,7 +97,11 @@
     "confirmAction": "पुष्टि करें",
     "confirmedAction": "पुष्टि की गई",
     "share": "साझा करें",
-    "delete": "हटाएं"
+    "delete": "हटाएं",
+    "youAreHere": "आप",
+    "noReportsInFilter": "इस क्षेत्र में इस प्रकार का कोई अलर्ट नहीं",
+    "reportCountOne": "अलर्ट प्रदर्शित",
+    "reportCountMany": "अलर्ट प्रदर्शित"
   },
   "settings": {
     "title": "सेटिंग्स",
