@@ -1,6 +1,26 @@
 import React from 'react';
 import { TopBar } from '../components/TopBar';
-import { ShieldCheck, Share2, Download, Smartphone, Monitor, ChevronRight, Map, AlertTriangle, ShieldAlert, Route, Users, Award, BookOpen, Plus } from 'lucide-react';
+import { 
+  ShieldCheck, 
+  Share2, 
+  Download, 
+  Smartphone, 
+  Monitor, 
+  ChevronRight, 
+  Map, 
+  AlertTriangle, 
+  ShieldAlert, 
+  Route, 
+  Users, 
+  Award, 
+  BookOpen, 
+  Plus, 
+  Moon, 
+  Wrench, 
+  PhoneCall, 
+  Crosshair, 
+  Lock 
+} from 'lucide-react';
 
 export function TutorialPage() {
   return (
@@ -9,6 +29,7 @@ export function TutorialPage() {
       
       <div className="flex-1 overflow-y-auto p-4 space-y-6 pb-20">
         
+        {/* Bloco Geral de Recursos */}
         <div className="bg-slate-800 rounded-3xl p-6 border border-slate-700">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-3 bg-indigo-500/20 text-indigo-400 rounded-xl">
@@ -17,141 +38,252 @@ export function TutorialPage() {
             <h2 className="text-xl font-bold text-white">Como Usar os Recursos</h2>
           </div>
           <p className="text-slate-300 text-sm mb-6 leading-relaxed">
-            Aprenda a utilizar as principais ferramentas do Alerta Criminal para proteger você e sua comunidade.
+            Aprenda a utilizar todas as ferramentas e novos recursos do Alerta Criminal para proteger você, sua família e sua comunidade.
           </p>
           
           <div className="space-y-4">
-            {/* Mapa */}
+            {/* 1. Mapa de Risco */}
             <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
               <div className="bg-blue-500/20 p-2 rounded-lg shrink-0 mt-1">
                 <Map size={20} className="text-blue-400" />
               </div>
               <div>
-                <h3 className="text-white font-semibold mb-1">Mapa de Risco</h3>
-                <p className="text-sm text-slate-400 leading-relaxed mb-3">Visualize ocorrências recentes ao seu redor. As áreas "mais quentes" (vermelhas) indicam maior perigo.</p>
+                <h3 className="text-white font-semibold mb-1">Mapa de Risco & Mancha Criminal</h3>
                 <p className="text-sm text-slate-400 leading-relaxed mb-3">
-                  <strong>Novidade:</strong> Ao tocar em um alerta no mapa, você pode visualizar as <strong>fotos e vídeos</strong> da ocorrência diretamente na janelinha! Toque na mídia para abri-la em tela cheia.
+                  Visualize ocorrências recentes ao seu redor. As áreas "mais quentes" (vermelhas no Mapa de Calor) indicam maior concentração de perigo.
+                </p>
+                <p className="text-sm text-slate-300 leading-relaxed mb-3 bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/60">
+                  <strong className="text-blue-400">Mídias no Mapa:</strong> Ao tocar em qualquer alerta no mapa, você pode visualizar as <strong>fotos e vídeos</strong> da ocorrência diretamente na janelinha! Toque na mídia para abri-la em tela cheia.
                 </p>
                 
-                <h4 className="text-xs font-bold text-slate-300 mb-2 uppercase">Botões do Mapa (Direita):</h4>
+                <h4 className="text-xs font-bold text-slate-300 mb-2 uppercase">Botões de Controle do Mapa (Direita):</h4>
                 <ul className="text-sm text-slate-400 space-y-2">
-                  <li><strong>Filtro (Lupa/Funil):</strong> Escolha ver apenas roubos, atitudes suspeitas ou filtre por tempo (ex: últimas 24h).</li>
-                  <li><strong>Escudo Azul:</strong> Ativa o "Meu Guardião", transmitindo sua localização para pessoas de confiança.</li>
-                  <li><strong>Lua:</strong> Ativa o "Modo Pânico" (Tela Escura). A tela ficará totalmente preta (como se estivesse desligada). Com a tela preta, dê 3 toques rápidos nela ou chacoalhe o celular para acionar o S.O.S secretamente. Para sair, dê dois toques rápidos no canto superior direito.</li>
-                  <li><strong>Alvo:</strong> Centraliza o mapa na sua posição atual e calibra o GPS com extrema precisão.</li>
+                  <li><strong>Filtro (Lupa/Funil):</strong> Escolha ver apenas roubos, atitudes suspeitas, zeladoria ou filtre por tempo (ex: últimas 24h, 7 dias).</li>
+                  <li><strong>Escudo Azul:</strong> Ativa instantaneamente o "Meu Guardião", transmitindo sua rota para pessoas de confiança.</li>
+                  <li><strong>Lua (Modo Pânico):</strong> Ativa a tela escura anti-assalto com disfarce.</li>
+                  <li><strong>Alvo (Mira GPS):</strong> Centraliza o mapa na sua posição atual e recalibra a antena com máxima precisão.</li>
                 </ul>
               </div>
             </div>
 
-            {/* Botão SOS */}
+            {/* 2. Botão SOS */}
             <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
               <div className="bg-red-500/20 p-2 rounded-lg shrink-0 mt-1">
                 <ShieldAlert size={20} className="text-red-500" />
               </div>
               <div>
                 <h3 className="text-white font-semibold mb-1">Botão SOS (Emergência)</h3>
-                <p className="text-sm text-slate-400 leading-relaxed mb-3">O botão de escudo vermelho no canto direito do mapa. Use-o <strong>apenas</strong> em caso de perigo real!</p>
+                <p className="text-sm text-slate-400 leading-relaxed mb-3">
+                  O botão de escudo vermelho no canto direito do mapa. Use-o <strong>apenas</strong> em caso de perigo real!
+                </p>
                 <ul className="text-sm text-slate-400 space-y-2 list-disc pl-4">
-                  <li>Inicia automaticamente uma <strong>gravação de áudio de 10 segundos</strong> do ambiente para registro de evidências.</li>
-                  <li>Gera um link de rastreio da sua localização ao vivo.</li>
-                  <li>Permite compartilhar rapidamente o link com seus Contatos de Confiança via WhatsApp.</li>
-                  <li>Oferece um atalho para ligação imediata para a Polícia (190).</li>
+                  <li>Inicia automaticamente uma <strong>gravação de áudio de 10 segundos</strong> do ambiente em segundo plano para registro de provas.</li>
+                  <li>Gera um link exclusivo de rastreio da sua localização ao vivo.</li>
+                  <li>Dispara mensagens imediatas com seu link para os seus <strong>Contatos de Confiança</strong> via WhatsApp.</li>
+                  <li>Oferece um atalho de discagem rápida para ligação com a Polícia (190).</li>
                 </ul>
               </div>
             </div>
 
-            {/* Modo Guardião */}
+            {/* 3. Modo Guardião & Camuflagem */}
             <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
               <div className="bg-blue-500/20 p-2 rounded-lg shrink-0 mt-1">
                 <ShieldCheck size={20} className="text-blue-400" />
               </div>
               <div>
                 <h3 className="text-white font-semibold mb-1">Modo Guardião & Camuflagem</h3>
-                <p className="text-sm text-slate-400 leading-relaxed mb-2">Acesse pelo menu lateral. O Modo Guardião rastreia sua localização em tempo real e a compartilha com seus <strong>Contatos de Confiança</strong>.</p>
-                <p className="text-sm text-slate-400 leading-relaxed"><strong>Camuflagem de Tela:</strong> Durante o uso, você pode ativar a camuflagem (que deixa o app com aparência de página de busca do Google) para despistar olhares suspeitos. Pressione a tela por 2 segundos para destrancar.</p>
+                <p className="text-sm text-slate-400 leading-relaxed mb-2">
+                  Ideal para quando estiver voltando para casa, caminhando sozinho ou em transporte por aplicativo. O Modo Guardião monitora seu percurso contínuo.
+                </p>
+                <p className="text-sm text-slate-400 leading-relaxed mb-2">
+                  Se você não confirmar que chegou bem ao destino dentro do tempo estipulado, o sistema enviará um aviso de alerta automático aos seus contatos cadastrados.
+                </p>
+                <p className="text-sm text-slate-300 leading-relaxed bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/60">
+                  <strong className="text-blue-400">Camuflagem de Tela:</strong> Toque no ícone de olho cortado durante o uso para transformar a tela em uma falsa pesquisa do Google, despistando olhares curiosos sem interromper a transmissão do GPS. Para destrancar: mantenha a tela pressionada por 2 segundos.
+                </p>
               </div>
             </div>
 
-            {/* Aviso de Rastreamento */}
+            {/* 4. Aviso de Rastreamento (Regras de Ouro) */}
             <div className="bg-orange-500/10 p-4 rounded-2xl border border-orange-500/30 flex gap-4 items-start">
               <div className="bg-orange-500/20 p-2 rounded-lg shrink-0 mt-1">
                 <AlertTriangle size={20} className="text-orange-400" />
               </div>
               <div>
                 <h3 className="text-orange-400 font-semibold mb-2">Como manter o rastreio ativo?</h3>
-                <p className="text-sm text-slate-300 leading-relaxed mb-3">Para que o SOS e o Modo Guardião funcionem sem interrupções (já que o sistema do seu celular pode cortar o GPS), siga as 3 regras de ouro:</p>
+                <p className="text-sm text-slate-300 leading-relaxed mb-3">
+                  Para que o SOS e o Modo Guardião funcionem sem cortes (já que o sistema operacional pode suspender o GPS para economizar carga), siga as 3 regras de ouro:
+                </p>
                 <ul className="text-sm text-slate-300 space-y-3 list-decimal pl-4">
-                  <li><strong>Não minimize o app:</strong> Deixe-o aberto! O aplicativo impedirá que a tela desligue sozinha. Se precisar esconder, toque no botão <strong>Camuflagem (olho cortado)</strong> para transformar a tela em uma falsa pesquisa do Google. Pressione a tela por 2 segundos para destrancar.</li>
+                  <li><strong>Não minimize o app:</strong> Deixe-o aberto na tela. O aplicativo impede que a tela se apague sozinha. Se precisar esconder, ative a <strong>Camuflagem</strong>.</li>
                   <li><strong>Localização Precisa:</strong> Garanta que a permissão de GPS esteja como "Sempre" ou "Durante o uso" com <strong>Alta Precisão</strong> ativada.</li>
-                  <li><strong>Economia de Energia:</strong> Evite o modo "Economia de Bateria" do celular, pois ele desliga a antena do GPS para poupar carga.</li>
+                  <li><strong>Economia de Energia:</strong> Desative a "Economia de Bateria" do celular durante o trajeto, pois ela desliga o chip GPS.</li>
                 </ul>
               </div>
             </div>
 
-            {/* Grupos Privados */}
+            {/* 5. Modo Pânico (Tela Escura Anti-Assalto) */}
             <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
-              <div className="bg-purple-500/20 p-2 rounded-lg shrink-0 mt-1">
-                <Users size={20} className="text-purple-400" />
+              <div className="bg-yellow-500/20 p-2 rounded-lg shrink-0 mt-1">
+                <Moon size={20} className="text-yellow-400" />
               </div>
               <div>
-                <h3 className="text-white font-semibold mb-1">Grupos Privados</h3>
-                <p className="text-sm text-slate-400 leading-relaxed">Disponível na aba "Perfil". Crie um grupo criptografado e fechado para a sua rua, vizinhança ou condomínio. Alertas enviados de forma restrita <strong>só podem ser vistos pelos seus membros</strong>, garantindo total privacidade.</p>
+                <h3 className="text-white font-semibold mb-1">Modo Pânico (Tela Escura Anti-Assalto)</h3>
+                <p className="text-sm text-slate-400 leading-relaxed mb-3">
+                  Acesse pelo botão de <strong>Lua (🌙)</strong> no menu ou no mapa. Se você for abordado ou forçado a entregar o celular desbloqueado, ative-o imediatamente.
+                </p>
+                <ul className="text-sm text-slate-400 space-y-2 list-disc pl-4 mb-3">
+                  <li>A tela fica <strong>totalmente preta e bloqueada</strong>, simulando que o aparelho está desligado ou travado, protegendo seus dados e aplicativos bancários.</li>
+                  <li><strong>SOS Secreto:</strong> Com a tela preta ativada, dê <strong>3 toques rápidos</strong> em qualquer lugar da tela ou <strong>chacoalhe o celular</strong> com firmeza para acionar o SOS silenciosamente para seus contatos.</li>
+                  <li><strong>Como sair do Modo Pânico:</strong> Dê dois toques rápidos exatamente no canto superior direito da tela.</li>
+                </ul>
               </div>
             </div>
 
-            {/* Reportar */}
+            {/* 6. Zeladoria e Riscos Ambientais */}
+            <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
+              <div className="bg-cyan-500/20 p-2 rounded-lg shrink-0 mt-1">
+                <Wrench size={20} className="text-cyan-400" />
+              </div>
+              <div>
+                <h3 className="text-white font-semibold mb-1">Zeladoria & Riscos Ambientais (🚧)</h3>
+                <p className="text-sm text-slate-400 leading-relaxed mb-2">
+                  Segurança pública também depende de prevenção urbana. Reportar riscos estruturais é tão importante quanto relatar assaltos:
+                </p>
+                <ul className="text-sm text-slate-400 space-y-2 list-disc pl-4 mb-2">
+                  <li><strong>Iluminação pública defeituosa:</strong> Ruas escuras e postes apagados atraem criminosos e favorecem emboscadas.</li>
+                  <li><strong>Mato alto e entulho:</strong> Escondem suspeitos e bloqueiam visibilidade.</li>
+                  <li><strong>Buracos e áreas alagadas:</strong> Impedem o tráfego seguro de pedestres, ciclistas e veículos de emergência.</li>
+                  <li><strong>Fios caídos ou rompidos:</strong> Risco iminente de choque e cortes de energia.</li>
+                </ul>
+                <p className="text-xs text-cyan-300/80">
+                  Marque esses pontos no mapa para alertar a comunidade e gerar dados para cobrança de melhorias públicas.
+                </p>
+              </div>
+            </div>
+
+            {/* 7. Contatos de Confiança */}
+            <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
+              <div className="bg-emerald-500/20 p-2 rounded-lg shrink-0 mt-1">
+                <PhoneCall size={20} className="text-emerald-400" />
+              </div>
+              <div>
+                <h3 className="text-white font-semibold mb-1">Contatos de Confiança</h3>
+                <p className="text-sm text-slate-400 leading-relaxed mb-2">
+                  Acesse pelo menu lateral ou Perfil na seção <strong>"Contatos de Confiança"</strong>. Cadastre até 5 parentes ou amigos próximos com telefone de WhatsApp.
+                </p>
+                <p className="text-sm text-slate-400 leading-relaxed">
+                  Em qualquer situação de risco (SOS ou atraso no Guardião), essas pessoas são notificadas imediatamente com o link para acompanhar sua localização ao vivo.
+                </p>
+              </div>
+            </div>
+
+            {/* 8. Grupos Privados */}
+            <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
+              <div className="bg-purple-500/20 p-2 rounded-lg shrink-0 mt-1">
+                <Lock size={20} className="text-purple-400" />
+              </div>
+              <div>
+                <h3 className="text-white font-semibold mb-1">Grupos Privados (Redes de Vizinhança)</h3>
+                <p className="text-sm text-slate-400 leading-relaxed mb-2">
+                  Crie ou participe de Redes Privadas para a sua rua, vizinhança protegida, condomínio ou família através de códigos de convite seguros.
+                </p>
+                <p className="text-sm text-slate-400 leading-relaxed">
+                  <strong>Trava de Privacidade:</strong> Alertas publicados como Privados aparecem com o ícone de cadeado (🔒) e <strong>só podem ser visualizados pelos membros daquele grupo</strong>, garantindo total sigilo. Eles nunca aparecem no feed público geral.
+                </p>
+              </div>
+            </div>
+
+            {/* 9. Botão Reportar */}
             <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
               <div className="bg-blue-500/20 p-2 rounded-lg shrink-0 mt-1">
                 <Plus size={20} className="text-blue-400" />
               </div>
               <div>
                 <h3 className="text-white font-semibold mb-1">Botão Reportar (Sinal de +)</h3>
-                <p className="text-sm text-slate-400 leading-relaxed mb-3">O grande botão azul com o sinal de "+" bem no centro da barra inferior.</p>
-                <p className="text-sm text-slate-400 leading-relaxed mb-3">Viu algo suspeito ou foi vítima? Ajude outras pessoas! Registre furtos, assaltos ou atitudes suspeitas adicionando <strong>fotos, vídeos e descrição.</strong></p>
-                <p className="text-sm text-slate-400 leading-relaxed"><strong>GPS Inteligente:</strong> A tela de reportes puxa automaticamente sua última localização com a precisão máxima calculada pelo mapa, garantindo que o seu alerta seja colocado no local correto!</p>
-                <div className="mt-3 p-3 bg-slate-800/50 border border-slate-700 rounded-xl text-xs text-slate-300">
+                <p className="text-sm text-slate-400 leading-relaxed mb-3">
+                  O grande botão azul central na barra inferior. Presenciou algo ou foi vítima? Ajude outras pessoas:
+                </p>
+                <ul className="text-sm text-slate-400 space-y-2 list-disc pl-4 mb-3">
+                  <li>Escolha o tipo: Roubo/Furto, Atividade Suspeita, Zeladoria/Risco ou Vandalismo.</li>
+                  <li>Adicione <strong>fotos e vídeos</strong> gravados na hora ou da sua galeria.</li>
+                  <li>Defina a visibilidade: <strong>Alerta Público</strong> (para todos) ou restrito a um <strong>Grupo Privado</strong>.</li>
+                  <li><strong>GPS Inteligente:</strong> Puxa automaticamente sua posição exata com cálculo de precisão.</li>
+                </ul>
+                <div className="p-3 bg-slate-800/70 border border-slate-700 rounded-xl text-xs text-slate-300">
                   <span className="font-bold text-blue-400 block mb-1">Dica de Correção:</span>
-                  Se você enviar e errar o tipo da ocorrência, vá na aba <strong>Feed</strong>, procure o seu alerta e toque no botão <strong>"Corrigir"</strong>.
+                  Se você enviar um alerta com informações trocadas ou categoria errada, vá na aba <strong>Feed</strong>, localize o seu reporte e toque no botão <strong>"Corrigir"</strong>.
                 </div>
               </div>
             </div>
 
-            {/* Rotas */}
+            {/* 10. Rotas Seguras */}
             <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
               <div className="bg-indigo-500/20 p-2 rounded-lg shrink-0 mt-1">
                 <Route size={20} className="text-indigo-400" />
               </div>
               <div>
-                <h3 className="text-white font-semibold mb-1">Rotas Seguras</h3>
-                <p className="text-sm text-slate-400 leading-relaxed">Vai sair a pé, de bicicleta, carro ou moto? O aplicativo traçará a rota mais segura até o seu destino, desviando automaticamente de ruas e regiões perigosas (locais com muitos alertas recentes).</p>
+                <h3 className="text-white font-semibold mb-1">Rotas Seguras (Desvio Inteligente)</h3>
+                <p className="text-sm text-slate-400 leading-relaxed">
+                  Vai se deslocar a pé, de bicicleta, carro ou moto? Em vez de calcular apenas o caminho mais curto, o aplicativo mapeia a <strong>Rota Mais Segura</strong>, desviando dinamicamente de ruas com histórico recente de assaltos e alertas críticos.
+                </p>
               </div>
             </div>
 
-            {/* Feed */}
+            {/* 11. Feed da Comunidade */}
             <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
               <div className="bg-green-500/20 p-2 rounded-lg shrink-0 mt-1">
                 <Users size={20} className="text-green-400" />
               </div>
               <div>
-                <h3 className="text-white font-semibold mb-1">Feed da Comunidade</h3>
-                <p className="text-sm text-slate-400 leading-relaxed mb-3">Fique por dentro dos alertas e avisos da sua comunidade. Você também pode verificar (curtir) alertas de outras pessoas para confirmar que aquela ocorrência foi real, ajudando a combater informações falsas.</p>
-                <p className="text-sm text-slate-400 leading-relaxed"><strong>Ver no Mapa:</strong> Agora, cada alerta no Feed possui um botão <strong>"Ver no mapa"</strong>. Ao tocar nele, você é levado instantaneamente até o local exato da ocorrência!</p>
+                <h3 className="text-white font-semibold mb-1">Feed da Comunidade (Rede Comunitária)</h3>
+                <p className="text-sm text-slate-400 leading-relaxed mb-3">
+                  A linha do tempo do seu bairro com alertas em tempo real, comentários e mídias.
+                </p>
+                <ul className="text-sm text-slate-400 space-y-2 list-disc pl-4 mb-3">
+                  <li><strong>Abas de Navegação:</strong> Alterne facilmente entre <strong>🚨 Alertas Públicos</strong> e <strong>🔒 Redes Privadas</strong> dos seus grupos.</li>
+                  <li><strong>Botão "Ver no mapa":</strong> Toque nele em qualquer publicação para ir diretamente até a coordenada exata da ocorrência.</li>
+                  <li><strong>Selo "Verificado":</strong> Outros moradores podem confirmar alertas reais. Quando acumula confirmações, o reporte ganha o selo verde oficial de autenticidade contra trotes.</li>
+                </ul>
               </div>
             </div>
 
-            {/* Pontos */}
+            {/* 12. Precisão de GPS */}
+            <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
+              <div className="bg-blue-500/20 p-2 rounded-lg shrink-0 mt-1">
+                <Crosshair size={20} className="text-blue-400" />
+              </div>
+              <div>
+                <h3 className="text-white font-semibold mb-1">Precisão da Localização (Celular vs PC)</h3>
+                <p className="text-sm text-slate-400 leading-relaxed mb-2">
+                  O Alerta Criminal oferece máxima eficácia em smartphones:
+                </p>
+                <ul className="text-sm text-slate-400 space-y-2 list-disc pl-4 mb-2">
+                  <li><strong>No Celular:</strong> Possui antena GNSS/GPS dedicada. Mantenha a "Localização de Alta Precisão" ativa para localização milimétrica.</li>
+                  <li><strong>No Computador (PC/Notebook):</strong> PCs não possuem antena GPS e estimam a localização pela rede de internet, podendo apresentar divergências de bairro.</li>
+                </ul>
+                <p className="text-xs text-slate-300 bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/60">
+                  <strong className="text-blue-400">Dica para PC:</strong> Se estiver no computador e a localização estiver imprecisa, use a barra de busca de endereço no mapa ou arraste o pino manualmente ao reportar!
+                </p>
+              </div>
+            </div>
+
+            {/* 13. Pontos e Níveis */}
             <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
               <div className="bg-yellow-500/20 p-2 rounded-lg shrink-0 mt-1">
                 <Award size={20} className="text-yellow-400" />
               </div>
               <div>
-                <h3 className="text-white font-semibold mb-1">Pontos e Níveis</h3>
-                <p className="text-sm text-slate-400 leading-relaxed">Ganhe pontos ao fazer postagens, reportar crimes ou confirmar os alertas de outras pessoas. Suba de nível e ganhe destaque como um Guardião Ativo da sua região!</p>
+                <h3 className="text-white font-semibold mb-1">Pontos (XP) & Selo de Verificado</h3>
+                <p className="text-sm text-slate-400 leading-relaxed">
+                  Ganhe experiência ao colaborar com a comunidade: criando reportes verídicos, confirmando ocorrências de vizinhos ou convidando moradores. Ao alcançar o Nível Ouro (500 XP), você desbloqueia o <strong>Selo de Verificado Oficial</strong> no seu perfil, concedendo máxima relevância aos seus alertas!
+                </p>
               </div>
             </div>
           </div>
         </div>
 
+        {/* Bloco de Instalação (PWA) */}
         <div className="bg-slate-800 rounded-3xl p-6 border border-slate-700">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-3 bg-blue-500/20 text-blue-400 rounded-xl">
@@ -160,62 +292,74 @@ export function TutorialPage() {
             <h2 className="text-xl font-bold text-white">Como Instalar o Aplicativo (PWA)</h2>
           </div>
           <p className="text-slate-300 text-sm mb-6 leading-relaxed">
-            O Alerta Criminal é um Web App Progressivo (PWA). Isso significa que você pode instalá-lo diretamente do seu navegador, sem precisar da loja de aplicativos, economizando memória no seu celular!
+            O Alerta Criminal é um Web App Progressivo (PWA). Você pode instalá-lo diretamente pelo navegador sem consumir a memória pesada de lojas de aplicativos!
           </p>
           
           <div className="space-y-4">
             <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50">
-              <h3 className="text-white font-semibold flex items-center gap-2 mb-2"><Smartphone size={18} className="text-green-400"/> No Android (Chrome)</h3>
+              <h3 className="text-white font-semibold flex items-center gap-2 mb-2">
+                <Smartphone size={18} className="text-green-400"/> No Android (Google Chrome)
+              </h3>
               <ol className="text-sm text-slate-400 space-y-2 list-decimal list-inside">
-                <li>Abra o site no <strong>Google Chrome</strong>.</li>
-                <li>Toque nos <strong>três pontinhos</strong> no canto superior direito.</li>
-                <li>Selecione <strong>"Instalar aplicativo"</strong> ou "Adicionar à tela inicial".</li>
-                <li>Confirme. O ícone do escudo vai aparecer na tela do seu celular!</li>
+                <li>Abra o site <strong>https://alertacriminal.com.br/</strong> no Chrome.</li>
+                <li>Toque no menu de <strong>três pontinhos (⋮)</strong> no canto superior direito.</li>
+                <li>Toque em <strong>"Instalar aplicativo"</strong> ou "Adicionar à tela inicial".</li>
+                <li>Confirme. O ícone oficial do Escudo aparecerá junto aos seus aplicativos!</li>
               </ol>
             </div>
             
             <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50">
-              <h3 className="text-white font-semibold flex items-center gap-2 mb-2"><Smartphone size={18} className="text-blue-400"/> No iPhone (Safari)</h3>
+              <h3 className="text-white font-semibold flex items-center gap-2 mb-2">
+                <Smartphone size={18} className="text-blue-400"/> No iPhone / iPad (Safari)
+              </h3>
               <ol className="text-sm text-slate-400 space-y-2 list-decimal list-inside">
-                <li>Abra o site no <strong>Safari</strong>.</li>
-                <li>Toque no botão de <strong>Compartilhar</strong> (quadrado com seta para cima).</li>
-                <li>Role para baixo e selecione <strong>"Adicionar à Tela de Início"</strong>.</li>
-                <li>Toque em Adicionar. Pronto!</li>
+                <li>Abra o site no navegador <strong>Safari</strong>.</li>
+                <li>Toque no botão central de <strong>Compartilhar</strong> (quadrado com seta para cima).</li>
+                <li>Role a lista para baixo e toque em <strong>"Adicionar à Tela de Início"</strong>.</li>
+                <li>Toque em Adicionar no topo direito. Pronto!</li>
               </ol>
             </div>
             
             <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50">
-              <h3 className="text-white font-semibold flex items-center gap-2 mb-2"><Monitor size={18} className="text-slate-300"/> No Computador</h3>
+              <h3 className="text-white font-semibold flex items-center gap-2 mb-2">
+                <Monitor size={18} className="text-slate-300"/> No Computador (Chrome / Edge)
+              </h3>
               <ol className="text-sm text-slate-400 space-y-2 list-decimal list-inside">
-                <li>Acesse pelo Chrome ou Edge.</li>
-                <li>Na barra de endereços (onde fica o link), clique no ícone de <strong>download ou monitor com setinha</strong> no canto direito.</li>
-                <li>Clique em Instalar.</li>
+                <li>Acesse pelo Google Chrome ou Microsoft Edge.</li>
+                <li>Na barra de endereços (ao lado da estrela/link), clique no ícone de <strong>instalação (computador com seta para baixo)</strong>.</li>
+                <li>Clique em Instalar. O app abrirá em uma janela nativa independente.</li>
               </ol>
             </div>
           </div>
         </div>
 
+        {/* Bloco de Compartilhamento */}
         <div className="bg-slate-800 rounded-3xl p-6 border border-slate-700">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-3 bg-green-500/20 text-green-400 rounded-xl">
               <Share2 size={24} />
             </div>
-            <h2 className="text-xl font-bold text-white">Como Compartilhar</h2>
+            <h2 className="text-xl font-bold text-white">Como Compartilhar Oficialmente</h2>
           </div>
           <p className="text-slate-300 text-sm mb-4 leading-relaxed">
-            Ajude a sua comunidade a ficar mais segura compartilhando o aplicativo no WhatsApp e Facebook.
+            Multiplique a segurança da sua rua e bairro convidando vizinhos e familiares para a rede.
           </p>
           <ul className="text-sm text-slate-400 space-y-3">
             <li className="flex items-start gap-2">
               <ChevronRight size={16} className="text-green-500 shrink-0 mt-0.5" />
-              <span><strong>WhatsApp:</strong> Ao colar o link <code>https://alertacriminal.com.br/</code> no WhatsApp, aguarde uns 2 a 3 segundos antes de enviar. O WhatsApp vai carregar a foto do nosso Escudo Oficial e a descrição do app automaticamente!</span>
+              <span>
+                <strong>No WhatsApp:</strong> Cole o link <code>https://alertacriminal.com.br/</code> no grupo da sua rua ou família e <strong>aguarde de 2 a 3 segundos</strong> antes de tocar em enviar. A imagem oficial do nosso Escudo e o resumo do app carregarão automaticamente na miniatura!
+              </span>
             </li>
             <li className="flex items-start gap-2">
               <ChevronRight size={16} className="text-blue-500 shrink-0 mt-0.5" />
-              <span><strong>Facebook:</strong> Cole o mesmo link no seu mural ou envie via Messenger. A imagem oficial otimizada será carregada.</span>
+              <span>
+                <strong>No Facebook e Redes:</strong> Compartilhe no seu perfil, grupos de bairro ou envie via Messenger para expandir a rede de vigilância comunitária.
+              </span>
             </li>
           </ul>
         </div>
+
       </div>
     </div>
   );
