@@ -1,15 +1,16 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Globe, Check } from 'lucide-react';
+import { FlagIcon } from './FlagIcon';
 
 export const SUPPORTED_LANGUAGES = [
-  { code: 'pt', label: 'Português (Brasil)', flag: '🇧🇷' },
-  { code: 'en', label: 'English', flag: '🇺🇸' },
-  { code: 'es', label: 'Español', flag: '🇪🇸' },
-  { code: 'fr', label: 'Français', flag: '🇫🇷' },
-  { code: 'it', label: 'Italiano', flag: '🇮🇹' },
-  { code: 'hi', label: 'हिन्दी (Hindi)', flag: '🇮🇳' },
-  { code: 'ar', label: 'العربية (Arabic)', flag: '🇸🇦' },
+  { code: 'pt', label: 'Português (Brasil)', flagCode: 'br', flag: '🇧🇷' },
+  { code: 'en', label: 'English', flagCode: 'us', flag: '🇺🇸' },
+  { code: 'es', label: 'Español', flagCode: 'es', flag: '🇪🇸' },
+  { code: 'fr', label: 'Français', flagCode: 'fr', flag: '🇫🇷' },
+  { code: 'it', label: 'Italiano', flagCode: 'it', flag: '🇮🇹' },
+  { code: 'hi', label: 'हिन्दी (Hindi)', flagCode: 'in', flag: '🇮🇳' },
+  { code: 'ar', label: 'العربية (Arabic)', flagCode: 'sa', flag: '🇸🇦' },
 ];
 
 export function LanguageSelectorModal({ 
@@ -61,15 +62,18 @@ export function LanguageSelectorModal({
               <button
                 key={lang.code}
                 onClick={() => selectLanguage(lang.code)}
-                className={`w-full flex items-center justify-between p-3.5 rounded-2xl border transition-all ${
+                className={`w-full flex items-center justify-between p-3 rounded-2xl border transition-all ${
                   isSelected
                     ? 'bg-blue-600/20 border-blue-500 text-white font-semibold'
                     : 'bg-slate-800/60 border-slate-700/60 text-slate-300 hover:bg-slate-800 hover:text-white'
                 }`}
               >
-                <div className="flex items-center gap-3">
-                  <span className="text-xl">{lang.flag}</span>
-                  <span className="text-sm">{lang.label}</span>
+                <div className="flex items-center gap-3.5">
+                  <FlagIcon code={lang.flagCode || lang.code} size="lg" />
+                  <div className="flex flex-col text-left">
+                    <span className="text-sm font-medium leading-snug">{lang.label}</span>
+                    <span className="text-[10px] text-slate-400 uppercase tracking-wider">{lang.code}</span>
+                  </div>
                 </div>
                 {isSelected && <Check size={18} className="text-blue-400" />}
               </button>

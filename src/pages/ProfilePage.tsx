@@ -9,6 +9,7 @@ import { handleFirestoreError, OperationType } from '../utils/firestoreErrorHand
 import { getLevelInfo } from '../utils/levelUtils';
 import { useTranslation } from 'react-i18next';
 import { LanguageSelectorModal, SUPPORTED_LANGUAGES } from '../components/LanguageSelectorModal';
+import { FlagIcon } from '../components/FlagIcon';
 
 export function ProfilePage() {
   const navigate = useNavigate();
@@ -44,7 +45,17 @@ export function ProfilePage() {
   const currentLangObj = SUPPORTED_LANGUAGES.find(l => currentLangCode.startsWith(l.code)) || SUPPORTED_LANGUAGES[0];
 
   const menuItems = [
-    { icon: <Globe className="text-blue-400" />, label: t('profile.language', 'Idioma'), customClick: () => setIsLangModalOpen(true), badge: `${currentLangObj.flag} ${currentLangObj.code.toUpperCase()}` },
+    { 
+      icon: <Globe className="text-blue-400" />, 
+      label: t('profile.language', 'Idioma'), 
+      customClick: () => setIsLangModalOpen(true), 
+      badge: (
+        <span className="inline-flex items-center gap-1.5">
+          <FlagIcon code={currentLangObj.flagCode || currentLangObj.code} size="xs" />
+          <span>{currentLangObj.code.toUpperCase()}</span>
+        </span>
+      )
+    },
     { icon: <BookOpen className="text-blue-500" />, label: t('profile.howToUse', 'Como Usar o App'), path: '/como-usar' },
     { icon: <Star className="text-yellow-400 fill-yellow-400" />, label: t('profile.feedback', 'Avaliar Aplicativo'), path: '/help/feedback' },
     { icon: <Users className="text-indigo-500" />, label: t('profile.groups', 'Grupos Privados'), path: '/groups' },

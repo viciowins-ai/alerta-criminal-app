@@ -5,6 +5,7 @@ import { Search, Filter, ShieldAlert, Navigation, Building2, Landmark, Coffee, T
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { LanguageSelectorModal, SUPPORTED_LANGUAGES } from '../components/LanguageSelectorModal';
+import { FlagIcon } from '../components/FlagIcon';
 import { db } from '../firebase';
 import { collection, query, onSnapshot, limit, orderBy, doc, updateDoc, arrayUnion, increment, addDoc, serverTimestamp, getDoc, getDocs, writeBatch, where, deleteDoc } from 'firebase/firestore';
 import { handleFirestoreError, OperationType } from '../utils/firestoreErrorHandler';
@@ -664,16 +665,23 @@ export function MapPage() {
           )}
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
-          <button 
-            onClick={() => setIsLangModalOpen(true)}
-            className="bg-slate-900/95 backdrop-blur-md h-11 px-2.5 rounded-2xl shadow-lg transition-colors border border-slate-700/50 hover:bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center gap-1 shrink-0"
-            title={t('settings.language', 'Idioma')}
-          >
-            <Globe size={16} className="text-blue-400 shrink-0" />
-            <span className="text-[11px] font-bold uppercase text-slate-300">
-              {(i18n.language || 'pt').slice(0, 2)}
-            </span>
-          </button>
+          {(() => {
+            const currentLangCode = i18n.language || 'pt';
+            const currentLangObj = SUPPORTED_LANGUAGES.find(l => currentLangCode.startsWith(l.code)) || SUPPORTED_LANGUAGES[0];
+            return (
+              <button 
+                onClick={() => setIsLangModalOpen(true)}
+                className="bg-slate-900/95 backdrop-blur-md h-11 px-2.5 rounded-2xl shadow-lg transition-colors border border-slate-700/50 hover:bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center gap-1.5 shrink-0"
+                title={t('settings.language', 'Idioma')}
+                aria-label={t('settings.language', 'Idioma')}
+              >
+                <FlagIcon code={currentLangObj.flagCode || currentLangObj.code} size="sm" />
+                <span className="text-[11px] font-bold uppercase text-slate-200">
+                  {currentLangObj.code}
+                </span>
+              </button>
+            );
+          })()}
 
           <div className="relative">
             <button 

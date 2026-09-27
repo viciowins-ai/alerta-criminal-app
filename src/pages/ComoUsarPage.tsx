@@ -3,6 +3,17 @@ import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import { useTranslation } from "react-i18next";
+import { FlagIcon } from "../components/FlagIcon";
+
+const TUTORIAL_LANGUAGES = [
+  { code: "pt", label: "Português", path: "/como-usar", flag: "br" },
+  { code: "en", label: "English", path: "/en/how-to-use", flag: "us" },
+  { code: "es", label: "Español", path: "/es/como-usar", flag: "es" },
+  { code: "fr", label: "Français", path: "/fr/comment-utiliser", flag: "fr" },
+  { code: "it", label: "Italiano", path: "/it/come-usare", flag: "it" },
+  { code: "hi", label: "हिन्दी", path: "/hi/kaise-upyog-kare", flag: "in" },
+  { code: "ar", label: "العربية", path: "/ar/kayfiat-alastikhdam", flag: "sa" },
+];
 
 export function ComoUsarPage({ lang = "pt" }: { lang?: string }) {
   const { t, i18n } = useTranslation();
@@ -79,84 +90,22 @@ export function ComoUsarPage({ lang = "pt" }: { lang?: string }) {
           </Link>
           <div className="flex items-center gap-3">
             {/* Language Selector */}
-            <div className="flex items-center gap-1 bg-slate-800/80 p-1 rounded-xl border border-slate-700 text-xs">
-              <Link
-                to="/como-usar"
-                className={`px-2 py-1 rounded-lg font-bold transition-all ${
-                  lang === "pt"
-                    ? "bg-blue-600 text-white shadow"
-                    : "text-slate-400 hover:text-white"
-                }`}
-                title="Português"
-              >
-                🇧🇷 PT
-              </Link>
-              <Link
-                to="/en/how-to-use"
-                className={`px-2 py-1 rounded-lg font-bold transition-all ${
-                  lang === "en"
-                    ? "bg-blue-600 text-white shadow"
-                    : "text-slate-400 hover:text-white"
-                }`}
-                title="English"
-              >
-                🇺🇸 EN
-              </Link>
-              <Link
-                to="/es/como-usar"
-                className={`px-2 py-1 rounded-lg font-bold transition-all ${
-                  lang === "es"
-                    ? "bg-blue-600 text-white shadow"
-                    : "text-slate-400 hover:text-white"
-                }`}
-                title="Español"
-              >
-                🇪🇸 ES
-              </Link>
-              <Link
-                to="/fr/comment-utiliser"
-                className={`px-2 py-1 rounded-lg font-bold transition-all ${
-                  lang === "fr"
-                    ? "bg-blue-600 text-white shadow"
-                    : "text-slate-400 hover:text-white"
-                }`}
-                title="Français"
-              >
-                🇫🇷 FR
-              </Link>
-              <Link
-                to="/it/come-usare"
-                className={`px-2 py-1 rounded-lg font-bold transition-all ${
-                  lang === "it"
-                    ? "bg-blue-600 text-white shadow"
-                    : "text-slate-400 hover:text-white"
-                }`}
-                title="Italiano"
-              >
-                🇮🇹 IT
-              </Link>
-              <Link
-                to="/hi/kaise-upyog-kare"
-                className={`px-2 py-1 rounded-lg font-bold transition-all ${
-                  lang === "hi"
-                    ? "bg-blue-600 text-white shadow"
-                    : "text-slate-400 hover:text-white"
-                }`}
-                title="हिन्दी"
-              >
-                🇮🇳 HI
-              </Link>
-              <Link
-                to="/ar/kayfiat-alastikhdam"
-                className={`px-2 py-1 rounded-lg font-bold transition-all ${
-                  lang === "ar"
-                    ? "bg-blue-600 text-white shadow"
-                    : "text-slate-400 hover:text-white"
-                }`}
-                title="العربية"
-              >
-                🇸🇦 AR
-              </Link>
+            <div className="flex items-center gap-1 bg-slate-800/80 p-1 rounded-xl border border-slate-700 text-xs overflow-x-auto max-w-[210px] xs:max-w-[280px] sm:max-w-none">
+              {TUTORIAL_LANGUAGES.map((l) => (
+                <Link
+                  key={l.code}
+                  to={l.path}
+                  className={`px-2 py-1 rounded-lg font-bold transition-all flex items-center gap-1.5 shrink-0 ${
+                    lang === l.code
+                      ? "bg-blue-600 text-white shadow"
+                      : "text-slate-400 hover:text-white hover:bg-slate-700/50"
+                  }`}
+                  title={l.label}
+                >
+                  <FlagIcon code={l.flag} size="xs" />
+                  <span>{l.code.toUpperCase()}</span>
+                </Link>
+              ))}
             </div>
 
             <div className="hidden sm:flex items-center gap-2 pl-2 border-l border-slate-700">

@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { LanguageSelectorModal, SUPPORTED_LANGUAGES } from '../components/LanguageSelectorModal';
+import { FlagIcon } from '../components/FlagIcon';
 
 export function SettingsPage() {
   const navigate = useNavigate();
@@ -40,14 +41,18 @@ export function SettingsPage() {
                 <span className="text-sm font-semibold text-white block">
                   {t('settings.language', 'Idioma do Aplicativo')}
                 </span>
-                <span className="text-xs text-slate-400">
-                  {currentLangObj.flag} {currentLangObj.label}
-                </span>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <FlagIcon code={currentLangObj.flagCode || currentLangObj.code} size="xs" />
+                  <span className="text-xs text-slate-400">
+                    {currentLangObj.label}
+                  </span>
+                </div>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xs px-2.5 py-1 bg-slate-900 text-blue-400 font-semibold rounded-lg border border-slate-700">
-                {currentLangObj.flag}
+              <span className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 bg-slate-900 text-blue-400 font-semibold rounded-lg border border-slate-700">
+                <FlagIcon code={currentLangObj.flagCode || currentLangObj.code} size="xs" />
+                <span>{currentLangObj.code.toUpperCase()}</span>
               </span>
               <ChevronRight size={16} className="text-slate-500" />
             </div>

@@ -23,6 +23,7 @@ import {
   Lock,
   Globe
 } from 'lucide-react';
+import { FlagIcon } from '../components/FlagIcon';
 
 export function TutorialPage() {
   return (
@@ -374,26 +375,33 @@ export function TutorialPage() {
             O Alerta Criminal disponibiliza páginas de instruções otimizadas para turistas, residentes e motores de busca globais em 7 idiomas principais:
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            <Link to="/como-usar" className="p-3 bg-slate-900 hover:bg-slate-700/60 transition-all rounded-xl border border-slate-700 text-sm text-white font-medium flex items-center gap-2">
-              <span>🇧🇷</span> Português
+            <Link to="/como-usar" className="p-3 bg-slate-900 hover:bg-slate-700/60 transition-all rounded-xl border border-slate-700 text-sm text-white font-medium flex items-center gap-2.5">
+              <FlagIcon code="br" size="sm" />
+              <span>Português</span>
             </Link>
-            <Link to="/en/how-to-use" className="p-3 bg-slate-900 hover:bg-slate-700/60 transition-all rounded-xl border border-slate-700 text-sm text-white font-medium flex items-center gap-2">
-              <span>🇺🇸</span> English
+            <Link to="/en/how-to-use" className="p-3 bg-slate-900 hover:bg-slate-700/60 transition-all rounded-xl border border-slate-700 text-sm text-white font-medium flex items-center gap-2.5">
+              <FlagIcon code="us" size="sm" />
+              <span>English</span>
             </Link>
-            <Link to="/es/como-usar" className="p-3 bg-slate-900 hover:bg-slate-700/60 transition-all rounded-xl border border-slate-700 text-sm text-white font-medium flex items-center gap-2">
-              <span>🇪🇸</span> Español
+            <Link to="/es/como-usar" className="p-3 bg-slate-900 hover:bg-slate-700/60 transition-all rounded-xl border border-slate-700 text-sm text-white font-medium flex items-center gap-2.5">
+              <FlagIcon code="es" size="sm" />
+              <span>Español</span>
             </Link>
-            <Link to="/fr/comment-utiliser" className="p-3 bg-slate-900 hover:bg-slate-700/60 transition-all rounded-xl border border-slate-700 text-sm text-white font-medium flex items-center gap-2">
-              <span>🇫🇷</span> Français
+            <Link to="/fr/comment-utiliser" className="p-3 bg-slate-900 hover:bg-slate-700/60 transition-all rounded-xl border border-slate-700 text-sm text-white font-medium flex items-center gap-2.5">
+              <FlagIcon code="fr" size="sm" />
+              <span>Français</span>
             </Link>
-            <Link to="/it/come-usare" className="p-3 bg-slate-900 hover:bg-slate-700/60 transition-all rounded-xl border border-slate-700 text-sm text-white font-medium flex items-center gap-2">
-              <span>🇮🇹</span> Italiano
+            <Link to="/it/come-usare" className="p-3 bg-slate-900 hover:bg-slate-700/60 transition-all rounded-xl border border-slate-700 text-sm text-white font-medium flex items-center gap-2.5">
+              <FlagIcon code="it" size="sm" />
+              <span>Italiano</span>
             </Link>
-            <Link to="/hi/kaise-upyog-kare" className="p-3 bg-slate-900 hover:bg-slate-700/60 transition-all rounded-xl border border-slate-700 text-sm text-white font-medium flex items-center gap-2">
-              <span>🇮🇳</span> हिन्दी
+            <Link to="/hi/kaise-upyog-kare" className="p-3 bg-slate-900 hover:bg-slate-700/60 transition-all rounded-xl border border-slate-700 text-sm text-white font-medium flex items-center gap-2.5">
+              <FlagIcon code="in" size="sm" />
+              <span>हिन्दी</span>
             </Link>
-            <Link to="/ar/kayfiat-alastikhdam" className="p-3 bg-slate-900 hover:bg-slate-700/60 transition-all rounded-xl border border-slate-700 text-sm text-white font-medium flex items-center gap-2">
-              <span>🇸🇦</span> العربية
+            <Link to="/ar/kayfiat-alastikhdam" className="p-3 bg-slate-900 hover:bg-slate-700/60 transition-all rounded-xl border border-slate-700 text-sm text-white font-medium flex items-center gap-2.5">
+              <FlagIcon code="sa" size="sm" />
+              <span>العربية</span>
             </Link>
           </div>
         </div>
