@@ -63,6 +63,30 @@
     "feed": "Fil",
     "profile": "Profil"
   },
+  "map": {
+    "searchPlaceholder": "Rechercher un lieu ou une adresse...",
+    "noLocationFound": "Aucun lieu trouvé.",
+    "simplifySearch": "Essayez de simplifier la recherche (ex: rue et ville).",
+    "filters": {
+      "title": "Filtres",
+      "all": "Toutes les Alertes",
+      "heatmap": "Carte Thermique"
+    },
+    "riskLevels": {
+      "risk": "Risque",
+      "critical": "Critique",
+      "high": "Élevé",
+      "medium": "Moyen",
+      "low": "Faible"
+    },
+    "confirmed": "ont confirmé",
+    "buttons": {
+      "guardian": "Mon Gardien (Suivi)",
+      "panic": "Mode Panique (Écran Noir)",
+      "sos": "SOS Urgence",
+      "myLocation": "Ma Position"
+    }
+  },
   "settings": {
     "title": "Paramètres",
     "language": "Langue de l'application",

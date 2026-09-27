@@ -539,21 +539,21 @@ export function MapPage() {
 
   const getRiskLevel = (type: string) => {
     switch (type) {
-      case 'roubo': return 'Crítico';
-      case 'zeladoria': return 'Atenção';
-      case 'suspeito': return 'Alto';
-      case 'vandalismo': return 'Médio';
-      default: return 'Baixo';
+      case 'roubo': return t('map.riskLevels.critical', 'Crítico');
+      case 'zeladoria': return t('map.riskLevels.medium', 'Atenção');
+      case 'suspeito': return t('map.riskLevels.high', 'Alto');
+      case 'vandalismo': return t('map.riskLevels.medium', 'Médio');
+      default: return t('map.riskLevels.low', 'Baixo');
     }
   };
 
   const getLabel = (type: string) => {
     switch (type) {
-      case 'roubo': return 'Roubo/Furto';
-      case 'zeladoria': return 'Zeladoria / Risco';
-      case 'suspeito': return 'Atividade Suspeita';
-      case 'vandalismo': return 'Vandalismo';
-      default: return 'Outro';
+      case 'roubo': return t('report.types.roubo', 'Roubo/Furto');
+      case 'zeladoria': return t('report.types.zeladoria', 'Zeladoria / Risco');
+      case 'suspeito': return t('report.types.suspeito', 'Atividade Suspeita');
+      case 'vandalismo': return t('report.types.vandalismo', 'Vandalismo');
+      default: return t('report.types.outro', 'Outro');
     }
   };
 
@@ -657,8 +657,8 @@ export function MapPage() {
                 ))
               ) : (
                 <div className="px-4 py-4 text-center">
-                  <p className="text-sm text-slate-300">Nenhum local encontrado.</p>
-                  <p className="text-xs text-slate-500 mt-1">Tente simplificar a busca (ex: apenas rua e cidade).</p>
+                  <p className="text-sm text-slate-300">{t('map.noLocationFound', 'Nenhum local encontrado.')}</p>
+                  <p className="text-xs text-slate-500 mt-1">{t('map.simplifySearch', 'Tente simplificar a busca (ex: apenas rua e cidade).')}</p>
                 </div>
               )}
             </div>
@@ -687,7 +687,8 @@ export function MapPage() {
             <button 
               onClick={() => setShowFilters(!showFilters)}
               className={`bg-slate-900/95 backdrop-blur-md h-11 w-11 rounded-2xl shadow-lg transition-colors border flex items-center justify-center relative shrink-0 ${activeFilter ? 'text-blue-400 border-blue-500/50' : 'text-slate-400 border-slate-700/50 hover:bg-slate-800'}`}
-              title="Filtros"
+              title={t('map.filters.title', 'Filtros')}
+              aria-label={t('map.filters.title', 'Filtros')}
             >
               <Filter size={18} />
               {activeFilter && (
@@ -702,44 +703,44 @@ export function MapPage() {
                   onClick={() => { setActiveFilter(null); setShowFilters(false); }}
                   className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${!activeFilter ? 'bg-blue-500/20 text-blue-400' : 'text-slate-300 hover:bg-slate-800'}`}
                 >
-                  Todos os Alertas
+                  {t('map.filters.all', 'Todos os Alertas')}
                 </button>
                 <button
                   onClick={() => { setActiveFilter('roubo'); setShowFilters(false); }}
                   className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${activeFilter === 'roubo' ? 'bg-red-500/20 text-red-400' : 'text-slate-300 hover:bg-slate-800'}`}
                 >
-                  Roubo/Furto
+                  {t('report.types.roubo', 'Roubo/Furto')}
                 </button>
                 <button
                   onClick={() => { setActiveFilter('suspeito'); setShowFilters(false); }}
                   className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${activeFilter === 'suspeito' ? 'bg-orange-500/20 text-orange-400' : 'text-slate-300 hover:bg-slate-800'}`}
                 >
-                  Atividade Suspeita
+                  {t('report.types.suspeito', 'Atividade Suspeita')}
                 </button>
                 <button
                   onClick={() => { setActiveFilter('zeladoria'); setShowFilters(false); }}
                   className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${activeFilter === 'zeladoria' ? 'bg-cyan-500/20 text-cyan-400' : 'text-slate-300 hover:bg-slate-800'}`}
                 >
-                  Zeladoria / Risco
+                  {t('report.types.zeladoria', 'Zeladoria / Risco')}
                 </button>
                 <button
                   onClick={() => { setActiveFilter('vandalismo'); setShowFilters(false); }}
                   className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${activeFilter === 'vandalismo' ? 'bg-yellow-500/20 text-yellow-400' : 'text-slate-300 hover:bg-slate-800'}`}
                 >
-                  Vandalismo
+                  {t('report.types.vandalismo', 'Vandalismo')}
                 </button>
                 <button
                   onClick={() => { setActiveFilter('outro'); setShowFilters(false); }}
                   className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${activeFilter === 'outro' ? 'bg-slate-500/20 text-slate-400' : 'text-slate-300 hover:bg-slate-800'}`}
                 >
-                  Outro
+                  {t('report.types.outro', 'Outro')}
                 </button>
                 <div className="h-px w-full bg-slate-700/50 my-1" />
                 <button
                   onClick={() => { setShowHeatmap(!showHeatmap); setShowFilters(false); }}
                   className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${showHeatmap ? 'bg-purple-500/20 text-purple-400' : 'text-slate-300 hover:bg-slate-800'}`}
                 >
-                  <span>Mapa de Calor</span>
+                  <span>{t('map.filters.heatmap', 'Mapa de Calor')}</span>
                   <div className={`w-8 h-4 rounded-full transition-colors relative ${showHeatmap ? 'bg-purple-500' : 'bg-slate-600'}`}>
                     <div className={`w-3 h-3 bg-white rounded-full absolute top-0.5 transition-transform ${showHeatmap ? 'translate-x-4.5 left-0.5' : 'left-0.5'}`} />
                   </div>
@@ -849,16 +850,16 @@ export function MapPage() {
         <button 
           onClick={() => setIsGuardianMode(true)}
           className="bg-blue-600 text-white w-11 h-11 rounded-2xl shadow-lg border border-blue-400/30 hover:bg-blue-500 transition-all active:scale-95 flex items-center justify-center"
-          aria-label="Meu Guardião"
-          title="Meu Guardião (Acompanhamento)"
+          aria-label={t('map.buttons.guardian', 'Meu Guardião')}
+          title={t('map.buttons.guardian', 'Meu Guardião (Acompanhamento)')}
         >
           <ShieldCheck size={20} />
         </button>
         <button 
           onClick={() => setIsPanicMode(true)}
           className="bg-slate-900/90 backdrop-blur-md text-slate-300 w-11 h-11 rounded-2xl shadow-lg border border-slate-700/60 hover:bg-slate-800 hover:text-white transition-all active:scale-95 flex items-center justify-center"
-          aria-label="Modo Pânico (Tela Escura)"
-          title="Modo Pânico (Tela Escura)"
+          aria-label={t('map.buttons.panic', 'Modo Pânico (Tela Escura)')}
+          title={t('map.buttons.panic', 'Modo Pânico (Tela Escura)')}
         >
           <Moon size={20} />
         </button>
@@ -866,8 +867,8 @@ export function MapPage() {
           onClick={handleSOS}
           disabled={isSOSActive}
           className={`bg-red-600 text-white w-11 h-11 rounded-2xl shadow-lg border border-red-400/40 hover:bg-red-500 transition-all active:scale-95 flex flex-col items-center justify-center ${isSOSActive ? 'opacity-50 cursor-not-allowed' : 'animate-pulse'}`}
-          aria-label="SOS Emergência"
-          title="SOS Emergência"
+          aria-label={t('map.buttons.sos', 'SOS Emergência')}
+          title={t('map.buttons.sos', 'SOS Emergência')}
         >
           <ShieldAlert size={16} />
           <span className="text-[8px] font-black leading-none mt-0.5">S.O.S</span>
@@ -875,8 +876,8 @@ export function MapPage() {
         <button 
           onClick={triggerGPS}
           className="bg-slate-900/90 backdrop-blur-md text-blue-400 w-11 h-11 rounded-2xl shadow-lg border border-slate-700/60 hover:bg-slate-800 transition-all active:scale-95 flex items-center justify-center"
-          aria-label="Minha Localização"
-          title="Minha Localização"
+          aria-label={t('map.buttons.myLocation', 'Minha Localização')}
+          title={t('map.buttons.myLocation', 'Minha Localização')}
         >
           <LocateFixed size={20} />
         </button>
@@ -905,7 +906,7 @@ export function MapPage() {
             <button 
               onClick={() => setSelectedLocation(null)}
               className="absolute right-0 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-slate-800 text-slate-400 hover:text-white transition-colors"
-              title="Fechar"
+              title={t('common.close', 'Fechar')}
             >
               <X size={16} />
             </button>
@@ -916,16 +917,16 @@ export function MapPage() {
               <h2 className="text-xl font-black text-white tracking-tight mb-1 line-clamp-2">{selectedLocation.location.address || getLabel(selectedLocation.type)}</h2>
               <div className="flex items-center gap-3 mt-2">
                 <p className="text-sm text-slate-400 font-medium">
-                  Risco: <span className={`font-bold drop-shadow-[0_0_8px_rgba(239,68,68,0.5)] ${
-                    getRiskLevel(selectedLocation.type) === 'Crítico' ? 'text-red-500' :
-                    getRiskLevel(selectedLocation.type) === 'Alto' ? 'text-orange-500' :
-                    getRiskLevel(selectedLocation.type) === 'Médio' ? 'text-yellow-500' : 'text-green-500'
+                  {t('map.riskLevels.risk', 'Risco')}: <span className={`font-bold drop-shadow-[0_0_8px_rgba(239,68,68,0.5)] ${
+                    selectedLocation.type === 'roubo' ? 'text-red-500' :
+                    selectedLocation.type === 'suspeito' ? 'text-orange-500' :
+                    selectedLocation.type === 'zeladoria' || selectedLocation.type === 'vandalismo' ? 'text-yellow-500' : 'text-green-500'
                   }`}>{getRiskLevel(selectedLocation.type)}</span>
                 </p>
                 <div className="w-1 h-1 rounded-full bg-slate-600" />
                 <p className="text-sm text-slate-400 font-medium flex items-center gap-1">
                   <ThumbsUp size={14} className={selectedLocation.upvotedBy?.includes(user?.uid) ? 'text-blue-400' : ''} />
-                  {selectedLocation.upvotes || 0} confirmaram
+                  {selectedLocation.upvotes || 0} {t('map.confirmed', 'confirmaram')}
                 </p>
                 {selectedLocation.authorName && (
                   <>

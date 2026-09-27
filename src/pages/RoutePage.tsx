@@ -10,6 +10,7 @@ import { SOSModal } from '../components/SOSModal';
 import { PanicModeOverlay } from '../components/PanicModeOverlay';
 import { useNavigate } from 'react-router-dom';
 import { useAudioRecorder } from '../hooks/useAudioRecorder';
+import i18n from '../i18n/config';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || '';
 
@@ -22,10 +23,11 @@ const colorStyles: Record<string, string> = {
 
 const getLabel = (type: string) => {
   switch (type) {
-    case 'roubo': return 'Roubo/Furto';
-    case 'suspeito': return 'Atividade Suspeita';
-    case 'vandalismo': return 'Vandalismo';
-    default: return 'Outro';
+    case 'roubo': return i18n.t('report.types.roubo', 'Roubo/Furto');
+    case 'suspeito': return i18n.t('report.types.suspeito', 'Atividade Suspeita');
+    case 'zeladoria': return i18n.t('report.types.zeladoria', 'Zeladoria / Risco');
+    case 'vandalismo': return i18n.t('report.types.vandalismo', 'Vandalismo');
+    default: return i18n.t('report.types.outro', 'Outro');
   }
 };
 

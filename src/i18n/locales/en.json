@@ -63,6 +63,30 @@
     "feed": "Feed",
     "profile": "Profile"
   },
+  "map": {
+    "searchPlaceholder": "Search place or address...",
+    "noLocationFound": "No location found.",
+    "simplifySearch": "Try simplifying your search (e.g., street and city).",
+    "filters": {
+      "title": "Filters",
+      "all": "All Alerts",
+      "heatmap": "Heatmap"
+    },
+    "riskLevels": {
+      "risk": "Risk",
+      "critical": "Critical",
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "confirmed": "confirmed",
+    "buttons": {
+      "guardian": "My Guardian (Tracking)",
+      "panic": "Panic Mode (Black Screen)",
+      "sos": "Emergency SOS",
+      "myLocation": "My Location"
+    }
+  },
   "settings": {
     "title": "Settings",
     "language": "App Language",

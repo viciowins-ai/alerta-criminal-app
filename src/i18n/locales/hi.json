@@ -63,6 +63,30 @@
     "feed": "फ़ीड",
     "profile": "प्रोफ़ाइल"
   },
+  "map": {
+    "searchPlaceholder": "स्थान या पता खोजें...",
+    "noLocationFound": "कोई स्थान नहीं मिला।",
+    "simplifySearch": "खोज को सरल बनाने का प्रयास करें (उदा: केवल सड़क और शहर)।",
+    "filters": {
+      "title": "फ़िल्टर",
+      "all": "सभी अलर्ट",
+      "heatmap": "हीटमैप"
+    },
+    "riskLevels": {
+      "risk": "जोखिम",
+      "critical": "गंभीर",
+      "high": "उच्च",
+      "medium": "मध्यम",
+      "low": "कम"
+    },
+    "confirmed": "पुष्टि की",
+    "buttons": {
+      "guardian": "माई गार्डियन (ट्रैकिंग)",
+      "panic": "पैनिक मोड (ब्लैक स्क्रीन)",
+      "sos": "आपातकालीन एसओएस",
+      "myLocation": "मेरा स्थान"
+    }
+  },
   "settings": {
     "title": "सेटिंग्स",
     "language": "ऐप भाषा",
