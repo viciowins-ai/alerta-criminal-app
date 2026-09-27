@@ -24,6 +24,8 @@
     "panicDesc": "En cas d'agression ou si l'on vous force à déverrouiller votre téléphone, appuyez sur le bouton du <strong>Mode Panique (icône Lune 🌙)</strong> dans le menu ou la carte. L'écran devient complètement noir et verrouillé, simulant un appareil éteint ou bloqué pour protéger vos comptes bancaires et données personnelles. Sur l'écran noir, 3 tapotements ou secouer le téléphone déclenche secrètement le SOS.",
     "reportTitle": "📍 Comment signaler un incident ?",
     "reportDesc": "Dans le menu inférieur, appuyez sur le bouton central bleu <strong>(+)</strong>. Le GPS recherchera votre position exacte. Choisissez la catégorie (Vol, Agression, Activité Suspecte, Voirie/Inondation, etc.), définissez si l'alerte est Publique ou réservée à un Groupe Privé, ajoutez photos, vidéos et description. Pour corriger plus tard, trouvez votre alerte dans le Fil et cliquez sur <strong>\"Corriger\"</strong>.",
+    "blurTitle": "💧 Comment flouter les visages et plaques d'immatriculation sur les photos ?",
+    "blurDesc": "En appuyant sur <strong>(+) Signaler</strong> et en ajoutant une photo, l'écran <strong>\"Censurer les Visages\" (Censurar Rostos)</strong> s'ouvre automatiquement avant l'envoi. Glissez votre doigt sur les visages de personnes (victimes, témoins, passants et enfants) et sur les plaques d'immatriculation pour les flouter instantanément. Ajustez la taille du pinceau avec le curseur et utilisez le bouton <strong>Annuler (↩️)</strong> si nécessaire. Appuyez sur la coche (✔️) pour valider avec une confidentialité totale.",
     "zeladoriaTitle": "🚧 Voirie, Inondations & Risques Environnementaux",
     "zeladoriaDesc": "Signaler les <strong>Risques Urbains / Voirie</strong> (rues sans éclairage, inondations/crues subites, routes dégradées, câbles électriques tombés) est vital pour la sécurité collective. Les zones sombres et inondables favorisent les agressions et mettent des vies en danger. Aidez à prévenir les accidents et délits en signalant ces zones.",
     "contactsTitle": "🤝 Contacts de Confiance",
@@ -50,6 +52,8 @@
     "groupsDesc": "Créez ou rejoignez des Réseaux Privés avec vos voisins ou votre famille. Lors d'un signalement, vous pouvez choisir s'il est <strong>Public</strong> ou <strong>Privé</strong> (restreint uniquement aux membres de votre groupe, avec icône cadenas 🔒).",
     "languageTitle": "🌐 Comment changer la Langue de l'application ?",
     "languageDesc": "En haut de la carte (à côté de la barre de recherche) et dans le menu <strong>Profil > Paramètres > Langue</strong>, appuyez sur le bouton avec le drapeau et le code (ex: <strong>[🇫🇷] FR</strong>). Choisissez parmi 7 langues : portugais, anglais, espagnol, français, italien, hindi et arabe. Toutes les pages et alertes sont traduites instantanément avec des drapeaux vectoriels HD sur PC et mobile.",
+    "filterTitle": "🌪️ Comment fonctionnent les Filtres d'Incidents et la Carte Thermique ?",
+    "filterDesc": "Dans le coin supérieur droit de la carte (à côté du bouton de langue), appuyez sur le bouton <strong>Entonnoir</strong> pour ouvrir le menu des filtres. Vous pouvez filtrer par type d'incident (<strong>Vol/Agression, Activité Suspecte, Risque Urbain, Vandalisme ou Autre</strong>) et activer ou désactiver la couche <strong>Carte Thermique</strong>. Lorsqu'un filtre est actif, l'icône de l'entonnoir s'illumine avec une bordure bleue et un point indicateur.",
     "availableLanguages": "Langues disponibles :"
   },
   "nav": {

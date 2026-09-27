@@ -181,6 +181,16 @@ export function ComoUsarPage({ lang = "pt" }: { lang?: string }) {
 
           <section className="bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-800 shadow-xl">
             <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-3">
+              {t("tutorial.filterTitle")}
+            </h2>
+            <p
+              className="text-slate-400 leading-relaxed mb-4"
+              dangerouslySetInnerHTML={{ __html: t("tutorial.filterDesc") }}
+            />
+          </section>
+
+          <section className="bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-800 shadow-xl">
+            <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-3">
               {t("tutorial.sosTitle")}
             </h2>
             <p className="text-slate-400 leading-relaxed mb-4">
@@ -246,6 +256,16 @@ export function ComoUsarPage({ lang = "pt" }: { lang?: string }) {
             <p
               className="text-slate-400 leading-relaxed mb-4"
               dangerouslySetInnerHTML={{ __html: t("tutorial.reportDesc") }}
+            />
+          </section>
+
+          <section className="bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-800 shadow-xl">
+            <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-3">
+              {t("tutorial.blurTitle")}
+            </h2>
+            <p
+              className="text-slate-400 leading-relaxed mb-4"
+              dangerouslySetInnerHTML={{ __html: t("tutorial.blurDesc") }}
             />
           </section>
 

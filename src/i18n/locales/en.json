@@ -24,6 +24,8 @@
     "panicDesc": "If you are approached and forced to hand over your unlocked phone, tap the <strong>Panic Mode</strong> button (Moon icon 🌙) in the bottom menu or on the map. The screen will go completely dark and locked, simulating that the phone is turned off or frozen, protecting your data and banking apps. While black, triple tapping or shaking the phone triggers SOS secretly.",
     "reportTitle": "📍 How to report an incident?",
     "reportDesc": "In the bottom menu, tap the central blue <strong>(+)</strong> button. The smart GPS will find your exact location. Choose the category (Robbery, Theft, Suspicious, Urban Hazard, etc.), choose whether the alert is Public or restricted to a Private Group, and attach photos, videos, and a description. If you need to correct it later, simply find your alert in the Feed and tap <strong>\"Edit\"</strong>.",
+    "blurTitle": "💧 How to blur faces and license plates in incident photos?",
+    "blurDesc": "When tapping <strong>(+) Report</strong> and attaching a photo (from your camera or gallery), the <strong>\"Censurar Rostos\" (Blur Faces)</strong> screen opens automatically before uploading. Slide your finger over people's faces (victims, witnesses, pedestrians, and children) and vehicle license plates to apply an instant blur layer. Adjust the brush width with the <strong>\"Tamanho do Desfoque\"</strong> slider and use the <strong>Undo (↩️)</strong> button if needed. When finished, tap the checkmark (✔️) in the upper right to confirm your report with complete privacy and legal compliance.",
     "zeladoriaTitle": "🚧 Urban Hazards & Maintenance",
     "zeladoriaDesc": "Reporting <strong>Urban Hazards / Maintenance</strong> (such as unlit streets, overgrown bushes, flooded areas, potholes, and fallen wires) is vital for community safety. Neglected areas attract crime and pose life risks. Help prevent assaults and accidents by marking streets on the map that need urgent attention.",
     "contactsTitle": "🤝 Trusted Contacts",
@@ -50,6 +52,8 @@
     "groupsDesc": "Create or join Private Networks with your neighbors or family. When reporting an incident, you can choose if it will be <strong>Public</strong> (visible to everyone in the app) or <strong>Private</strong> (restricted only to your group members). Private alerts appear on the map with a padlock icon (🔒).",
     "languageTitle": "🌐 How to change the App Language?",
     "languageDesc": "At the top of the map (next to the search bar) and in the <strong>Profile > Settings > Language</strong> menu, tap the button with the flag and code (e.g. <strong>[🇺🇸] EN</strong>). A modal will open allowing you to choose between 7 languages: Portuguese, English, Spanish, French, Italian, Hindi, and Arabic. All screens, alerts, and buttons update in real time. Flags are rendered in crisp vector format (SVG) on both PC and mobile.",
+    "filterTitle": "🌪️ How do Occurrence Filters and the Heatmap work?",
+    "filterDesc": "In the top right corner of the map (next to the language button), tap the <strong>Funnel</strong> icon to open the filters menu. You can filter by incident category (<strong>Robbery/Theft, Suspicious Activity, Urban Hazard, Vandalism, or Other</strong>) and enable/disable the <strong>Heatmap</strong> (criminal heat gradient). When a filter is active, the funnel icon displays a bright blue border with an indicator dot. The Heatmap highlights high-recurrence danger zones with glowing orange and red tones.",
     "availableLanguages": "Available languages:"
   },
   "nav": {

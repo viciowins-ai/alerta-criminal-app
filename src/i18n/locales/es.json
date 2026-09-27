@@ -24,6 +24,8 @@
     "panicDesc": "Si te abordan y te obligan a entregar el teléfono desbloqueado, toca el botón <strong>Modo Pánico (icono de Luna 🌙)</strong> en el menú o en el mapa. La pantalla se oscurecerá por completo y se bloqueará, simulando que el teléfono está apagado o trabado, protegiendo tus datos y apps bancarias. Con la pantalla negra, 3 toques o agitar el teléfono activa el SOS en secreto.",
     "reportTitle": "📍 ¿Cómo reportar un incidente?",
     "reportDesc": "En el menú inferior, toca el botón central azul <strong>(+)</strong>. El GPS inteligente buscará tu ubicación exacta. Elige la categoría (Robo, Hurto, Sospechoso, Riesgo Urbano, etc.), elige si la alerta es Pública o para un Grupo Privado, y agrega fotos, videos y una descripción. Si necesitas corregirla luego, búscala en el Feed y pulsa <strong>\"Corregir\"</strong>.",
+    "blurTitle": "💧 ¿Cómo censurar rostros y matrículas en fotos de incidentes?",
+    "blurDesc": "Al pulsar en <strong>(+) Reportar</strong> y adjuntar una foto (de la cámara o galería), la pantalla <strong>\"Censurar Rostos\" (Desenfocar Rostros)</strong> se abre automáticamente antes del envío. Pasa el dedo por la pantalla sobre los rostros de personas (víctimas, testigos, peatones y niños) y matrículas de vehículos para protegerlos con una capa de desenfoque inmediato. Puedes ajustar el grosor del pincel con el control deslizante y usar el botón <strong>Deshacer (↩️)</strong>. Al finalizar, pulsa en el <strong>check (✔️)</strong> para confirmar con total privacidad.",
     "zeladoriaTitle": "🚧 Mantenimiento Urbano y Riesgos",
     "zeladoriaDesc": "Reportar <strong>Mantenimiento / Riesgo</strong> (calles sin luz, maleza alta, zonas inundadas, baches o cables caídos) es esencial para la seguridad. Los lugares abandonados atraen a la delincuencia. Ayuda a prevenir asaltos marcando en el mapa zonas con necesidad de mantenimiento urgente.",
     "contactsTitle": "🤝 Contactos de Confianza",
@@ -50,6 +52,8 @@
     "groupsDesc": "Crea o únete a Redes Privadas con tus vecinos o familiares. Al reportar un incidente, puedes elegir si será <strong>Público</strong> (visible para todos en la aplicación) o <strong>Privado</strong> (restringido solo a los miembros de tu grupo). Las alertas privadas aparecen en el mapa con un icono de candado (🔒).",
     "languageTitle": "🌐 ¿Cómo cambiar el Idioma de la aplicación?",
     "languageDesc": "En la parte superior del mapa (junto a la barra de búsqueda) y en el menú <strong>Perfil > Configuración > Idioma</strong>, toca el botão con la bandera y el código (ej: <strong>[🇪🇸] ES</strong>). Podrás elegir entre 7 idiomas: portugués, inglés, español, francés, italiano, hindi y árabe. Todas las pantallas, alertas y botones se traducen instantáneamente con banderas vectoriales nítidas en PC y móvil.",
+    "filterTitle": "🌪️ ¿Cómo funcionan los Filtros de Incidentes y el Mapa de Calor?",
+    "filterDesc": "En la esquina superior derecha del mapa (junto al botón de idioma), toca el botón de <strong>Embudo</strong> para abrir el menú de filtros. Puedes filtrar por categoría (<strong>Robo/Hurto, Actividad Sospechosa, Peligro Urbano, Vandalismo u Otro</strong>) y activar o desactivar la capa del <strong>Mapa de Calor</strong>. Cuando un filtro está activo, el icono muestra un borde azul con un punto indicador. El Mapa de Calor resalta las zonas de mayor peligro y reincidencia delictiva en tonos rojos y naranjas.",
     "availableLanguages": "Idiomas disponibles:"
   },
   "nav": {

@@ -21,7 +21,10 @@ import {
   PhoneCall, 
   Crosshair, 
   Lock,
-  Globe
+  Globe,
+  Filter,
+  Flame,
+  Droplet
 } from 'lucide-react';
 import { FlagIcon } from '../components/FlagIcon';
 
@@ -133,7 +136,74 @@ export function TutorialPage() {
               </div>
             </div>
 
-            {/* 2. Botão SOS */}
+            {/* 3. Filtros de Ocorrências & Mapa de Calor */}
+            <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
+              <div className="bg-blue-500/20 p-2 rounded-lg shrink-0 mt-1">
+                <Filter size={20} className="text-blue-400" />
+              </div>
+              <div className="w-full">
+                <h3 className="text-white font-semibold mb-1 flex items-center gap-2 flex-wrap">
+                  Filtros de Ocorrências & Mapa de Calor
+                  <span className="text-xs font-normal text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/20">
+                    Ícone de Funil
+                  </span>
+                </h3>
+                <p className="text-sm text-slate-400 leading-relaxed mb-3">
+                  Localizado no topo superior direito do mapa (ao lado do seletor de idiomas), o botão de <strong>Funil</strong> abre um menu suspenso interativo para filtrar as ocorrências por tipo e ligar/desligar a camada da mancha criminal.
+                </p>
+
+                <div className="bg-slate-800/60 p-3 rounded-xl border border-slate-700/60 text-sm text-slate-300 space-y-2 mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-blue-500 ring-2 ring-slate-900 shrink-0" />
+                    <span><strong>Indicador Visual de Filtro Ativo:</strong> Quando um filtro específico está selecionado, o botão do funil ganha uma borda azul brilhante e um ponto luminoso azul no canto superior direito, sinalizando que a visualização está filtrada.</span>
+                  </div>
+                </div>
+
+                <h4 className="text-xs font-bold text-slate-300 mb-2 uppercase">Categorias Disponíveis no Menu de Filtros:</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3 text-xs">
+                  <div className="p-2.5 rounded-xl bg-slate-800/50 border border-slate-700/50 flex flex-col gap-1">
+                    <span className="font-bold text-blue-400">Todos os Alertas</span>
+                    <span className="text-slate-400">Visão global padrão. Exibe todas as ocorrências confirmadas na área visível do mapa.</span>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-slate-800/50 border border-slate-700/50 flex flex-col gap-1">
+                    <span className="font-bold text-red-400">Roubo/Furto</span>
+                    <span className="text-slate-400">Filtra exclusivamente assaltos a pedestres, roubo/furto de veículos, celulares, cargas e comércios.</span>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-slate-800/50 border border-slate-700/50 flex flex-col gap-1">
+                    <span className="font-bold text-orange-400">Atividade Suspeita</span>
+                    <span className="text-slate-400">Exibe indivíduos em atitude suspeita, veículos desconhecidos rondando ou pontos de emboscada.</span>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-slate-800/50 border border-slate-700/50 flex flex-col gap-1">
+                    <span className="font-bold text-cyan-400">Zeladoria / Risco</span>
+                    <span className="text-slate-400">Filtra postes apagados (ruas escuras), fios rompidos, bueiros abertos, mato alto e áreas de risco urbano.</span>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-slate-800/50 border border-slate-700/50 flex flex-col gap-1">
+                    <span className="font-bold text-yellow-400">Vandalismo</span>
+                    <span className="text-slate-400">Exibe pichações, destruição de patrimônio público, danos a pontos de ônibus e bens privados.</span>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-slate-800/50 border border-slate-700/50 flex flex-col gap-1">
+                    <span className="font-bold text-slate-300">Outro</span>
+                    <span className="text-slate-400">Demais ocorrências atípicas e comunicados de segurança comunitária.</span>
+                  </div>
+                </div>
+
+                <div className="p-3 bg-purple-950/40 border border-purple-500/30 rounded-xl text-xs text-purple-200">
+                  <div className="flex items-center gap-2 font-bold text-purple-300 mb-1">
+                    <Flame size={16} className="text-purple-400 shrink-0" />
+                    <span>Camada do Mapa de Calor (Mancha Térmica Criminal):</span>
+                  </div>
+                  <p className="text-purple-200/90 leading-relaxed mb-2">
+                    Na parte inferior do menu do funil, toque em <strong>"Mapa de Calor"</strong> para ativar ou desativar a visualização térmica contínua. 
+                  </p>
+                  <ul className="space-y-1 list-disc pl-4 text-purple-200/80">
+                    <li><strong>Com o Mapa de Calor ativado:</strong> As regiões com maior concentração e reincidência de perigo brilham com núcleos térmicos em laranja e vermelho intenso, revelando imediatamente as manchas criminais da cidade.</li>
+                    <li><strong>Com o Mapa de Calor desativado:</strong> O mapa fica despoluído, permitindo tocar confortavelmente nos pinos individuais para ver detalhes, fotos e vídeos de cada ocorrência.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* 4. Botão SOS */}
             <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
               <div className="bg-red-500/20 p-2 rounded-lg shrink-0 mt-1">
                 <ShieldAlert size={20} className="text-red-500" />
@@ -152,7 +222,7 @@ export function TutorialPage() {
               </div>
             </div>
 
-            {/* 3. Modo Guardião & Camuflagem */}
+            {/* 5. Modo Guardião & Camuflagem */}
             <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
               <div className="bg-blue-500/20 p-2 rounded-lg shrink-0 mt-1">
                 <ShieldCheck size={20} className="text-blue-400" />
@@ -171,7 +241,7 @@ export function TutorialPage() {
               </div>
             </div>
 
-            {/* 4. Aviso de Rastreamento (Regras de Ouro) */}
+            {/* 6. Aviso de Rastreamento (Regras de Ouro) */}
             <div className="bg-orange-500/10 p-4 rounded-2xl border border-orange-500/30 flex gap-4 items-start">
               <div className="bg-orange-500/20 p-2 rounded-lg shrink-0 mt-1">
                 <AlertTriangle size={20} className="text-orange-400" />
@@ -189,7 +259,7 @@ export function TutorialPage() {
               </div>
             </div>
 
-            {/* 5. Modo Pânico (Tela Escura Anti-Assalto) */}
+            {/* 7. Modo Pânico (Tela Escura Anti-Assalto) */}
             <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
               <div className="bg-yellow-500/20 p-2 rounded-lg shrink-0 mt-1">
                 <Moon size={20} className="text-yellow-400" />
@@ -207,7 +277,7 @@ export function TutorialPage() {
               </div>
             </div>
 
-            {/* 6. Zeladoria e Riscos Ambientais */}
+            {/* 8. Zeladoria e Riscos Ambientais */}
             <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
               <div className="bg-cyan-500/20 p-2 rounded-lg shrink-0 mt-1">
                 <Wrench size={20} className="text-cyan-400" />
@@ -229,7 +299,7 @@ export function TutorialPage() {
               </div>
             </div>
 
-            {/* 7. Contatos de Confiança */}
+            {/* 9. Contatos de Confiança */}
             <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
               <div className="bg-emerald-500/20 p-2 rounded-lg shrink-0 mt-1">
                 <PhoneCall size={20} className="text-emerald-400" />
@@ -245,7 +315,7 @@ export function TutorialPage() {
               </div>
             </div>
 
-            {/* 8. Grupos Privados */}
+            {/* 10. Grupos Privados */}
             <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
               <div className="bg-purple-500/20 p-2 rounded-lg shrink-0 mt-1">
                 <Lock size={20} className="text-purple-400" />
@@ -261,7 +331,7 @@ export function TutorialPage() {
               </div>
             </div>
 
-            {/* 9. Botão Reportar */}
+            {/* 11. Botão Reportar */}
             <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
               <div className="bg-blue-500/20 p-2 rounded-lg shrink-0 mt-1">
                 <Plus size={20} className="text-blue-400" />
@@ -273,7 +343,7 @@ export function TutorialPage() {
                 </p>
                 <ul className="text-sm text-slate-400 space-y-2 list-disc pl-4 mb-3">
                   <li>Escolha o tipo: Roubo/Furto, Atividade Suspeita, Zeladoria/Risco ou Vandalismo.</li>
-                  <li>Adicione <strong>fotos e vídeos</strong> gravados na hora ou da sua galeria.</li>
+                  <li>Adicione <strong>fotos e vídeos</strong> gravados na hora ou da sua galeria (com ferramenta automática para <strong>Censurar Rostos e Placas</strong>).</li>
                   <li>Defina a visibilidade: <strong>Alerta Público</strong> (para todos) ou restrito a um <strong>Grupo Privado</strong>.</li>
                   <li><strong>GPS Inteligente:</strong> Puxa automaticamente sua posição exata com cálculo de precisão.</li>
                 </ul>
@@ -284,7 +354,43 @@ export function TutorialPage() {
               </div>
             </div>
 
-            {/* 10. Rotas Seguras */}
+            {/* 12. Censurar Rostos e Placas (Desfoque de Fotos) */}
+            <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
+              <div className="bg-blue-500/20 p-2 rounded-lg shrink-0 mt-1">
+                <Droplet size={20} className="text-blue-400" />
+              </div>
+              <div className="w-full">
+                <h3 className="text-white font-semibold mb-1 flex items-center gap-2 flex-wrap">
+                  Censurar Rostos e Placas (Desfoque na Fotografia)
+                  <span className="text-xs font-normal text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/20">
+                    Privacidade & LGPD
+                  </span>
+                </h3>
+                <p className="text-sm text-slate-400 leading-relaxed mb-3">
+                  Ao anexar qualquer fotografia (da câmera ou da galeria) no momento de reportar uma ocorrência, o editor <strong>"Censurar Rostos"</strong> abre automaticamente na sua tela antes do envio.
+                </p>
+
+                <div className="p-3 bg-blue-950/40 border border-blue-500/30 rounded-xl text-xs text-blue-200 mb-3 space-y-1.5">
+                  <p className="font-bold text-blue-300 flex items-center gap-1.5">
+                    🛡️ Por que usar o desfoque?
+                  </p>
+                  <p className="text-slate-300 leading-relaxed">
+                    Protege a identidade e a integridade de <strong>vítimas, testemunhas, pedestres e crianças</strong> que estejam no local, além de cobrir <strong>placas de viaturas policiais ou veículos particulares</strong> de moradores para evitar qualquer risco de represálias e cumprir as exigências da LGPD e do direito de imagem.
+                  </p>
+                </div>
+
+                <h4 className="text-xs font-bold text-slate-300 mb-2 uppercase">Como Utilizar a Ferramenta de Desfoque:</h4>
+                <ul className="text-sm text-slate-400 space-y-2 list-disc pl-4 mb-3">
+                  <li><strong>Passe o dedo ou arraste o mouse:</strong> Basta deslizar o dedo (no celular) ou o cursor (no PC) sobre o rosto das pessoas ou sobre as placas de veículos. A área tocada é desfocada instantaneamente em tempo real.</li>
+                  <li><strong>Controle de Espessura ("Tamanho do Desfoque"):</strong> Use a barra deslizante na parte inferior da tela para aumentar o pincel (para rostos grandes em primeiro plano) ou diminuí-lo (para pessoas distantes no fundo).</li>
+                  <li><strong>Botão Desfazer (↩️):</strong> Se errar a pincelada ou borrar um detalhe importante por engano, toque no botão de seta curva no canto inferior esquerdo para desfazer o último traço.</li>
+                  <li><strong>Confirmar e Salvar (✔️):</strong> Toque no ícone de "check" azul no canto superior direito para aplicar o desfoque definitivo e anexar a foto com segurança ao seu relato.</li>
+                  <li><strong>Cancelar (✖️):</strong> Toque no "X" no canto superior esquerdo caso queira cancelar a censura e manter a imagem original.</li>
+                </ul>
+              </div>
+            </div>
+
+            {/* 13. Rotas Seguras */}
             <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
               <div className="bg-indigo-500/20 p-2 rounded-lg shrink-0 mt-1">
                 <Route size={20} className="text-indigo-400" />
@@ -297,7 +403,7 @@ export function TutorialPage() {
               </div>
             </div>
 
-            {/* 11. Feed da Comunidade */}
+            {/* 14. Feed da Comunidade */}
             <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
               <div className="bg-green-500/20 p-2 rounded-lg shrink-0 mt-1">
                 <Users size={20} className="text-green-400" />
@@ -315,7 +421,7 @@ export function TutorialPage() {
               </div>
             </div>
 
-            {/* 12. Precisão de GPS */}
+            {/* 15. Precisão de GPS */}
             <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
               <div className="bg-blue-500/20 p-2 rounded-lg shrink-0 mt-1">
                 <Crosshair size={20} className="text-blue-400" />
@@ -335,7 +441,7 @@ export function TutorialPage() {
               </div>
             </div>
 
-            {/* 13. Pontos e Níveis */}
+            {/* 16. Pontos e Níveis */}
             <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
               <div className="bg-yellow-500/20 p-2 rounded-lg shrink-0 mt-1">
                 <Award size={20} className="text-yellow-400" />
