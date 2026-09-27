@@ -54,7 +54,13 @@
     "languageDesc": "En haut de la carte (à côté de la barre de recherche) et dans le menu <strong>Profil > Paramètres > Langue</strong>, appuyez sur le bouton avec le drapeau et le code (ex: <strong>[🇫🇷] FR</strong>). Choisissez parmi 7 langues : portugais, anglais, espagnol, français, italien, hindi et arabe. Toutes les pages et alertes sont traduites instantanément avec des drapeaux vectoriels HD sur PC et mobile.",
     "filterTitle": "🌪️ Comment fonctionnent les Filtres d'Incidents et la Carte Thermique ?",
     "filterDesc": "Dans le coin supérieur droit de la carte (à côté du bouton de langue), appuyez sur le bouton <strong>Entonnoir</strong> pour ouvrir le menu des filtres. Vous pouvez filtrer par type d'incident (<strong>Vol/Agression, Activité Suspecte, Risque Urbain, Vandalisme ou Autre</strong>) et activer ou désactiver la couche <strong>Carte Thermique</strong>. Lorsqu'un filtre est actif, l'icône de l'entonnoir s'illumine avec une bordure bleue et un point indicateur.",
-    "availableLanguages": "Langues disponibles :"
+    "availableLanguages": "Langues disponibles :",
+    "pinColorsTitle": "📍 Couleurs des Marqueurs et Règle d'Atténuation Temporelle (24 Heures)",
+    "pinColorsDesc": "Les épingles sur la carte correspondent exactement aux couleurs des filtres : <strong class=\"text-red-400\">Rouge</strong> pour Vol/Agression, <strong class=\"text-orange-400\">Orange</strong> pour Activité Suspecte, <strong class=\"text-cyan-400\">Cyan</strong> pour Risque Urbain, <strong class=\"text-yellow-400\">Jaune</strong> pour Vandalisme et <strong class=\"text-slate-300\">Gris</strong> pour Autre. Le point bleu clignotant indique uniquement votre position GPS en temps réel.",
+    "pinActive": "Couleur vive",
+    "pinDecayedTitle": "Historique (> 24h)",
+    "pinDecayed": "Gris / Niveaux de gris",
+    "pinDecayNotice": "<strong>⏱️ Règle d'Atténuation Temporelle :</strong> Les signalements des <strong>premières 24 heures</strong> conservent leurs couleurs vives et éclatantes. Après 24 heures, l'application applique automatiquement un filtre en niveaux de gris (<em>grayscale</em>), rendant le marqueur estompé pour différencier immédiatement les alertes récentes des archives historiques."
   },
   "nav": {
     "map": "Carte",

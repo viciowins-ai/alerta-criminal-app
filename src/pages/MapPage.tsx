@@ -60,8 +60,19 @@ const markerStyles: Record<string, { border: string; bg: string; shadow: string;
   },
 };
 
+const normalizeType = (type?: string) => {
+  if (!type) return 'outro';
+  const t = type.toLowerCase().trim();
+  if (t === 'roubo' || t === 'furto' || t === 'assalto' || t === 'roubo/furto') return 'roubo';
+  if (t === 'suspeito' || t === 'atividade_suspeita' || t === 'atitude_suspeita') return 'suspeito';
+  if (t === 'zeladoria' || t === 'risco' || t === 'alagamento' || t === 'perigo' || t === 'hazard') return 'zeladoria';
+  if (t === 'vandalismo' || t === 'pichacao' || t === 'depredacao') return 'vandalismo';
+  return 'outro';
+};
+
 const getMarkerIcon = (type: string) => {
-  switch (type) {
+  const norm = normalizeType(type);
+  switch (norm) {
     case 'roubo':
       return <Siren size={15} className="text-white drop-shadow-sm" />;
     case 'suspeito':
@@ -272,7 +283,7 @@ export function MapPage() {
 
   const filteredReports = React.useMemo(() => {
     if (!activeFilter) return reports;
-    return reports.filter(report => report.type === activeFilter);
+    return reports.filter(report => normalizeType(report.type) === activeFilter);
   }, [reports, activeFilter]);
 
   // Use real data from Firestore for the heatmap
@@ -573,7 +584,8 @@ export function MapPage() {
   };
 
   const getRiskLevel = (type: string) => {
-    switch (type) {
+    const norm = normalizeType(type);
+    switch (norm) {
       case 'roubo': return t('map.riskLevels.critical', 'Crítico');
       case 'zeladoria': return t('map.riskLevels.medium', 'Atenção');
       case 'suspeito': return t('map.riskLevels.high', 'Alto');
@@ -583,7 +595,8 @@ export function MapPage() {
   };
 
   const getLabel = (type: string) => {
-    switch (type) {
+    const norm = normalizeType(type);
+    switch (norm) {
       case 'roubo': return t('report.types.roubo', 'Roubo/Furto');
       case 'zeladoria': return t('report.types.zeladoria', 'Zeladoria / Risco');
       case 'suspeito': return t('report.types.suspeito', 'Atividade Suspeita');
@@ -597,9 +610,12 @@ export function MapPage() {
 
     return filteredReports.map((report) => {
       const isSelected = selectedLocation?.id === report.id;
-      const style = markerStyles[report.type] || markerStyles['outro'];
+      const normType = normalizeType(report.type);
+      const style = markerStyles[normType] || markerStyles['outro'];
       
-      // Temporal Decay Logic
+      // Temporal Decay Logic:
+      // - Ocorrências com mais de 24h: aplicam classe CSS 'grayscale' e opacidade reduzida, ficando em tons de cinza desbotados (alerta antigo/histórico)
+      // - Ocorrências recentes (<= 24h): exibem 100% das cores vivas e vibrantes da sua respectiva categoria
       const reportTime = report.createdAt?.toMillis ? report.createdAt.toMillis() : now;
       const ageInHours = (now - reportTime) / (1000 * 60 * 60);
       
@@ -607,12 +623,12 @@ export function MapPage() {
       let scaleClass = isSelected ? 'scale-125 z-40' : 'hover:scale-110 z-10';
 
       if (ageInHours > 24) {
-        // Older than 24h: Faded, smaller
-        opacityClass = 'opacity-50 grayscale';
-        scaleClass = isSelected ? 'scale-110 z-40' : 'scale-90 hover:scale-100 z-0';
+        // Mais de 24 horas: decaimento temporal em escala de cinza (grayscale)
+        opacityClass = 'opacity-70 grayscale';
+        scaleClass = isSelected ? 'scale-115 z-40' : 'scale-90 hover:scale-105 z-0';
       } else if (ageInHours > 2) {
-        // 2 to 24h: Slightly faded
-        opacityClass = 'opacity-85';
+        // Entre 2 e 24 horas: ocorrência do dia com cores vivas
+        opacityClass = 'opacity-95';
       }
 
       const isGroup = report.visibility === 'group';
@@ -631,7 +647,7 @@ export function MapPage() {
             className={`flex flex-col items-center cursor-pointer transition-all duration-300 ${scaleClass} ${opacityClass}`}
           >
             <div className={`relative w-8 h-8 rounded-full border-2 ${style.border} ${style.pinBg} ${style.shadow} flex items-center justify-center transition-all`}>
-              {getMarkerIcon(report.type)}
+              {getMarkerIcon(normType)}
               {isGroup && (
                 <span className="absolute -top-1 -right-1 text-[8px] bg-slate-900 border border-slate-700 rounded-full px-0.5 leading-none">🔒</span>
               )}
@@ -642,7 +658,7 @@ export function MapPage() {
             {/* Show badge ONLY when selected to avoid overlapping clutter on mobile */}
             {isSelected && (
               <span className="mt-1 text-[10px] font-bold text-white drop-shadow-md bg-slate-950/95 px-2 py-0.5 rounded-md border border-slate-700 whitespace-nowrap animate-fade-in pointer-events-none">
-                {isGroup ? `🔒 ${getLabel(report.type)}` : getLabel(report.type)}
+                {isGroup ? `🔒 ${getLabel(normType)}` : getLabel(normType)}
               </span>
             )}
           </div>
@@ -908,15 +924,12 @@ export function MapPage() {
         style={{ width: '100%', height: '100%' }}
         onError={(e) => console.warn('Mapbox warning:', e.error?.message || 'Erro no mapa')}
       >
-        {/* Custom User Location Marker (Você está aqui) */}
+        {/* Custom User Location Marker */}
         {userLocation && (
           <Marker longitude={userLocation.lng} latitude={userLocation.lat} anchor="center">
-            <div className="relative flex flex-col items-center justify-center pointer-events-none">
-              <div className="absolute w-10 h-10 bg-blue-500/25 rounded-full animate-ping" />
-              <div className="relative w-4 h-4 bg-blue-600 border-2 border-white rounded-full shadow-[0_0_14px_rgba(37,99,235,0.9)]" />
-              <span className="mt-1 text-[9px] font-bold text-blue-200 bg-slate-950/90 px-1.5 py-0.5 rounded-full border border-blue-500/40 shadow-sm backdrop-blur-sm whitespace-nowrap">
-                {t('map.youAreHere', 'Você')}
-              </span>
+            <div className="relative flex items-center justify-center">
+              <div className="absolute w-12 h-12 bg-blue-500/30 rounded-full animate-ping" />
+              <div className="relative w-4 h-4 bg-blue-500 border-[2px] border-white rounded-full shadow-[0_0_15px_rgba(59,130,246,0.8)]" />
             </div>
           </Marker>
         )}

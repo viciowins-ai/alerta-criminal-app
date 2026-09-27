@@ -276,6 +276,58 @@ export function ComoUsarPage({ lang = "pt" }: { lang?: string }) {
 
           <section className="bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-800 shadow-xl">
             <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-3">
+              {t("tutorial.pinColorsTitle")}
+            </h2>
+            <p
+              className="text-slate-400 leading-relaxed mb-6"
+              dangerouslySetInnerHTML={{ __html: t("tutorial.pinColorsDesc") }}
+            />
+            {/* Visual demo cards of category colors and decay */}
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-5 text-xs">
+              <div className="bg-slate-800/80 p-3 rounded-2xl border border-slate-700/80 flex flex-col items-center text-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-red-600 shadow-[0_0_12px_rgba(239,68,68,0.7)] border-2 border-white flex items-center justify-center text-white text-xs">
+                  🚨
+                </div>
+                <span className="font-bold text-red-400">{t("report.types.roubo", "Roubo/Furto")}</span>
+                <span className="text-[10px] text-emerald-400 font-medium">&lt; 24h: {t("tutorial.pinActive", "Cor viva")}</span>
+              </div>
+              <div className="bg-slate-800/80 p-3 rounded-2xl border border-slate-700/80 flex flex-col items-center text-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-orange-500 shadow-[0_0_12px_rgba(249,115,22,0.7)] border-2 border-white flex items-center justify-center text-white text-xs">
+                  👁️
+                </div>
+                <span className="font-bold text-orange-400">{t("report.types.suspeito", "Suspeito")}</span>
+                <span className="text-[10px] text-emerald-400 font-medium">&lt; 24h: {t("tutorial.pinActive", "Cor viva")}</span>
+              </div>
+              <div className="bg-slate-800/80 p-3 rounded-2xl border border-slate-700/80 flex flex-col items-center text-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-cyan-500 shadow-[0_0_12px_rgba(6,182,212,0.7)] border-2 border-white flex items-center justify-center text-white text-xs">
+                  ⚠️
+                </div>
+                <span className="font-bold text-cyan-400">{t("report.types.zeladoria", "Zeladoria / Risco")}</span>
+                <span className="text-[10px] text-emerald-400 font-medium">&lt; 24h: {t("tutorial.pinActive", "Cor viva")}</span>
+              </div>
+              <div className="bg-slate-800/80 p-3 rounded-2xl border border-slate-700/80 flex flex-col items-center text-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-yellow-400 shadow-[0_0_12px_rgba(234,179,8,0.7)] border-2 border-slate-900 flex items-center justify-center text-slate-900 text-xs font-bold">
+                  ⚡
+                </div>
+                <span className="font-bold text-yellow-400">{t("report.types.vandalismo", "Vandalismo")}</span>
+                <span className="text-[10px] text-emerald-400 font-medium">&lt; 24h: {t("tutorial.pinActive", "Cor viva")}</span>
+              </div>
+              <div className="bg-slate-800/80 p-3 rounded-2xl border border-slate-700/80 flex flex-col items-center text-center gap-2 col-span-2 sm:col-span-1">
+                <div className="w-8 h-8 rounded-full bg-slate-600 grayscale opacity-75 border-2 border-slate-400 flex items-center justify-center text-slate-300 text-xs">
+                  ⏱️
+                </div>
+                <span className="font-bold text-slate-400">{t("tutorial.pinDecayedTitle", "Histórico")}</span>
+                <span className="text-[10px] text-amber-400 font-medium">&gt; 24h: {t("tutorial.pinDecayed", "Cinza / Grayscale")}</span>
+              </div>
+            </div>
+            <div 
+              className="p-3.5 bg-slate-800/60 rounded-2xl border border-slate-700/60 text-xs sm:text-sm text-slate-300 leading-relaxed"
+              dangerouslySetInnerHTML={{ __html: t("tutorial.pinDecayNotice") }}
+            />
+          </section>
+
+          <section className="bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-800 shadow-xl">
+            <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-3">
               {t("tutorial.sosTitle")}
             </h2>
             <p className="text-slate-400 leading-relaxed mb-4">

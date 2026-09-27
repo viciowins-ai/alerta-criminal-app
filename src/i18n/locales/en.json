@@ -54,7 +54,13 @@
     "languageDesc": "At the top of the map (next to the search bar) and in the <strong>Profile > Settings > Language</strong> menu, tap the button with the flag and code (e.g. <strong>[🇺🇸] EN</strong>). A modal will open allowing you to choose between 7 languages: Portuguese, English, Spanish, French, Italian, Hindi, and Arabic. All screens, alerts, and buttons update in real time. Flags are rendered in crisp vector format (SVG) on both PC and mobile.",
     "filterTitle": "🌪️ How do Occurrence Filters and the Heatmap work?",
     "filterDesc": "In the top right corner of the map (next to the language button), tap the <strong>Funnel</strong> icon to open the filters menu. You can filter by incident category (<strong>Robbery/Theft, Suspicious Activity, Urban Hazard, Vandalism, or Other</strong>) and enable/disable the <strong>Heatmap</strong> (criminal heat gradient). When a filter is active, the funnel icon displays a bright blue border with an indicator dot. The Heatmap highlights high-recurrence danger zones with glowing orange and red tones.",
-    "availableLanguages": "Available languages:"
+    "availableLanguages": "Available languages:",
+    "pinColorsTitle": "📍 Pin Colors & 24-Hour Temporal Decay Rule",
+    "pinColorsDesc": "Pins on the map match the exact colors of the filter categories for instant recognition: <strong class=\"text-red-400\">Red</strong> for Robbery/Theft, <strong class=\"text-orange-400\">Orange</strong> for Suspicious Activity, <strong class=\"text-cyan-400\">Cyan</strong> for Urban Hazard, <strong class=\"text-yellow-400\">Yellow</strong> for Vandalism, and <strong class=\"text-slate-300\">Gray</strong> for Other. The pulsating blue dot represents solely your real-time GPS location.",
+    "pinActive": "Vibrant color",
+    "pinDecayedTitle": "Historical (> 24h)",
+    "pinDecayed": "Grayscale / Faded",
+    "pinDecayNotice": "<strong>⏱️ Temporal Decay Rule:</strong> Incidents reported within the <strong>first 24 hours</strong> display their full, bright category colors. After 24 hours, pins automatically turn to <em>grayscale</em> (faded gray). This lets you immediately distinguish recent live threats from older historical events without clutter or confusion."
   },
   "nav": {
     "map": "Map",

@@ -54,7 +54,13 @@
     "languageDesc": "En la parte superior del mapa (junto a la barra de búsqueda) y en el menú <strong>Perfil > Configuración > Idioma</strong>, toca el botão con la bandera y el código (ej: <strong>[🇪🇸] ES</strong>). Podrás elegir entre 7 idiomas: portugués, inglés, español, francés, italiano, hindi y árabe. Todas las pantallas, alertas y botones se traducen instantáneamente con banderas vectoriales nítidas en PC y móvil.",
     "filterTitle": "🌪️ ¿Cómo funcionan los Filtros de Incidentes y el Mapa de Calor?",
     "filterDesc": "En la esquina superior derecha del mapa (junto al botón de idioma), toca el botón de <strong>Embudo</strong> para abrir el menú de filtros. Puedes filtrar por categoría (<strong>Robo/Hurto, Actividad Sospechosa, Peligro Urbano, Vandalismo u Otro</strong>) y activar o desactivar la capa del <strong>Mapa de Calor</strong>. Cuando un filtro está activo, el icono muestra un borde azul con un punto indicador. El Mapa de Calor resalta las zonas de mayor peligro y reincidencia delictiva en tonos rojos y naranjas.",
-    "availableLanguages": "Idiomas disponibles:"
+    "availableLanguages": "Idiomas disponibles:",
+    "pinColorsTitle": "📍 Colores de Marcadores y Regla de Decaimiento Temporal (24 Horas)",
+    "pinColorsDesc": "Los marcadores en el mapa coinciden con los colores de los filtros para una identificación inmediata: <strong class=\"text-red-400\">Rojo</strong> para Robo/Hurto, <strong class=\"text-orange-400\">Naranja</strong> para Actividad Sospechosa, <strong class=\"text-cyan-400\">Cian</strong> para Peligro Urbano, <strong class=\"text-yellow-400\">Amarillo</strong> para Vandalismo y <strong class=\"text-slate-300\">Gris</strong> para Otro. El punto azul pulsante indica exclusivamente tu posición GPS en tiempo real.",
+    "pinActive": "Color vivo activo",
+    "pinDecayedTitle": "Histórico (> 24h)",
+    "pinDecayed": "Gris / Grayscale",
+    "pinDecayNotice": "<strong>⏱️ Regla de Decaimiento Temporal:</strong> Los incidentes reportados en las <strong>primeras 24 horas</strong> muestran sus colores vivos al 100%. Pasadas las 24 horas, el mapa aplica automáticamente escala de grises (<em>grayscale</em>), dejando el marcador desvaído. Así distingues al instante las alertas recientes del historial pasado."
   },
   "nav": {
     "map": "Mapa",

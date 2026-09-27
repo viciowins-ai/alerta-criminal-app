@@ -54,7 +54,13 @@
     "languageDesc": "No topo do mapa (ao lado da barra de busca) e no menu <strong>Perfil > Configurações > Idioma</strong>, toque no botão com a bandeira e sigla (ex: <strong>[🇧🇷] PT</strong>). Uma janela se abrirá permitindo escolher entre 7 idiomas: Português, Inglês, Espanhol, Francês, Italiano, Hindi e Árabe. Todas as telas, alertas e botões são traduzidos instantaneamente. As bandeiras são renderizadas em alta definição vetorial (SVG) no computador e no celular.",
     "filterTitle": "🌪️ Como funcionam os Filtros de Ocorrências e o Mapa de Calor?",
     "filterDesc": "No topo superior direito do mapa (ao lado do idioma), toque no botão de <strong>Funil</strong> para abrir o menu de filtros. Você pode filtrar por tipo de ocorrência (<strong>Roubo/Furto, Atividade Suspeita, Zeladoria / Risco, Vandalismo ou Outro</strong>) e ativar ou desativar a camada do <strong>Mapa de Calor</strong> (mancha térmica criminal). Quando um filtro está ativo, o botão do funil ganha uma borda azul brilhante com um ponto indicador luminoso. O Mapa de Calor destaca as zonas com maior reincidência de perigo em tons vermelhos e laranjas intensos.",
-    "availableLanguages": "Idiomas disponíveis:"
+    "availableLanguages": "Idiomas disponíveis:",
+    "pinColorsTitle": "📍 Cores dos Marcadores & Regra de Decaimento Temporal (24 Horas)",
+    "pinColorsDesc": "Os pinos no mapa possuem cores idênticas às dos botões de filtro para identificação imediata: <strong class=\"text-red-400\">Vermelho</strong> para Roubo/Furto, <strong class=\"text-orange-400\">Laranja</strong> para Atividade Suspeita, <strong class=\"text-cyan-400\">Ciano</strong> para Zeladoria / Risco, <strong class=\"text-yellow-400\">Amarelo</strong> para Vandalismo e <strong class=\"text-slate-300\">Cinza</strong> para Outro. O ponto azul pulsante representa exclusivamente a sua posição GPS em tempo real.",
+    "pinActive": "Cor viva ativa",
+    "pinDecayedTitle": "Histórico (> 24h)",
+    "pinDecayed": "Cinza / Grayscale",
+    "pinDecayNotice": "<strong>⏱️ Regra de Decaimento Temporal:</strong> Ocorrências registradas nas <strong>primeiras 24 horas</strong> exibem 100% de suas cores vivas plenas. Após 24 horas, o sistema aplica automaticamente a classe <em>grayscale</em> (escala de cinza), tornando o pino desbotado. Dessa forma, você sabe de imediato se o alerta é um perigo recente ou um registro histórico passado."
   },
   "nav": {
     "map": "Mapa",

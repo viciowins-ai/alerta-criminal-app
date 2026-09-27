@@ -61,6 +61,26 @@ export function TutorialPage() {
                 <p className="text-sm text-slate-300 leading-relaxed mb-3 bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/60">
                   <strong className="text-blue-400">Mídias no Mapa:</strong> Ao tocar em qualquer alerta no mapa, você pode visualizar as <strong>fotos e vídeos</strong> da ocorrência diretamente na janelinha! Toque na mídia para abri-la em tela cheia.
                 </p>
+
+                {/* Cores dos Marcadores & Decaimento Temporal */}
+                <div className="bg-slate-800/70 p-3.5 rounded-xl border border-slate-700/70 text-xs text-slate-300 space-y-2 mb-3">
+                  <div className="flex items-center gap-2 font-bold text-white">
+                    <span className="text-base">🎨</span>
+                    <span>Cores dos Marcadores & Regra de Decaimento Temporal (24 Horas):</span>
+                  </div>
+                  <p className="text-slate-300 leading-relaxed">
+                    Cada tipo de ocorrência no mapa possui uma cor correspondente ao filtro: <strong className="text-red-400">Vermelho</strong> (Roubo/Furto), <strong className="text-orange-400">Laranja</strong> (Atividade Suspeita), <strong className="text-cyan-400">Ciano</strong> (Zeladoria/Risco), <strong className="text-yellow-400">Amarelo</strong> (Vandalismo) e <strong className="text-slate-300">Cinza</strong> (Outro). O ponto azul pulsante indica exclusivamente a sua própria posição GPS em tempo real.
+                  </p>
+                  <div className="p-2.5 bg-slate-900/80 rounded-lg border border-slate-700/50 space-y-1.5">
+                    <div className="text-amber-300 font-bold flex items-center gap-1.5">
+                      <span>⏱️</span>
+                      <span>Por que alguns pinos aparecem em cinza desbotado (grayscale)?</span>
+                    </div>
+                    <p className="text-slate-400 leading-relaxed text-[11px]">
+                      O sistema aplica automaticamente a regra de <strong>Decaimento Temporal</strong>: ocorrências criadas nas últimas <strong>24 horas</strong> mantêm suas cores vivas plenas. Após 24 horas, o pino perde a cor e assume tons de cinza (<em>grayscale</em>) para sinalizar visualmente que já se trata de uma ocorrência histórica e não de um perigo imediato em andamento.
+                    </p>
+                  </div>
+                </div>
                 
                 <h4 className="text-xs font-bold text-slate-300 mb-2 uppercase">Controles no Topo do Mapa:</h4>
                 <ul className="text-sm text-slate-400 space-y-2 mb-3">
@@ -199,6 +219,16 @@ export function TutorialPage() {
                     <li><strong>Com o Mapa de Calor ativado:</strong> As regiões com maior concentração e reincidência de perigo brilham com núcleos térmicos em laranja e vermelho intenso, revelando imediatamente as manchas criminais da cidade.</li>
                     <li><strong>Com o Mapa de Calor desativado:</strong> O mapa fica despoluído, permitindo tocar confortavelmente nos pinos individuais para ver detalhes, fotos e vídeos de cada ocorrência.</li>
                   </ul>
+                </div>
+
+                <div className="mt-3 p-3 bg-slate-800/80 border border-slate-700/70 rounded-xl text-xs text-slate-300 space-y-1.5">
+                  <div className="flex items-center gap-2 font-bold text-white">
+                    <span>💡</span>
+                    <span>Sincronia de Cores & Decaimento Temporal no Mapa:</span>
+                  </div>
+                  <p className="text-slate-400 leading-relaxed text-[11px]">
+                    Cada botão do menu de filtros possui um círculo colorido correspondente à cor do seu pino no mapa. Alertas com <strong>menos de 24 horas</strong> exibem essas cores com intensidade máxima. Alertas com <strong>mais de 24 horas</strong> recebem o efeito <em>grayscale</em> (escala de cinza), ficando desbotados para que você identifique rapidamente o que é perigo recente e o que já faz parte do histórico arquivado.
+                  </p>
                 </div>
               </div>
             </div>

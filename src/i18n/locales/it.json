@@ -54,7 +54,13 @@
     "languageDesc": "In alto sulla mappa (accanto alla barra di ricerca) e nel menu <strong>Profilo > Impostazioni > Lingua</strong>, tocca il pulsante con la bandiera e il codice (es: <strong>[🇮🇹] IT</strong>). Scegli tra 7 lingue: portoghese, inglese, spagnolo, francese, italiano, hindi e arabo. Schermate e avvisi vengono tradotti in tempo reale con bandiere vettoriali ad alta definizione su PC e smartphone.",
     "filterTitle": "🌪️ Come funzionano i Filtri degli Incidenti e la Mappa Termica?",
     "filterDesc": "Nell'angolo in alto a destra della mappa (accanto al pulsante della lingua), tocca il pulsante a <strong>Imbuto</strong> per aprire il menu dei filtri. Puoi filtrare per categoria di evento (<strong>Rapina/Furto, Attività Sospetta, Pericolo Urbano, Vandalismo o Altro</strong>) e attivare/disattivare la <strong>Mappa Termica</strong>. Quando un filtro è attivo, l'icona dell'imbuto mostra un bordo blu con un punto indicatore luminoso.",
-    "availableLanguages": "Lingue disponibili:"
+    "availableLanguages": "Lingue disponibili:",
+    "pinColorsTitle": "📍 Colori dei Segnaposto e Regola di Decadimento Temporale (24 Ore)",
+    "pinColorsDesc": "I segnaposto sulla mappa corrispondono esattamente ai colori delle categorie dei filtri: <strong class=\"text-red-400\">Rosso</strong> per Rapina/Furto, <strong class=\"text-orange-400\">Arancione</strong> per Attività Sospetta, <strong class=\"text-cyan-400\">Ciano</strong> per Manutenzione / Rischio, <strong class=\"text-yellow-400\">Giallo</strong> per Vandalismo e <strong class=\"text-slate-300\">Grigio</strong> per Altro. Il punto blu pulsante indica esclusivamente la tua posizione GPS.",
+    "pinActive": "Colore brillante",
+    "pinDecayedTitle": "Archivio (> 24h)",
+    "pinDecayed": "Grigio / Grayscale",
+    "pinDecayNotice": "<strong>⏱️ Regola del Decadimento Temporale:</strong> Le segnalazioni registrate nelle <strong>prime 24 ore</strong> mostrano colori vividi e brillanti al 100%. Trascorse 24 ore, il segnaposto applica automaticamente una scala di grigi (<em>grayscale</em>), sbiadendo per indicare visivamente che si tratta di un evento storico e non di un'emergenza in corso."
   },
   "nav": {
     "map": "Mappa",
