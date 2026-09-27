@@ -158,7 +158,7 @@ export function ComoUsarPage({ lang = "pt" }: { lang?: string }) {
               </button>
 
               {isDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-56 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95">
+                <div className={`absolute mt-2 w-56 max-w-[calc(100vw-1.5rem)] bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95 ${lang === 'ar' ? 'left-0 right-auto' : 'right-0 left-auto'}`}>
                   <div className="text-[10px] font-bold text-slate-400 px-2.5 py-1 mb-1 uppercase tracking-wider border-b border-slate-800 flex items-center justify-between">
                     <span>Todos os Idiomas</span>
                     <span className="text-blue-400 font-mono">7 opções</span>
