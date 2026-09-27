@@ -1,6 +1,6 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ChevronDown } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import { useTranslation } from "react-i18next";
 import { FlagIcon } from "../components/FlagIcon";
@@ -17,10 +17,32 @@ const TUTORIAL_LANGUAGES = [
 
 export function ComoUsarPage({ lang = "pt" }: { lang?: string }) {
   const { t, i18n } = useTranslation();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const currentLangObj =
+    TUTORIAL_LANGUAGES.find((l) => l.code === lang) || TUTORIAL_LANGUAGES[0];
 
   useEffect(() => {
     i18n.changeLanguage(lang);
   }, [lang, i18n]);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsDropdownOpen(false);
+      }
+    }
+    if (isDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isDropdownOpen]);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-300 font-sans selection:bg-blue-500/30">
@@ -86,11 +108,12 @@ export function ComoUsarPage({ lang = "pt" }: { lang?: string }) {
             className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
-            <span className="font-medium">{t("tutorial.back")}</span>
+            <span className="font-medium hidden sm:inline">{t("tutorial.back")}</span>
+            <span className="font-medium sm:hidden">{t("common.back", "Voltar")}</span>
           </Link>
           <div className="flex items-center gap-3">
-            {/* Language Selector */}
-            <div className="flex items-center gap-1 bg-slate-800/80 p-1 rounded-xl border border-slate-700 text-xs overflow-x-auto max-w-[210px] xs:max-w-[280px] sm:max-w-none">
+            {/* Desktop / Tela Larga (>= 640px): Todos os 7 idiomas visíveis lado a lado sem corte */}
+            <div className="hidden sm:flex items-center gap-1 bg-slate-800/80 p-1 rounded-xl border border-slate-700 text-xs">
               {TUTORIAL_LANGUAGES.map((l) => (
                 <Link
                   key={l.code}
@@ -106,6 +129,61 @@ export function ComoUsarPage({ lang = "pt" }: { lang?: string }) {
                   <span>{l.code.toUpperCase()}</span>
                 </Link>
               ))}
+            </div>
+
+            {/* Mobile e Janela Compacta de PC (< 640px): Menu Dropdown com todos os 7 idiomas selecionáveis */}
+            <div className="relative sm:hidden" ref={dropdownRef}>
+              <button
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="flex items-center gap-1.5 bg-slate-800/90 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-xl border border-slate-700 text-xs font-bold transition-all shadow-sm active:scale-95"
+                title="Trocar idioma (7 disponíveis)"
+                aria-label="Trocar idioma"
+              >
+                <FlagIcon code={currentLangObj.flag} size="xs" />
+                <span>{currentLangObj.code.toUpperCase()}</span>
+                <span className="text-[10px] text-blue-400 font-mono">(7)</span>
+                <ChevronDown
+                  size={14}
+                  className={`text-slate-400 transition-transform duration-200 ${
+                    isDropdownOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+
+              {isDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-56 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95">
+                  <div className="text-[10px] font-bold text-slate-400 px-2.5 py-1 mb-1 uppercase tracking-wider border-b border-slate-800 flex items-center justify-between">
+                    <span>Todos os Idiomas</span>
+                    <span className="text-blue-400 font-mono">7 opções</span>
+                  </div>
+                  <div className="space-y-0.5">
+                    {TUTORIAL_LANGUAGES.map((l) => (
+                      <Link
+                        key={l.code}
+                        to={l.path}
+                        onClick={() => setIsDropdownOpen(false)}
+                        className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs transition-colors ${
+                          lang === l.code
+                            ? "bg-blue-600 text-white font-bold shadow"
+                            : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <FlagIcon code={l.flag} size="sm" />
+                          <span>{l.label}</span>
+                        </div>
+                        <span
+                          className={`text-[10px] uppercase font-mono font-bold ${
+                            lang === l.code ? "text-white" : "text-slate-500"
+                          }`}
+                        >
+                          {l.code}
+                        </span>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="hidden sm:flex items-center gap-2 pl-2 border-l border-slate-700">
