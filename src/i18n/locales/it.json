@@ -85,7 +85,19 @@
       "panic": "Modalità Panico (Schermo Nero)",
       "sos": "SOS Emergenza",
       "myLocation": "La Mia Posizione"
-    }
+    },
+    "gpsError": "Errore GPS",
+    "patrolCar": "Pattuglia",
+    "patrolMotorcycle": "Unità Tattica",
+    "byAuthor": "Da:",
+    "status": "Stato",
+    "statusVerified": "Verificato",
+    "statusPending": "In attesa",
+    "statusFake": "Falso",
+    "confirmAction": "Conferma",
+    "confirmedAction": "Confermato",
+    "share": "Condividi",
+    "delete": "Elimina"
   },
   "settings": {
     "title": "Impostazioni",
@@ -117,7 +129,7 @@
     "types": {
       "roubo": "Rapina / Furto",
       "suspeito": "Attività Sospetta",
-      "zeladoria": "Dissesto / Allagamento",
+      "zeladoria": "Manutenzione / Rischio",
       "vandalismo": "Vandalismo",
       "outro": "Altro"
     },
@@ -131,6 +143,7 @@
     "save": "Salva",
     "confirm": "Conferma",
     "back": "Indietro",
-    "offlineNotice": "Sei offline. L'applicazione continua a funzionare con i dati salvati."
+    "offlineNotice": "Sei offline. L'applicazione continua a funzionare con i dati salvati.",
+    "clear": "Cancella"
   }
 }

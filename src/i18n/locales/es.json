@@ -85,7 +85,19 @@
       "panic": "Modo Pánico (Pantalla Oscura)",
       "sos": "SOS Emergencia",
       "myLocation": "Mi Ubicación"
-    }
+    },
+    "gpsError": "Error de GPS",
+    "patrolCar": "Patrulla",
+    "patrolMotorcycle": "Unidad Táctica",
+    "byAuthor": "Por:",
+    "status": "Estado",
+    "statusVerified": "Verificado",
+    "statusPending": "Pendiente",
+    "statusFake": "Falso",
+    "confirmAction": "Confirmar",
+    "confirmedAction": "Confirmado",
+    "share": "Compartir",
+    "delete": "Eliminar"
   },
   "settings": {
     "title": "Configuración",
@@ -117,7 +129,7 @@
     "types": {
       "roubo": "Robo / Hurto",
       "suspeito": "Actividad Sospechosa",
-      "zeladoria": "Riesgo Urbano / Inundación",
+      "zeladoria": "Mantenimiento / Riesgo",
       "vandalismo": "Vandalismo",
       "outro": "Otro"
     },
@@ -131,6 +143,7 @@
     "save": "Guardar",
     "confirm": "Confirmar",
     "back": "Volver",
-    "offlineNotice": "Estás desconectado. La app sigue funcionando con datos guardados."
+    "offlineNotice": "Estás desconectado. La app sigue funcionando con datos guardados.",
+    "clear": "Limpiar"
   }
 }

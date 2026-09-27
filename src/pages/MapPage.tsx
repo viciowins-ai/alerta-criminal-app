@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import Map, { Source, Layer, Marker, MapRef } from 'react-map-gl/mapbox';
 import { AttachmentGallery } from '../components/AttachmentGallery';
-import { Search, Filter, ShieldAlert, Navigation, Building2, Landmark, Coffee, Train, LocateFixed, X, AlertCircle, ThumbsUp, Moon, ShieldCheck, Share2, MapPin, Play, Car, Bike, Globe, Siren, Eye, Flame, AlertTriangle } from 'lucide-react';
+import { Search, Filter, ShieldAlert, Navigation, Building2, Landmark, Coffee, Train, LocateFixed, X, AlertCircle, ThumbsUp, Moon, ShieldCheck, Share2, MapPin, Play, Car, Bike, Globe, Siren, Eye, Flame, AlertTriangle, Check } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { LanguageSelectorModal, SUPPORTED_LANGUAGES } from '../components/LanguageSelectorModal';
@@ -692,61 +692,123 @@ export function MapPage() {
             >
               <Filter size={18} />
               {activeFilter && (
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-blue-500 ring-2 ring-slate-900" />
+                <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-blue-500 ring-2 ring-slate-900 animate-pulse" />
               )}
             </button>
           
           {showFilters && (
-            <div className="absolute top-full right-0 mt-2 w-48 bg-slate-900 rounded-xl shadow-xl border border-slate-700/50 overflow-hidden z-50 animate-fade-in">
-              <div className="p-2 space-y-1">
-                <button
-                  onClick={() => { setActiveFilter(null); setShowFilters(false); }}
-                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${!activeFilter ? 'bg-blue-500/20 text-blue-400' : 'text-slate-300 hover:bg-slate-800'}`}
-                >
-                  {t('map.filters.all', 'Todos os Alertas')}
-                </button>
-                <button
-                  onClick={() => { setActiveFilter('roubo'); setShowFilters(false); }}
-                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${activeFilter === 'roubo' ? 'bg-red-500/20 text-red-400' : 'text-slate-300 hover:bg-slate-800'}`}
-                >
-                  {t('report.types.roubo', 'Roubo/Furto')}
-                </button>
-                <button
-                  onClick={() => { setActiveFilter('suspeito'); setShowFilters(false); }}
-                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${activeFilter === 'suspeito' ? 'bg-orange-500/20 text-orange-400' : 'text-slate-300 hover:bg-slate-800'}`}
-                >
-                  {t('report.types.suspeito', 'Atividade Suspeita')}
-                </button>
-                <button
-                  onClick={() => { setActiveFilter('zeladoria'); setShowFilters(false); }}
-                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${activeFilter === 'zeladoria' ? 'bg-cyan-500/20 text-cyan-400' : 'text-slate-300 hover:bg-slate-800'}`}
-                >
-                  {t('report.types.zeladoria', 'Zeladoria / Risco')}
-                </button>
-                <button
-                  onClick={() => { setActiveFilter('vandalismo'); setShowFilters(false); }}
-                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${activeFilter === 'vandalismo' ? 'bg-yellow-500/20 text-yellow-400' : 'text-slate-300 hover:bg-slate-800'}`}
-                >
-                  {t('report.types.vandalismo', 'Vandalismo')}
-                </button>
-                <button
-                  onClick={() => { setActiveFilter('outro'); setShowFilters(false); }}
-                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${activeFilter === 'outro' ? 'bg-slate-500/20 text-slate-400' : 'text-slate-300 hover:bg-slate-800'}`}
-                >
-                  {t('report.types.outro', 'Outro')}
-                </button>
-                <div className="h-px w-full bg-slate-700/50 my-1" />
-                <button
-                  onClick={() => { setShowHeatmap(!showHeatmap); setShowFilters(false); }}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${showHeatmap ? 'bg-purple-500/20 text-purple-400' : 'text-slate-300 hover:bg-slate-800'}`}
-                >
-                  <span>{t('map.filters.heatmap', 'Mapa de Calor')}</span>
-                  <div className={`w-8 h-4 rounded-full transition-colors relative ${showHeatmap ? 'bg-purple-500' : 'bg-slate-600'}`}>
-                    <div className={`w-3 h-3 bg-white rounded-full absolute top-0.5 transition-transform ${showHeatmap ? 'translate-x-4.5 left-0.5' : 'left-0.5'}`} />
+            <>
+              {/* Invisible backdrop to dismiss when tapping outside */}
+              <div 
+                className="fixed inset-0 z-40 bg-black/20" 
+                onClick={() => setShowFilters(false)} 
+              />
+              
+              <div className="absolute top-full right-0 mt-2 w-64 sm:w-72 bg-slate-900/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-700/70 overflow-hidden z-50 animate-fade-in divide-y divide-slate-800/80">
+                {/* Header with Title and Clear button */}
+                <div className="px-3.5 py-2.5 flex items-center justify-between bg-slate-950/40">
+                  <div className="flex items-center gap-2">
+                    <Filter size={14} className="text-blue-400" />
+                    <span className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                      {t('map.filters.title', 'Filtros')}
+                    </span>
                   </div>
-                </button>
+                  {activeFilter && (
+                    <button
+                      onClick={() => { setActiveFilter(null); setShowFilters(false); }}
+                      className="text-[11px] font-semibold text-blue-400 hover:text-blue-300 transition-colors"
+                    >
+                      {t('common.clear', 'Limpar')}
+                    </button>
+                  )}
+                </div>
+
+                {/* Filter Items */}
+                <div className="p-1.5 space-y-0.5">
+                  <button
+                    onClick={() => { setActiveFilter(null); setShowFilters(false); }}
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all ${!activeFilter ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30' : 'text-slate-300 hover:bg-slate-800/80 border border-transparent'}`}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="w-2.5 h-2.5 rounded-full bg-blue-400 shrink-0" />
+                      <span className="truncate">{t('map.filters.all', 'Todos os Alertas')}</span>
+                    </div>
+                    {!activeFilter && <Check size={16} className="text-blue-400 shrink-0 ml-2" />}
+                  </button>
+
+                  <button
+                    onClick={() => { setActiveFilter('roubo'); setShowFilters(false); }}
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all ${activeFilter === 'roubo' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'text-slate-300 hover:bg-slate-800/80 border border-transparent'}`}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="w-2.5 h-2.5 rounded-full bg-red-500 shrink-0 shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
+                      <span className="truncate">{t('report.types.roubo', 'Roubo/Furto')}</span>
+                    </div>
+                    {activeFilter === 'roubo' && <Check size={16} className="text-red-400 shrink-0 ml-2" />}
+                  </button>
+
+                  <button
+                    onClick={() => { setActiveFilter('suspeito'); setShowFilters(false); }}
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all ${activeFilter === 'suspeito' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'text-slate-300 hover:bg-slate-800/80 border border-transparent'}`}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="w-2.5 h-2.5 rounded-full bg-orange-500 shrink-0 shadow-[0_0_8px_rgba(249,115,22,0.5)]" />
+                      <span className="truncate">{t('report.types.suspeito', 'Atividade Suspeita')}</span>
+                    </div>
+                    {activeFilter === 'suspeito' && <Check size={16} className="text-orange-400 shrink-0 ml-2" />}
+                  </button>
+
+                  <button
+                    onClick={() => { setActiveFilter('zeladoria'); setShowFilters(false); }}
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all ${activeFilter === 'zeladoria' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'text-slate-300 hover:bg-slate-800/80 border border-transparent'}`}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 shrink-0 shadow-[0_0_8px_rgba(6,182,212,0.5)]" />
+                      <span className="truncate">{t('report.types.zeladoria', 'Zeladoria / Risco')}</span>
+                    </div>
+                    {activeFilter === 'zeladoria' && <Check size={16} className="text-cyan-400 shrink-0 ml-2" />}
+                  </button>
+
+                  <button
+                    onClick={() => { setActiveFilter('vandalismo'); setShowFilters(false); }}
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all ${activeFilter === 'vandalismo' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' : 'text-slate-300 hover:bg-slate-800/80 border border-transparent'}`}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="w-2.5 h-2.5 rounded-full bg-yellow-400 shrink-0 shadow-[0_0_8px_rgba(234,179,8,0.5)]" />
+                      <span className="truncate">{t('report.types.vandalismo', 'Vandalismo')}</span>
+                    </div>
+                    {activeFilter === 'vandalismo' && <Check size={16} className="text-yellow-400 shrink-0 ml-2" />}
+                  </button>
+
+                  <button
+                    onClick={() => { setActiveFilter('outro'); setShowFilters(false); }}
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all ${activeFilter === 'outro' ? 'bg-slate-500/20 text-slate-300 border border-slate-500/30' : 'text-slate-300 hover:bg-slate-800/80 border border-transparent'}`}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="w-2.5 h-2.5 rounded-full bg-slate-400 shrink-0" />
+                      <span className="truncate">{t('report.types.outro', 'Outro')}</span>
+                    </div>
+                    {activeFilter === 'outro' && <Check size={16} className="text-slate-300 shrink-0 ml-2" />}
+                  </button>
+                </div>
+
+                {/* Heatmap Section */}
+                <div className="p-1.5 bg-slate-950/30">
+                  <button
+                    onClick={() => { setShowHeatmap(!showHeatmap); setShowFilters(false); }}
+                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all ${showHeatmap ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' : 'text-slate-300 hover:bg-slate-800/80 border border-transparent'}`}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <Flame size={16} className={showHeatmap ? "text-purple-400 shrink-0" : "text-slate-400 shrink-0"} />
+                      <span className="truncate font-semibold">{t('map.filters.heatmap', 'Mapa de Calor')}</span>
+                    </div>
+                    <div className={`w-9 h-5 rounded-full transition-colors relative shrink-0 ml-2 ${showHeatmap ? 'bg-purple-600' : 'bg-slate-700'}`}>
+                      <div className={`w-3.5 h-3.5 bg-white rounded-full absolute top-[3px] transition-transform duration-200 ${showHeatmap ? 'translate-x-4 left-1' : 'left-1'}`} />
+                    </div>
+                  </button>
+                </div>
               </div>
-            </div>
+            </>
           )}
           </div>
         </div>
@@ -755,7 +817,7 @@ export function MapPage() {
       {/* Error Toast */}
       {geoError && (
         <div className="absolute top-20 left-4 right-4 z-50 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded shadow-md animate-fade-in">
-          <p className="font-bold">Erro de GPS</p>
+          <p className="font-bold">{t('map.gpsError', 'Erro de GPS')}</p>
           <p className="text-sm">{geoError}</p>
         </div>
       )}
@@ -837,7 +899,7 @@ export function MapPage() {
                   )}
                 </div>
                 <span className="mt-1 bg-slate-900/90 text-blue-400 text-[9px] font-bold px-2 py-0.5 rounded border border-blue-500/50 uppercase">
-                  {patrol.vehicleType === 'motorcycle' ? 'Tático' : 'Viatura'}
+                  {patrol.vehicleType === 'motorcycle' ? t('map.patrolMotorcycle', 'Tático Móvel') : t('map.patrolCar', 'Viatura')}
                 </span>
               </div>
             </Marker>
@@ -931,17 +993,17 @@ export function MapPage() {
                 {selectedLocation.authorName && (
                   <>
                     <div className="w-1 h-1 rounded-full bg-slate-600" />
-                    <p className="text-sm text-slate-400 font-medium">Por: <span className="text-white">{selectedLocation.authorName}</span></p>
+                    <p className="text-sm text-slate-400 font-medium">{t('map.byAuthor', 'Por:')} <span className="text-white">{selectedLocation.authorName}</span></p>
                   </>
                 )}
               </div>
             </div>
             <div className="bg-slate-900/50 border border-white/5 rounded-xl p-2 text-center min-w-[4rem] shrink-0">
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Status</p>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">{t('map.status', 'Status')}</p>
               <p className={`text-sm font-black leading-none ${
                 selectedLocation.status === 'verified' ? 'text-green-500' :
                 selectedLocation.status === 'pending' ? 'text-yellow-500' : 'text-red-500'
-              }`}>{selectedLocation.status === 'verified' ? 'Verificado' : selectedLocation.status === 'pending' ? 'Pendente' : 'Falso'}</p>
+              }`}>{selectedLocation.status === 'verified' ? t('map.statusVerified', 'Verificado') : selectedLocation.status === 'pending' ? t('map.statusPending', 'Pendente') : t('map.statusFake', 'Falso')}</p>
             </div>
           </div>
           
@@ -964,7 +1026,7 @@ export function MapPage() {
               <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white shadow-lg active:scale-95 transition-transform">
                 <Navigation size={18} />
               </div>
-              <span className="text-[11px] font-bold text-blue-500">Rotas</span>
+              <span className="text-[11px] font-bold text-blue-500">{t('nav.routes', 'Rotas')}</span>
             </button>
             <button 
               onClick={() => handleUpvote(selectedLocation.id)}
@@ -978,7 +1040,7 @@ export function MapPage() {
                 <ThumbsUp size={18} className={selectedLocation.upvotedBy?.includes(user?.uid) ? 'fill-current' : ''} />
               </div>
               <span className={`text-[11px] font-bold ${selectedLocation.upvotedBy?.includes(user?.uid) ? 'text-blue-400' : 'text-slate-300'}`}>
-                {selectedLocation.upvotedBy?.includes(user?.uid) ? 'Confirmado' : 'Confirmar'}
+                {selectedLocation.upvotedBy?.includes(user?.uid) ? t('map.confirmedAction', 'Confirmado') : t('map.confirmAction', 'Confirmar')}
               </span>
             </button>
             <button 
@@ -988,7 +1050,7 @@ export function MapPage() {
               <div className="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-white shadow-lg active:scale-95 transition-transform">
                 <Share2 size={18} />
               </div>
-              <span className="text-[11px] font-bold text-slate-300">Compartilhar</span>
+              <span className="text-[11px] font-bold text-slate-300">{t('map.share', 'Compartilhar')}</span>
             </button>
             {(user?.uid === selectedLocation.authorId || user?.email === 'viciowins@gmail.com') && (
               <button 
@@ -998,7 +1060,7 @@ export function MapPage() {
                 <div className="w-10 h-10 rounded-full bg-slate-800 border border-red-500/50 flex items-center justify-center text-red-500 shadow-lg active:scale-95 transition-transform">
                   <X size={18} />
                 </div>
-                <span className="text-[11px] font-bold text-red-500">Excluir</span>
+                <span className="text-[11px] font-bold text-red-500">{t('map.delete', 'Excluir')}</span>
               </button>
             )}
           </div>

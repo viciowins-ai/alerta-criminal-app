@@ -85,7 +85,19 @@
       "panic": "وضع الذعر (الشاشة المظلمة)",
       "sos": "استغاثة طارئة SOS",
       "myLocation": "موقعي الحالي"
-    }
+    },
+    "gpsError": "خطأ في نظام GPS",
+    "patrolCar": "دورية أمنية",
+    "patrolMotorcycle": "وحدة تكتيكية",
+    "byAuthor": "بواسطة:",
+    "status": "الحالة",
+    "statusVerified": "تم التحقق",
+    "statusPending": "قيد الانتظار",
+    "statusFake": "كاذب",
+    "confirmAction": "تأكيد",
+    "confirmedAction": "تم التأكيد",
+    "share": "مشاركة",
+    "delete": "حذف"
   },
   "settings": {
     "title": "الإعدادات",
@@ -117,7 +129,7 @@
     "types": {
       "roubo": "سطو / سرقة",
       "suspeito": "نشاط مشبوه",
-      "zeladoria": "مخاطر وسيول",
+      "zeladoria": "مخاطر حضرية / صيانة",
       "vandalismo": "تخريب",
       "outro": "أخرى"
     },
@@ -131,6 +143,7 @@
     "save": "حفظ",
     "confirm": "تأكيد",
     "back": "رجوع",
-    "offlineNotice": "أنت غير متصل بالإنترنت. يواصل التطبيق العمل بالبيانات المحفوظة."
+    "offlineNotice": "أنت غير متصل بالإنترنت. يواصل التطبيق العمل بالبيانات المحفوظة.",
+    "clear": "مسح"
   }
 }

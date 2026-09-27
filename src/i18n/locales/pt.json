@@ -85,7 +85,19 @@
       "panic": "Modo Pânico (Tela Escura)",
       "sos": "SOS Emergência",
       "myLocation": "Minha Localização"
-    }
+    },
+    "gpsError": "Erro de GPS",
+    "patrolCar": "Viatura",
+    "patrolMotorcycle": "Tático Móvel",
+    "byAuthor": "Por:",
+    "status": "Status",
+    "statusVerified": "Verificado",
+    "statusPending": "Pendente",
+    "statusFake": "Falso",
+    "confirmAction": "Confirmar",
+    "confirmedAction": "Confirmado",
+    "share": "Compartilhar",
+    "delete": "Excluir"
   },
   "settings": {
     "title": "Configurações",
@@ -131,6 +143,7 @@
     "save": "Salvar",
     "confirm": "Confirmar",
     "back": "Voltar",
-    "offlineNotice": "Você está offline. O app continua funcionando com dados salvos."
+    "offlineNotice": "Você está offline. O app continua funcionando com dados salvos.",
+    "clear": "Limpar"
   }
 }

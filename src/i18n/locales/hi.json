@@ -85,7 +85,19 @@
       "panic": "पैनिक मोड (ब्लैक स्क्रीन)",
       "sos": "आपातकालीन एसओएस",
       "myLocation": "मेरा स्थान"
-    }
+    },
+    "gpsError": "जीपीएस त्रुटि",
+    "patrolCar": "गश्ती वाहन",
+    "patrolMotorcycle": "सामरिक इकाई",
+    "byAuthor": "द्वारा:",
+    "status": "स्थिति",
+    "statusVerified": "सत्यापित",
+    "statusPending": "लंबित",
+    "statusFake": "फ़र्ज़ी",
+    "confirmAction": "पुष्टि करें",
+    "confirmedAction": "पुष्टि की गई",
+    "share": "साझा करें",
+    "delete": "हटाएं"
   },
   "settings": {
     "title": "सेटिंग्स",
@@ -117,7 +129,7 @@
     "types": {
       "roubo": "डकैती / चोरी",
       "suspeito": "संदिग्ध गतिविधि",
-      "zeladoria": "नागरिक जोखिम / जलभराव",
+      "zeladoria": "शहरी जोखिम / रखरखाव",
       "vandalismo": "बर्बरता (Vandalism)",
       "outro": "अन्य"
     },
@@ -131,6 +143,7 @@
     "save": "सहेजें",
     "confirm": "पुष्टि करें",
     "back": "वापस",
-    "offlineNotice": "आप ऑफ़लाइन हैं। ऐप सहेजे गए डेटा के साथ काम करना जारी रखता है।"
+    "offlineNotice": "आप ऑफ़लाइन हैं। ऐप सहेजे गए डेटा के साथ काम करना जारी रखता है।",
+    "clear": "साफ़ करें"
   }
 }

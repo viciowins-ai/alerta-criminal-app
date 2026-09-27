@@ -25,6 +25,13 @@ export function ComoUsarPage({ lang = "pt" }: { lang?: string }) {
 
   useEffect(() => {
     i18n.changeLanguage(lang);
+    localStorage.setItem("i18nextLng", lang);
+    document.documentElement.lang = lang;
+    if (lang === "ar") {
+      document.documentElement.dir = "rtl";
+    } else {
+      document.documentElement.dir = "ltr";
+    }
   }, [lang, i18n]);
 
   useEffect(() => {
@@ -104,7 +111,7 @@ export function ComoUsarPage({ lang = "pt" }: { lang?: string }) {
       <header className="sticky top-0 z-50 bg-slate-900/90 backdrop-blur-md border-b border-slate-800">
         <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link
-            to="/app"
+            to="/"
             className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />

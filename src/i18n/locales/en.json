@@ -85,7 +85,19 @@
       "panic": "Panic Mode (Black Screen)",
       "sos": "Emergency SOS",
       "myLocation": "My Location"
-    }
+    },
+    "gpsError": "GPS Error",
+    "patrolCar": "Patrol Car",
+    "patrolMotorcycle": "Tactical Unit",
+    "byAuthor": "By:",
+    "status": "Status",
+    "statusVerified": "Verified",
+    "statusPending": "Pending",
+    "statusFake": "False",
+    "confirmAction": "Confirm",
+    "confirmedAction": "Confirmed",
+    "share": "Share",
+    "delete": "Delete"
   },
   "settings": {
     "title": "Settings",
@@ -117,7 +129,7 @@
     "types": {
       "roubo": "Robbery / Theft",
       "suspeito": "Suspicious Activity",
-      "zeladoria": "City Risk / Flooding",
+      "zeladoria": "Urban Hazard / Maintenance",
       "vandalismo": "Vandalism",
       "outro": "Other"
     },
@@ -131,6 +143,7 @@
     "save": "Save",
     "confirm": "Confirm",
     "back": "Back",
-    "offlineNotice": "You are offline. The app continues working with cached data."
+    "offlineNotice": "You are offline. The app continues working with cached data.",
+    "clear": "Clear"
   }
 }

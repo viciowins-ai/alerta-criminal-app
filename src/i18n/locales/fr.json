@@ -85,7 +85,19 @@
       "panic": "Mode Panique (Écran Noir)",
       "sos": "SOS Urgence",
       "myLocation": "Ma Position"
-    }
+    },
+    "gpsError": "Erreur GPS",
+    "patrolCar": "Patrouille",
+    "patrolMotorcycle": "Unité Tactique",
+    "byAuthor": "Par :",
+    "status": "Statut",
+    "statusVerified": "Vérifié",
+    "statusPending": "En attente",
+    "statusFake": "Faux",
+    "confirmAction": "Confirmer",
+    "confirmedAction": "Confirmé",
+    "share": "Partager",
+    "delete": "Supprimer"
   },
   "settings": {
     "title": "Paramètres",
@@ -117,7 +129,7 @@
     "types": {
       "roubo": "Vol / Agression",
       "suspeito": "Activité Suspecte",
-      "zeladoria": "Voirie / Inondation",
+      "zeladoria": "Voirie / Risque",
       "vandalismo": "Vandalisme",
       "outro": "Autre"
     },
@@ -131,6 +143,7 @@
     "save": "Enregistrer",
     "confirm": "Confirmer",
     "back": "Retour",
-    "offlineNotice": "Vous êtes hors ligne. L'application continue avec les données sauvegardées."
+    "offlineNotice": "Vous êtes hors ligne. L'application continue avec les données sauvegardées.",
+    "clear": "Effacer"
   }
 }
