@@ -143,19 +143,19 @@
     "trustPoints": "Punti Fiducia"
   },
   "report": {
-    "title": "Segnala Evento",
-    "selectType": "Seleziona il tipo",
+    "title": "Reportar Ocorrência",
+    "selectType": "Tipo de Ocorrência",
     "types": {
-      "roubo": "Rapina / Furto",
-      "suspeito": "Attività Sospetta",
-      "zeladoria": "Manutenzione / Rischio",
+      "roubo": "Roubo / Furto",
+      "suspeito": "Atividade Suspeita",
+      "zeladoria": "Zeladoria / Risco",
       "vandalismo": "Vandalismo",
-      "outro": "Altro"
+      "outro": "Outro"
     },
-    "submit": "Pubblica Segnalazione",
-    "anonymous": "Pubblica in forma anonima",
-    "public": "Avviso Pubblico",
-    "private": "Gruppo Privato"
+    "submit": "Publicar Ocorrência",
+    "anonymous": "Publicar como Anônimo",
+    "public": "Alerta Público",
+    "private": "Grupo Privado"
   },
   "common": {
     "close": "Chiudi",

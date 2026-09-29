@@ -29,9 +29,21 @@ const COLOR_MAP: Record<string, any> = {
 };
 
 export function ReportPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAuth();
+
+  // Garante que a tela de reporte esteja sempre no idioma oficial (Português) a menos que o usuário tenha configurado explicitamente
+  useEffect(() => {
+    const explicit = localStorage.getItem('appUserLanguage');
+    if (!explicit || explicit === 'it' || i18n.language === 'it') {
+      i18n.changeLanguage('pt');
+      try {
+        localStorage.setItem('i18nextLng', 'pt');
+        localStorage.setItem('appUserLanguage', 'pt');
+      } catch (e) {}
+    }
+  }, [i18n]);
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [description, setDescription] = useState('');
   const [isAnonymous, setIsAnonymous] = useState(false);
