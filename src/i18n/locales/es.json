@@ -174,7 +174,7 @@
     "attachmentsTitle": "Adjuntos (Opcional)",
     "takePhoto": "Tomar Foto",
     "recordVideo": "Grabar Video",
-    "legalNotice": "⚠️ Por razones legales, evite filmar rostos de terceros y matrículas de vehículos policiales.",
+    "legalNotice": "⚠️ Por motivos legales, evite filmar rostros de terceros y matrículas de vehículos policiales.",
     "visibilityTitle": "Visibilidad de la Alerta",
     "publicAll": "Público (Todos)",
     "privateNetwork": "Red Privada",
@@ -190,6 +190,13 @@
     "anonymous": "Publicar como Anónimo",
     "public": "Alerta Pública",
     "private": "Grupo Privado"
+  },
+  "blur": {
+    "title": "Desenfocar Rostros",
+    "hint": "Pasa el dedo sobre las personas y matrículas de patrullas para desenfocarlas.",
+    "loading": "Cargando imagen...",
+    "brushSize": "Tamaño del Pincel",
+    "undo": "Deshacer"
   },
   "common": {
     "close": "Cerrar",

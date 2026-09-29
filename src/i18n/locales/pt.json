@@ -191,6 +191,13 @@
     "public": "Alerta Público",
     "private": "Grupo Privado"
   },
+  "blur": {
+    "title": "Censurar Rostos",
+    "hint": "Passe o dedo nas pessoas e nas placas de viaturas para desfocá-las.",
+    "loading": "Carregando imagem...",
+    "brushSize": "Tamanho do Desfoque",
+    "undo": "Desfazer"
+  },
   "common": {
     "close": "Fechar",
     "save": "Salvar",

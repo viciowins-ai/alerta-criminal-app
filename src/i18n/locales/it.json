@@ -191,6 +191,13 @@
     "public": "Avviso Pubblico",
     "private": "Gruppo Privato"
   },
+  "blur": {
+    "title": "Censura Volti",
+    "hint": "Passa il dito sulle persone e sulle targhe per sfocarle.",
+    "loading": "Caricamento immagine...",
+    "brushSize": "Dimensione Pennello",
+    "undo": "Annulla"
+  },
   "common": {
     "close": "Chiudi",
     "save": "Salva",

@@ -191,6 +191,13 @@
     "public": "Public Alert",
     "private": "Private Group"
   },
+  "blur": {
+    "title": "Blur Faces",
+    "hint": "Slide your finger over people and license plates to blur them.",
+    "loading": "Loading image...",
+    "brushSize": "Brush Size",
+    "undo": "Undo"
+  },
   "common": {
     "close": "Close",
     "save": "Save",

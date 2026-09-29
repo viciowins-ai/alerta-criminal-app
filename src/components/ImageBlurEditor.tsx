@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { X, Check, Droplet, Undo, Info } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface ImageBlurEditorProps {
   file: File;
@@ -8,6 +9,7 @@ interface ImageBlurEditorProps {
 }
 
 export function ImageBlurEditor({ file, onSave, onCancel }: ImageBlurEditorProps) {
+  const { t } = useTranslation();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const blurCanvasRef = useRef<HTMLCanvasElement>(null);
   const [image, setImage] = useState<HTMLImageElement | null>(null);
@@ -149,7 +151,7 @@ export function ImageBlurEditor({ file, onSave, onCancel }: ImageBlurEditorProps
           <X size={24} />
         </button>
         <span className="text-white font-semibold flex items-center gap-2">
-          <Droplet size={18} className="text-blue-400" /> Censurar Rostos
+          <Droplet size={18} className="text-blue-400" /> {t('blur.title', 'Censurar Rostos')}
         </span>
         <button onClick={handleSave} className="p-2 text-blue-400 hover:text-blue-300 rounded-full hover:bg-blue-500/10 transition-colors">
           <Check size={24} />
@@ -159,7 +161,7 @@ export function ImageBlurEditor({ file, onSave, onCancel }: ImageBlurEditorProps
       {/* Warning */}
       <div className="w-full bg-blue-900/30 border-b border-blue-900/50 p-3 flex gap-3 items-center justify-center text-blue-200 text-xs sm:text-sm shadow-inner">
         <Info size={16} className="text-blue-400 shrink-0" />
-        <p>Passe o dedo nas pessoas e nas placas de viaturas para desfocá-las.</p>
+        <p>{t('blur.hint', 'Passe o dedo nas pessoas e nas placas de viaturas para desfocá-las.')}</p>
       </div>
 
       {/* Canvas Container */}
@@ -168,7 +170,7 @@ export function ImageBlurEditor({ file, onSave, onCancel }: ImageBlurEditorProps
         className="flex-1 w-full h-full flex items-center justify-center p-4 overflow-hidden relative touch-none"
       >
         {!image && (
-          <div className="absolute text-slate-400 animate-pulse">Carregando imagem...</div>
+          <div className="absolute text-slate-400 animate-pulse">{t('blur.loading', 'Carregando imagem...')}</div>
         )}
         <canvas
           ref={canvasRef}
@@ -197,7 +199,7 @@ export function ImageBlurEditor({ file, onSave, onCancel }: ImageBlurEditorProps
         </button>
         
         <div className="flex-1 flex flex-col items-center gap-2 max-w-[200px]">
-          <span className="text-xs text-slate-400">Tamanho do Desfoque</span>
+          <span className="text-xs text-slate-400">{t('blur.brushSize', 'Tamanho do Desfoque')}</span>
           <input 
             type="range" 
             min="10" 
