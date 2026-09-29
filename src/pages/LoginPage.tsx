@@ -96,7 +96,9 @@ export function LoginPage() {
       <div className="relative z-10 flex-1 flex flex-col items-center justify-end max-w-sm mx-auto w-full pb-0 pt-8 animate-in fade-in slide-in-from-bottom-8 duration-1000">
         <Logo className="w-32 h-32 mb-1" />
         <p className="text-slate-200 text-center mb-3 text-sm leading-relaxed font-medium drop-shadow-md">
-          Sua comunidade mais segura. Junte-se a milhares de guardiões.
+          Sua comunidade mais segura começa com você.
+          <br />
+          Faça parte desde o início.
         </p>
 
         {inAppDetected && (
