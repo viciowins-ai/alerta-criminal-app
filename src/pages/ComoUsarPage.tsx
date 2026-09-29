@@ -324,7 +324,7 @@ export function ComoUsarPage({ lang = "pt" }: { lang?: string }) {
                   ⏱️
                 </div>
                 <span className="font-bold text-slate-400">{t("tutorial.pinDecayedTitle", "Histórico")}</span>
-                <span className="text-[10px] text-amber-400 font-medium">&gt; 24h: {t("tutorial.pinDecayed", "Cinza / Grayscale")}</span>
+                <span className="text-[10px] text-amber-400 font-medium">&gt; 24h: {t("tutorial.pinDecayed", "Cinza (Histórico)")}</span>
               </div>
             </div>
             <div 
