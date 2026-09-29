@@ -60,7 +60,14 @@
     "pinActive": "Color vivo activo",
     "pinDecayedTitle": "Histórico (> 24h)",
     "pinDecayed": "Gris / Grayscale",
-    "pinDecayNotice": "<strong>⏱️ Regla de Decaimiento Temporal:</strong> Los incidentes reportados en las <strong>primeras 24 horas</strong> muestran sus colores vivos al 100%. Pasadas las 24 horas, el mapa aplica automáticamente escala de grises (<em>grayscale</em>), dejando el marcador desvaído. Así distingues al instante las alertas recientes del historial pasado."
+    "pinDecayNotice": "<strong>⏱️ Regla de Decaimiento Temporal:</strong> Los incidentes reportados en las <strong>primeras 24 horas</strong> muestran sus colores vivos al 100%. Pasadas las 24 horas, el mapa aplica automáticamente escala de grises (<em>grayscale</em>), dejando el marcador desvaído. Así distingues al instante las alertas recientes del historial pasado.",
+    "pinSyncTitle": "Sincronía de Colores y Decaimiento Temporal en el Mapa:",
+    "pinSyncDesc": "Cada botón del menú de filtros tiene un círculo de color que coincide con su marcador en el mapa. Las alertas con <strong>menos de 24 horas</strong> muestran colores vivos con máxima intensidad. Las alertas con <strong>más de 24 horas</strong> reciben el efecto <em>grayscale</em> (escala de grises), quedando desvaídas para diferenciar rápidamente los peligros recientes del historial archivado.",
+    "controlsTopTitle": "Controles en la Parte Superior del Mapa:",
+    "actionButtonsTitle": "Botones Flotantes de Acción (Derecha):",
+    "categoriesTitle": "Categorías Disponibles en el Menú de Filtros:",
+    "heatmapLayerTitle": "Capa del Mapa de Calor (Puntos Calientes de Delincuencia):",
+    "visualGuideTitle": "Guía de Uso y Tutorial"
   },
   "nav": {
     "map": "Mapa",
@@ -131,7 +138,9 @@
     "notifications": "Notificaciones",
     "help": "Centro de Ayuda",
     "settings": "Configuración",
-    "language": "Idioma"
+    "language": "Idioma",
+    "myReports": "Mis Reportes",
+    "trustPoints": "Puntos de Confianza"
   },
   "report": {
     "title": "Reportar Incidente",
@@ -192,7 +201,9 @@
     "privateCircles": "Círculos de Confianza Privados",
     "noGroupsDesc": "Aún no formas parte de ninguna red privada. Crea un grupo para tu calle o edificio, o ingresa el código de un vecino.",
     "createOrJoinGroup": "Crear o Unirse a un Grupo",
-    "mapLocation": "Ubicación seleccionada en el mapa"
+    "mapLocation": "Ubicación seleccionada en el mapa",
+    "confirmDeletePost": "¿Estás seguro de que deseas eliminar esta publicación?",
+    "confirmDeleteReport": "¿Estás seguro de que deseas eliminar esta alerta?"
   },
   "time": {
     "now": "Ahora",
@@ -205,7 +216,27 @@
     "Guardião Prata": "Guardián Plata",
     "Guardião Ouro": "Guardián Oro",
     "Guardião Diamante": "Guardián Diamante",
-    "Mestre da Segurança": "Maestro de Seguridad"
+    "Mestre da Segurança": "Maestro de Seguridad",
+    "iniciante": "Principiante",
+    "guardiaoPrata": "Guardián Plata",
+    "guardiaoOuro": "Guardián Oro",
+    "guardiaoDiamante": "Guardián Diamante",
+    "mestre": "Maestro de Seguridad",
+    "Vigilante": "Vigilante",
+    "Guardião": "Guardián",
+    "Herói Local": "Héroe Local",
+    "Bronze": "Bronce",
+    "Prata": "Plata",
+    "Ouro": "Oro",
+    "Diamante": "Diamante",
+    "Mestre": "Maestro",
+    "badge": {
+      "Bronze": "Bronce",
+      "Prata": "Plata",
+      "Ouro": "Oro",
+      "Diamante": "Diamante",
+      "Mestre": "Maestro"
+    }
   },
   "comments": {
     "title": "Comentarios",
@@ -213,5 +244,16 @@
     "empty": "Sin comentarios aún.",
     "beFirst": "¡Sé el primero en participar!",
     "placeholder": "Añade un comentario..."
+  },
+  "help": {
+    "title": "Centro de Ayuda",
+    "howCanWeHelp": "¿Cómo podemos ayudarte?",
+    "howCanWeHelpDesc": "Encuentra respuestas a tus preguntas o comunícate con nuestro equipo de soporte.",
+    "visualTutorial": "Tutorial Visual (Botones y Mapa)",
+    "rateApp": "Calificar Aplicación",
+    "contactSupport": "Contactar Soporte",
+    "faq": "Preguntas Frecuentes (FAQ)",
+    "terms": "Términos de Uso",
+    "privacy": "Política de Privacidad"
   }
 }

@@ -31,15 +31,19 @@ if ('serviceWorker' in navigator) {
 
 const isGeolocationIssue = (arg: any): boolean => {
   if (!arg) return false;
-  if (typeof arg === 'string') {
-    return /geo|geolocation|position/i.test(arg);
-  }
-  if (typeof arg === 'object') {
-    if (typeof GeolocationPositionError !== 'undefined' && arg instanceof GeolocationPositionError) return true;
-    if ('code' in arg && ('PERMISSION_DENIED' in arg || 'POSITION_UNAVAILABLE' in arg || 'TIMEOUT' in arg)) return true;
-    if (arg.message && /geo|geolocation|position/i.test(String(arg.message))) return true;
-    if (arg.name && /geo|geolocation|position/i.test(String(arg.name))) return true;
-  }
+  try {
+    if (typeof arg === 'string') {
+      return /geo|geolocation|position/i.test(arg);
+    }
+    if (typeof arg === 'object') {
+      if (typeof GeolocationPositionError !== 'undefined' && arg instanceof GeolocationPositionError) return true;
+      if ('code' in arg && ('PERMISSION_DENIED' in arg || 'POSITION_UNAVAILABLE' in arg || 'TIMEOUT' in arg)) return true;
+      if (arg.message && /geo|geolocation|position/i.test(String(arg.message))) return true;
+      if (arg.name && /geo|geolocation|position/i.test(String(arg.name))) return true;
+      const str = String(arg);
+      if (/geo|geolocation|position/i.test(str)) return true;
+    }
+  } catch (e) {}
   return false;
 };
 

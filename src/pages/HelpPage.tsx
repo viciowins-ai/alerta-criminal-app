@@ -2,13 +2,15 @@ import React from 'react';
 import { TopBar } from '../components/TopBar';
 import { HelpCircle, MessageCircle, FileText, ExternalLink, Star, BookOpen } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 export function HelpPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   
   return (
     <div className="flex flex-col h-full bg-slate-900">
-      <TopBar title="Central de Ajuda" />
+      <TopBar title={t('help.title', 'Central de Ajuda')} />
       
       <div className="flex-1 overflow-y-auto p-4 space-y-6 pb-20">
         <div className="bg-gradient-to-br from-orange-400 to-red-500 p-8 rounded-3xl shadow-lg text-white text-center relative overflow-hidden">
@@ -19,20 +21,20 @@ export function HelpPage() {
             <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mb-6 border-4 border-white/30 shadow-inner">
               <HelpCircle size={40} className="text-white drop-shadow-md" />
             </div>
-            <h2 className="text-2xl font-black tracking-tight mb-2">Como podemos ajudar?</h2>
+            <h2 className="text-2xl font-black tracking-tight mb-2">{t('help.howCanWeHelp', 'Como podemos ajudar?')}</h2>
             <p className="text-orange-100 text-sm font-medium leading-relaxed max-w-[250px] mx-auto">
-              Encontre respostas para suas dúvidas ou entre em contato com nosso suporte.
+              {t('help.howCanWeHelpDesc', 'Encontre respostas para suas dúvidas ou entre em contato com nosso suporte.')}
             </p>
           </div>
         </div>
 
         <div className="bg-slate-800 rounded-3xl shadow-sm border border-slate-700 overflow-hidden">
-          <HelpItem icon={<BookOpen size={20} className="text-yellow-500" />} label="Tutorial Visual (Botões e Mapa)" onClick={() => navigate('/tutorial')} />
-          <HelpItem icon={<Star size={20} className="text-yellow-400 fill-yellow-400" />} label="Avaliar Aplicativo" onClick={() => navigate('/help/feedback')} />
-          <HelpItem icon={<MessageCircle size={20} className="text-blue-500" />} label="Falar com Suporte" onClick={() => navigate('/help/support')} />
-          <HelpItem icon={<FileText size={20} className="text-green-500" />} label="Perguntas Frequentes (FAQ)" onClick={() => navigate('/help/faq')} />
-          <HelpItem icon={<ExternalLink size={20} className="text-purple-500" />} label="Termos de Uso" onClick={() => navigate('/help/terms')} />
-          <HelpItem icon={<ExternalLink size={20} className="text-orange-500" />} label="Política de Privacidade" onClick={() => navigate('/help/privacy')} />
+          <HelpItem icon={<BookOpen size={20} className="text-yellow-500" />} label={t('help.visualTutorial', 'Tutorial Visual (Botões e Mapa)')} onClick={() => navigate('/tutorial')} />
+          <HelpItem icon={<Star size={20} className="text-yellow-400 fill-yellow-400" />} label={t('help.rateApp', 'Avaliar Aplicativo')} onClick={() => navigate('/help/feedback')} />
+          <HelpItem icon={<MessageCircle size={20} className="text-blue-500" />} label={t('help.contactSupport', 'Falar com Suporte')} onClick={() => navigate('/help/support')} />
+          <HelpItem icon={<FileText size={20} className="text-green-500" />} label={t('help.faq', 'Perguntas Frequentes (FAQ)')} onClick={() => navigate('/help/faq')} />
+          <HelpItem icon={<ExternalLink size={20} className="text-purple-500" />} label={t('help.terms', 'Termos de Uso')} onClick={() => navigate('/help/terms')} />
+          <HelpItem icon={<ExternalLink size={20} className="text-orange-500" />} label={t('help.privacy', 'Política de Privacidade')} onClick={() => navigate('/help/privacy')} />
         </div>
       </div>
     </div>

@@ -13,6 +13,7 @@ import {
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { Layout } from "./components/Layout";
 import { PWAInstallPrompt } from "./components/PWAInstallPrompt";
+import { InAppBrowserBanner } from "./components/InAppBrowserBanner";
 import { analytics } from './firebase';
 
 // Lazy load pages for better performance
@@ -186,6 +187,7 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <Suspense fallback={<PageLoader />}>
+          <InAppBrowserBanner />
           <PWAInstallPrompt />
           <Routes>
             <Route path="/login" element={<LoginPage />} />

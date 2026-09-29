@@ -60,7 +60,14 @@
     "pinActive": "Couleur vive",
     "pinDecayedTitle": "Historique (> 24h)",
     "pinDecayed": "Gris / Niveaux de gris",
-    "pinDecayNotice": "<strong>⏱️ Règle d'Atténuation Temporelle :</strong> Les signalements des <strong>premières 24 heures</strong> conservent leurs couleurs vives et éclatantes. Après 24 heures, l'application applique automatiquement un filtre en niveaux de gris (<em>grayscale</em>), rendant le marqueur estompé pour différencier immédiatement les alertes récentes des archives historiques."
+    "pinDecayNotice": "<strong>⏱️ Règle d'Atténuation Temporelle :</strong> Les signalements des <strong>premières 24 heures</strong> conservent leurs couleurs vives et éclatantes. Après 24 heures, l'application applique automatiquement un filtre en niveaux de gris (<em>grayscale</em>), rendant le marqueur estompé pour différencier immédiatement les alertes récentes des archives historiques.",
+    "pinSyncTitle": "Synchronisation des Couleurs et Atténuation Temporelle sur la Carte :",
+    "pinSyncDesc": "Chaque bouton de filtre comporte un cercle coloré assorti à son épingle sur la carte. Les alertes de <strong>moins de 24 heures</strong> affichent ces couleurs vives à pleine intensité. Les alertes de <strong>plus de 24 heures</strong> passent en <em>grayscale</em> (niveaux de gris), devenant estompées pour distinguer en un coup d'œil les dangers récents des archives historiques.",
+    "controlsTopTitle": "Commandes en haut de la carte :",
+    "actionButtonsTitle": "Boutons d'action flottants (droite) :",
+    "categoriesTitle": "Catégories disponibles dans le menu de filtres :",
+    "heatmapLayerTitle": "Couche de Carte Thermique (Zones Criminelles) :",
+    "visualGuideTitle": "Guide d'utilisation et Tutoriel"
   },
   "nav": {
     "map": "Carte",
@@ -131,7 +138,9 @@
     "notifications": "Notifications",
     "help": "Centre d'Aide",
     "settings": "Paramètres",
-    "language": "Langue"
+    "language": "Langue",
+    "myReports": "Mes Signalements",
+    "trustPoints": "Points de Confiance"
   },
   "report": {
     "title": "Signaler un Incident",
@@ -192,7 +201,9 @@
     "privateCircles": "Cercles de Confiance Privés",
     "noGroupsDesc": "Vous ne faites encore partie d'aucun réseau privé. Créez un groupe pour votre rue ou votre immeuble, ou entrez le code d'un voisin.",
     "createOrJoinGroup": "Créer ou Rejoindre un Groupe",
-    "mapLocation": "Emplacement sélectionné sur la carte"
+    "mapLocation": "Emplacement sélectionné sur la carte",
+    "confirmDeletePost": "Êtes-vous sûr de vouloir supprimer cette publication ?",
+    "confirmDeleteReport": "Êtes-vous sûr de vouloir supprimer cette alerte ?"
   },
   "time": {
     "now": "Maintenant",
@@ -205,7 +216,27 @@
     "Guardião Prata": "Gardien Argent",
     "Guardião Ouro": "Gardien Or",
     "Guardião Diamante": "Gardien Diamant",
-    "Mestre da Segurança": "Maître de la Sécurité"
+    "Mestre da Segurança": "Maître de la Sécurité",
+    "iniciante": "Débutant",
+    "guardiaoPrata": "Gardien Argent",
+    "guardiaoOuro": "Gardien Or",
+    "guardiaoDiamante": "Gardien Diamant",
+    "mestre": "Maître de la Sécurité",
+    "Vigilante": "Vigilant",
+    "Guardião": "Gardien",
+    "Herói Local": "Héros Local",
+    "Bronze": "Bronze",
+    "Prata": "Argent",
+    "Ouro": "Or",
+    "Diamante": "Diamant",
+    "Mestre": "Maître",
+    "badge": {
+      "Bronze": "Bronze",
+      "Prata": "Argent",
+      "Ouro": "Or",
+      "Diamante": "Diamant",
+      "Mestre": "Maître"
+    }
   },
   "comments": {
     "title": "Commentaires",
@@ -213,5 +244,16 @@
     "empty": "Aucun commentaire pour le moment.",
     "beFirst": "Soyez le premier à participer !",
     "placeholder": "Ajoutez un commentaire..."
+  },
+  "help": {
+    "title": "Centre d'aide",
+    "howCanWeHelp": "Comment pouvons-nous vous aider ?",
+    "howCanWeHelpDesc": "Trouvez des réponses à vos questions ou contactez notre équipe de support.",
+    "visualTutorial": "Tutoriel Visuel (Boutons et Carte)",
+    "rateApp": "Évaluer l'application",
+    "contactSupport": "Contacter le support",
+    "faq": "Foire aux questions (FAQ)",
+    "terms": "Conditions d'utilisation",
+    "privacy": "Politique de confidentialité"
   }
 }

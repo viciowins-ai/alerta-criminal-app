@@ -59,7 +59,7 @@ export function ProfilePage() {
     { icon: <BookOpen className="text-blue-500" />, label: t('profile.howToUse', 'Como Usar o App'), path: '/como-usar' },
     { icon: <Star className="text-yellow-400 fill-yellow-400" />, label: t('profile.feedback', 'Avaliar Aplicativo'), path: '/help/feedback' },
     { icon: <Users className="text-indigo-500" />, label: t('profile.groups', 'Grupos Privados'), path: '/groups' },
-    { icon: <Award className="text-yellow-500" />, label: t('profile.contributionLevel', 'Meu Nível de Contribuição'), path: '/gamification', badge: levelInfo.badge },
+    { icon: <Award className="text-yellow-500" />, label: t('profile.contributionLevel', 'Meu Nível de Contribuição'), path: '/gamification', badge: t(`levels.badge.${levelInfo.badge}`, levelInfo.badge) },
     { icon: <Users className="text-green-500" />, label: t('profile.referral', 'Indique e Ganhe'), path: '/referral' },
     { icon: <Shield className="text-red-500" />, label: t('profile.trustedContacts', 'Contatos de Confiança'), path: '/trusted-contacts' },
     { icon: <Bell className="text-purple-500" />, label: t('profile.notifications', 'Notificações'), path: '/settings/notifications' },
@@ -81,13 +81,13 @@ export function ProfilePage() {
           <img src={profileData?.avatar || user?.photoURL || "https://i.pravatar.cc/150?u=me"} alt="Me" className={`w-20 h-20 rounded-full object-cover border-4 ${levelInfo.verified ? 'border-blue-500' : 'border-blue-100'}`} referrerPolicy="no-referrer" />
           <div className="flex-1 overflow-hidden">
             <h2 className="text-xl font-bold text-white truncate flex items-center gap-1">
-              {profileData?.name || user?.displayName || user?.email?.split('@')[0] || 'Usuário'}
+              {profileData?.name || user?.displayName || user?.email?.split('@')[0] || t('common.user', 'Usuário')}
               {levelInfo.verified && <ShieldCheck size={18} className="text-blue-500 fill-blue-500 inline shrink-0" />}
             </h2>
             <p className="text-sm text-slate-400 truncate">{user?.email}</p>
             <div className="flex items-center gap-2 mt-2">
               <span className={`text-xs px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider ${levelInfo.color}`}>
-                {levelInfo.name}
+                {t(`levels.${levelInfo.name}`, levelInfo.name)}
               </span>
               <span className="text-xs text-slate-400">
                 {profileData?.points || 0} XP
@@ -99,11 +99,11 @@ export function ProfilePage() {
         {/* Stats */}
         <div className="grid grid-cols-2 gap-4 p-4">
           <div className="bg-slate-800 p-4 rounded-xl border border-slate-700">
-            <span className="text-xs text-slate-400 block mb-1">Meus Reportes</span>
+            <span className="text-xs text-slate-400 block mb-1">{t('profile.myReports', 'Meus Reportes')}</span>
             <span className="text-2xl font-bold text-white">{reportsCount}</span>
           </div>
           <div className="bg-slate-800 p-4 rounded-xl border border-slate-700">
-            <span className="text-xs text-slate-400 block mb-1">Pontos de Confiança</span>
+            <span className="text-xs text-slate-400 block mb-1">{t('profile.trustPoints', 'Pontos de Confiança')}</span>
             <span className="text-2xl font-bold text-white">{profileData?.points || 0}</span>
           </div>
         </div>

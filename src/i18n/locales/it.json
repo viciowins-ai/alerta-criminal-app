@@ -60,7 +60,14 @@
     "pinActive": "Colore brillante",
     "pinDecayedTitle": "Archivio (> 24h)",
     "pinDecayed": "Grigio / Grayscale",
-    "pinDecayNotice": "<strong>⏱️ Regola del Decadimento Temporale:</strong> Le segnalazioni registrate nelle <strong>prime 24 ore</strong> mostrano colori vividi e brillanti al 100%. Trascorse 24 ore, il segnaposto applica automaticamente una scala di grigi (<em>grayscale</em>), sbiadendo per indicare visivamente che si tratta di un evento storico e non di un'emergenza in corso."
+    "pinDecayNotice": "<strong>⏱️ Regola del Decadimento Temporale:</strong> Le segnalazioni registrate nelle <strong>prime 24 ore</strong> mostrano colori vividi e brillanti al 100%. Trascorse 24 ore, il segnaposto applica automaticamente una scala di grigi (<em>grayscale</em>), sbiadendo per indicare visivamente che si tratta di un evento storico e non di un'emergenza in corso.",
+    "pinSyncTitle": "Sincronizzazione dei Colori e Decadimento Temporale sulla Mappa:",
+    "pinSyncDesc": "Ogni pulsante di filtro presenta un cerchio colorato corrispondente al segnaposto sulla mappa. Gli avvisi con <strong>meno di 24 ore</strong> mostrano colori vividi alla massima intensità. Gli avvisi con <strong>più di 24 ore</strong> ricevono l'effetto <em>grayscale</em> (scala di grigi), sbiadendo per identificare subito il pericolo recente rispetto all'archivio storico.",
+    "controlsTopTitle": "Controlli in Cima alla Mappa:",
+    "actionButtonsTitle": "Pulsanti di Azione Fluttuanti (Destra):",
+    "categoriesTitle": "Categorie Disponibili nel Menu dei Filtri:",
+    "heatmapLayerTitle": "Livello della Mappa Termica (Zone a Rischio):",
+    "visualGuideTitle": "Guida all'Uso e Tutorial"
   },
   "nav": {
     "map": "Mappa",
@@ -131,7 +138,9 @@
     "notifications": "Notifiche",
     "help": "Centro Assistenza",
     "settings": "Impostazioni",
-    "language": "Lingua"
+    "language": "Lingua",
+    "myReports": "Le Mie Segnalazioni",
+    "trustPoints": "Punti Fiducia"
   },
   "report": {
     "title": "Segnala Evento",
@@ -192,7 +201,9 @@
     "privateCircles": "Cerchi di Fiducia Privati",
     "noGroupsDesc": "Non fai ancora parte di alcuna rete privata. Crea un gruppo per la tua via o condominio, oppure inserisci il codice di un vicino.",
     "createOrJoinGroup": "Crea o Unisciti a un Gruppo",
-    "mapLocation": "Posizione selezionata sulla mappa"
+    "mapLocation": "Posizione selezionata sulla mappa",
+    "confirmDeletePost": "Sei sicuro di voler eliminare questo post?",
+    "confirmDeleteReport": "Sei sicuro di voler eliminare questo avviso?"
   },
   "time": {
     "now": "Ora",
@@ -205,7 +216,27 @@
     "Guardião Prata": "Guardiano Argento",
     "Guardião Ouro": "Guardiano Oro",
     "Guardião Diamante": "Guardiano Diamante",
-    "Mestre da Segurança": "Maestro della Sicurezza"
+    "Mestre da Segurança": "Maestro della Sicurezza",
+    "iniciante": "Principiante",
+    "guardiaoPrata": "Guardiano Argento",
+    "guardiaoOuro": "Guardiano Oro",
+    "guardiaoDiamante": "Guardiano Diamante",
+    "mestre": "Maestro della Sicurezza",
+    "Vigilante": "Vigile",
+    "Guardião": "Guardiano",
+    "Herói Local": "Eroe Locale",
+    "Bronze": "Bronzo",
+    "Prata": "Argento",
+    "Ouro": "Oro",
+    "Diamante": "Diamante",
+    "Mestre": "Maestro",
+    "badge": {
+      "Bronze": "Bronzo",
+      "Prata": "Argento",
+      "Ouro": "Oro",
+      "Diamante": "Diamante",
+      "Mestre": "Maestro"
+    }
   },
   "comments": {
     "title": "Commenti",
@@ -213,5 +244,16 @@
     "empty": "Nessun commento ancora.",
     "beFirst": "Sii il primo a partecipare!",
     "placeholder": "Aggiungi un commento..."
+  },
+  "help": {
+    "title": "Centro Assistenza",
+    "howCanWeHelp": "Come possiamo aiutarti?",
+    "howCanWeHelpDesc": "Trova risposte alle tue domande o contatta il nostro team di supporto.",
+    "visualTutorial": "Tutorial Visivo (Pulsanti e Mappa)",
+    "rateApp": "Valuta l'app",
+    "contactSupport": "Contatta il supporto",
+    "faq": "Domande Frequenti (FAQ)",
+    "terms": "Termini di Servizio",
+    "privacy": "Informativa sulla Privacy"
   }
 }

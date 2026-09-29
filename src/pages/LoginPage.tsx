@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Shield, AlertCircle } from 'lucide-react';
+import { Shield, AlertCircle, ExternalLink, Compass } from 'lucide-react';
 import { auth } from '../firebase';
 import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { useAuth } from '../contexts/AuthContext';
 import { Logo } from '../components/Logo';
+import { isInAppBrowser, openInExternalBrowser } from '../utils/inAppBrowser';
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -14,6 +15,11 @@ export function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [inAppDetected, setInAppDetected] = useState(false);
+
+  useEffect(() => {
+    setInAppDetected(isInAppBrowser());
+  }, []);
 
   // Redirect if already logged in
   useEffect(() => {
@@ -24,6 +30,17 @@ export function LoginPage() {
   }, [user, navigate, location]);
 
   const handleGoogleLogin = async () => {
+    // If inside Facebook / Instagram / In-App browser, Google OAuth popups fail due to storage partitioning
+    if (isInAppBrowser()) {
+      setError(null);
+      setMessage('Navegador do Facebook detectado. Redirecionando para o Chrome/Safari para login seguro...');
+      const opened = openInExternalBrowser();
+      if (!opened) {
+        setError('O Facebook bloqueia login com o Google dentro do aplicativo. Toque nos 3 pontinhos (⋮) no canto superior direito e selecione "Abrir no navegador externo".');
+      }
+      return;
+    }
+
     setLoading(true);
     setError(null);
     
@@ -40,6 +57,15 @@ export function LoginPage() {
       // Se o usuário apenas fechou o popup, não mostramos um erro assustador
       if (err.code === 'auth/popup-closed-by-user' || err.message?.includes('auth/popup-closed-by-user')) {
         setError(null);
+      } else if (
+        err.code === 'auth/missing-initial-state' ||
+        err.code === 'auth/popup-blocked' ||
+        err.message?.includes('storage-partitioned') ||
+        err.message?.includes('missing initial state') ||
+        isInAppBrowser()
+      ) {
+        setError('O seu navegador bloqueou o acesso do Google. Toque no botão "Abrir no Chrome / Safari" ou use os 3 pontinhos (⋮) para abrir no navegador padrão do celular.');
+        setInAppDetected(true);
       } else {
         console.error(err);
         setError('Ocorreu um erro ao conectar com o Google. Tente novamente.');
@@ -73,17 +99,54 @@ export function LoginPage() {
           Sua comunidade mais segura. Junte-se a milhares de guardiões.
         </p>
 
+        {inAppDetected && (
+          <div className="w-full mb-4 p-4 bg-amber-500/20 backdrop-blur-md border border-amber-500/40 rounded-2xl text-amber-200 text-xs space-y-2.5 shadow-xl animate-in fade-in duration-500">
+            <div className="flex items-center gap-2 font-bold text-amber-300">
+              <Compass size={18} className="text-amber-400 shrink-0" />
+              <span>Navegador do Facebook / Instagram Detectado</span>
+            </div>
+            <p className="leading-relaxed text-[11.5px] text-amber-100">
+              O Google e o Facebook bloqueiam autenticação dentro de navegadores internos por segurança das contas. Para fazer login, abra este site no Chrome ou Safari externo:
+            </p>
+            <button
+              type="button"
+              onClick={() => openInExternalBrowser()}
+              className="w-full py-2.5 bg-amber-400 hover:bg-amber-300 active:scale-98 text-slate-950 font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-md"
+            >
+              <ExternalLink size={15} />
+              <span>Abrir no Chrome / Safari</span>
+            </button>
+            <p className="text-[10px] text-amber-300/80 text-center flex items-center justify-center gap-1">
+              <span>Ou toque nos 3 pontinhos</span>
+              <span className="font-bold bg-amber-400/20 px-1.5 py-0.5 rounded border border-amber-400/30">⋮</span>
+              <span>no topo direito e escolha "Abrir no navegador"</span>
+            </p>
+          </div>
+        )}
+
         {error && (
-          <div className="w-full mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl flex items-start gap-3 text-red-800 text-sm">
-            <AlertCircle size={18} className="mt-0.5 flex-shrink-0" />
-            <p>{error}</p>
+          <div className="w-full mb-4 p-4 bg-red-500/20 border border-red-500/40 rounded-2xl flex items-start gap-3 text-red-200 text-xs backdrop-blur-md">
+            <AlertCircle size={18} className="mt-0.5 flex-shrink-0 text-red-400" />
+            <div className="space-y-1.5 flex-1">
+              <p className="font-medium">{error}</p>
+              {inAppDetected && (
+                <button
+                  type="button"
+                  onClick={() => openInExternalBrowser()}
+                  className="mt-1 px-3 py-1.5 bg-red-500 hover:bg-red-400 text-white rounded-lg font-bold text-[11px] flex items-center gap-1.5 transition-all"
+                >
+                  <ExternalLink size={13} />
+                  <span>Abrir no navegador externo</span>
+                </button>
+              )}
+            </div>
           </div>
         )}
 
         {message && (
-          <div className="w-full mb-6 p-4 bg-green-50 border border-green-200 rounded-2xl flex items-start gap-3 text-green-800 text-sm">
-            <Shield size={18} className="mt-0.5 flex-shrink-0" />
-            <p>{message}</p>
+          <div className="w-full mb-4 p-4 bg-green-500/20 border border-green-500/40 rounded-2xl flex items-start gap-3 text-green-200 text-xs backdrop-blur-md">
+            <Shield size={18} className="mt-0.5 flex-shrink-0 text-green-400" />
+            <p className="font-medium">{message}</p>
           </div>
         )}
 

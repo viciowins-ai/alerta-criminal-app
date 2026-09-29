@@ -75,12 +75,13 @@ async function startServer() {
 
   app.use(express.json());
 
-  // Permitir que o site seja embutido via iframe
+  // Permitir que o site seja embutido via iframe no AI Studio e domínios oficiais
   app.use((req, res, next) => {
     res.setHeader(
       'Content-Security-Policy',
-      "frame-ancestors 'self' https://*.alertacriminal.com.br http://*.alertacriminal.com.br alertacriminal.com.br https://alerta-criminal-c1612.web.app https://alerta-criminal-c1612.firebaseapp.com"
+      "frame-ancestors 'self' https://*.google.com https://*.googleusercontent.com https://*.run.app https://*.alertacriminal.com.br http://*.alertacriminal.com.br alertacriminal.com.br https://alerta-criminal-c1612.web.app https://alerta-criminal-c1612.firebaseapp.com *"
     );
+    res.setHeader('Permissions-Policy', 'geolocation=(self "*")');
     res.removeHeader('X-Frame-Options');
     next();
   });
