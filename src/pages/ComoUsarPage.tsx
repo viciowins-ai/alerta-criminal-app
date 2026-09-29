@@ -25,13 +25,20 @@ export function ComoUsarPage({ lang = "pt" }: { lang?: string }) {
 
   useEffect(() => {
     i18n.changeLanguage(lang);
-    localStorage.setItem("i18nextLng", lang);
     document.documentElement.lang = lang;
     if (lang === "ar") {
       document.documentElement.dir = "rtl";
     } else {
       document.documentElement.dir = "ltr";
     }
+
+    // When leaving tutorial page, restore the user's primary app language
+    return () => {
+      const appLang = localStorage.getItem('appUserLanguage') || 'pt';
+      i18n.changeLanguage(appLang);
+      document.documentElement.lang = appLang;
+      document.documentElement.dir = appLang === 'ar' ? 'rtl' : 'ltr';
+    };
   }, [lang, i18n]);
 
   useEffect(() => {

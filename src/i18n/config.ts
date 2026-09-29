@@ -9,7 +9,20 @@ import it from './locales/it.json';
 import hi from './locales/hi.json';
 import ar from './locales/ar.json';
 
-const savedLang = typeof window !== 'undefined' ? localStorage.getItem('i18nextLng') || 'pt' : 'pt';
+const getInitialLang = (): string => {
+  if (typeof window === 'undefined') return 'pt';
+  const explicit = localStorage.getItem('appUserLanguage');
+  if (explicit && ['pt', 'en', 'es', 'fr', 'it', 'hi', 'ar'].includes(explicit)) {
+    return explicit;
+  }
+  // Default language is Portuguese (Brazil). Clear any rogue language set by tutorial URLs.
+  try {
+    localStorage.setItem('i18nextLng', 'pt');
+  } catch (e) {}
+  return 'pt';
+};
+
+const savedLang = getInitialLang();
 
 i18n
   .use(initReactI18next)

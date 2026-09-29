@@ -28,6 +28,7 @@ export function LanguageSelectorModal({
 
   const selectLanguage = (code: string) => {
     i18n.changeLanguage(code);
+    localStorage.setItem('appUserLanguage', code);
     localStorage.setItem('i18nextLng', code);
     document.documentElement.lang = code;
     if (code === 'ar') {

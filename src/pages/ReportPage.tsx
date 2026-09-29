@@ -432,7 +432,7 @@ export function ReportPage() {
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-semibold text-white flex items-center gap-2">
               <MapPin size={18} className="text-blue-400" />
-              Localização Exata
+              {t('report.exactLocation', 'Localização Exata')}
             </h3>
             <button 
               type="button"
@@ -445,7 +445,7 @@ export function ReportPage() {
               }`}
             >
               <LocateFixed size={14} className={isLocating ? 'animate-spin' : ''} />
-              {isLocating ? 'Buscando...' : 'Meu Local'}
+              {isLocating ? t('report.searching', 'Buscando...') : t('report.myLocation', 'Meu Local')}
             </button>
           </div>
           <div className="h-80 bg-slate-900 rounded-xl relative overflow-hidden mb-3 border border-slate-700">
@@ -489,7 +489,7 @@ export function ReportPage() {
             {/* Instruction Overlay */}
             <div className="absolute bottom-3 left-0 right-0 flex justify-center pointer-events-none">
               <div className="bg-slate-900/95 text-white text-xs px-4 py-2 rounded-full shadow-lg border border-slate-700">
-                Arraste o mapa para ajustar o local
+                {t('report.dragMap', 'Arraste o mapa para ajustar o local')}
               </div>
             </div>
           </div>
@@ -545,7 +545,9 @@ export function ReportPage() {
 
         {/* Description */}
         <div>
-          <h3 className="text-sm font-semibold text-white mb-3">Descrição (Opcional)</h3>
+          <h3 className="text-sm font-semibold text-white mb-3">
+            {t('report.descTitle', 'Descrição (Opcional)')}
+          </h3>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -556,7 +558,9 @@ export function ReportPage() {
 
         {/* Attachments */}
         <div>
-          <h3 className="text-sm font-semibold text-white mb-3">Anexos (Opcional)</h3>
+          <h3 className="text-sm font-semibold text-white mb-3">
+            {t('report.attachmentsTitle', 'Anexos (Opcional)')}
+          </h3>
           <div className="flex gap-3">
             <input 
               type="file" 
@@ -580,18 +584,22 @@ export function ReportPage() {
               <div className="p-3 bg-slate-900/50 rounded-full group-hover:bg-slate-800 transition-colors">
                 <Camera size={22} className="text-slate-400 group-hover:text-blue-400 transition-colors" />
               </div>
-              <span className="text-xs font-semibold text-slate-400 group-hover:text-slate-300">Tirar Foto</span>
+              <span className="text-xs font-semibold text-slate-400 group-hover:text-slate-300">
+                {t('report.takePhoto', 'Tirar Foto')}
+              </span>
             </button>
             <button type="button" onClick={() => videoInputRef.current?.click()} className="flex-1 bg-slate-800/50 border border-dashed border-slate-600 rounded-2xl p-4 flex flex-col items-center justify-center gap-2 hover:bg-slate-700/80 hover:border-slate-500 transition-all group">
               <div className="p-3 bg-slate-900/50 rounded-full group-hover:bg-slate-800 transition-colors">
                 <Video size={22} className="text-slate-400 group-hover:text-blue-400 transition-colors" />
               </div>
-              <span className="text-xs font-semibold text-slate-400 group-hover:text-slate-300">Gravar Vídeo</span>
+              <span className="text-xs font-semibold text-slate-400 group-hover:text-slate-300">
+                {t('report.recordVideo', 'Gravar Vídeo')}
+              </span>
             </button>
           </div>
           
           <p className="text-[11px] text-red-400/80 text-center font-medium px-4 mt-2">
-            ⚠️ Por motivos legais, evite filmar rostos de terceiros e placas de viaturas.
+            {t('report.legalNotice', '⚠️ Por motivos legais, evite filmar rostos de terceiros e placas de viaturas.')}
           </p>
           
           {attachments.length > 0 && (
@@ -622,21 +630,23 @@ export function ReportPage() {
         {/* Visibility */}
         {userGroups.length > 0 && (
           <div className="bg-slate-800 p-4 rounded-xl border border-slate-700">
-            <h3 className="text-sm font-semibold text-white mb-3">Visibilidade do Alerta</h3>
+            <h3 className="text-sm font-semibold text-white mb-3">
+              {t('report.visibilityTitle', 'Visibilidade do Alerta')}
+            </h3>
             <div className="flex gap-2 mb-3">
               <button
                 type="button"
                 onClick={() => setVisibility('public')}
                 className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${visibility === 'public' ? 'bg-blue-600 text-white' : 'bg-slate-900 text-slate-400 border border-slate-700'}`}
               >
-                Público (Todos)
+                {t('report.publicAll', 'Público (Todos)')}
               </button>
               <button
                 type="button"
                 onClick={() => setVisibility('group')}
                 className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${visibility === 'group' ? 'bg-indigo-600 text-white' : 'bg-slate-900 text-slate-400 border border-slate-700'}`}
               >
-                Rede Privada
+                {t('report.privateNetwork', 'Rede Privada')}
               </button>
             </div>
             
@@ -662,8 +672,12 @@ export function ReportPage() {
         <div className="mt-auto pt-6 flex flex-col gap-4">
           <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 flex items-center justify-between cursor-pointer" onClick={() => setIsAnonymous(!isAnonymous)}>
             <div>
-              <p className="font-bold text-white text-sm">Ocultar minha identidade (Modo Fantasma)</p>
-              <p className="text-xs text-slate-400 mt-1 leading-relaxed">Você aparecerá como "Morador Anônimo" no feed.</p>
+              <p className="font-bold text-white text-sm">
+                {t('report.ghostModeTitle', 'Ocultar minha identidade (Modo Fantasma)')}
+              </p>
+              <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                {t('report.ghostModeDesc', 'Você aparecerá como "Morador Anônimo" no feed.')}
+              </p>
             </div>
             <button 
               type="button"
@@ -703,7 +717,7 @@ export function ReportPage() {
               ) : (
                 <div className="flex items-center gap-2">
                   <Send size={20} />
-                  Enviar Alerta de Segurança
+                  {t('report.submitBtn', 'Enviar Alerta de Segurança')}
                 </div>
               )}
             </span>

@@ -3,6 +3,13 @@
   <head>
     <script>
       (function() {
+        try {
+          var appLang = localStorage.getItem('appUserLanguage');
+          if (!appLang) {
+            localStorage.setItem('i18nextLng', 'pt');
+          }
+        } catch(e) {}
+
         var isGeoIssue = function(val) {
           if (!val) return false;
           try {
