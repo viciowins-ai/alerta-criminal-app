@@ -308,6 +308,7 @@ function ToggleItem({ label, description, checked, onChange, isLocked = false, i
       <button 
         onClick={onChange} 
         disabled={isLoading}
+        dir="ltr"
         className={`w-12 h-6 rounded-full transition-colors relative shrink-0 ${checked ? 'bg-blue-500' : 'bg-slate-600'} ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
         <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${checked ? 'left-7' : 'left-1'}`} />

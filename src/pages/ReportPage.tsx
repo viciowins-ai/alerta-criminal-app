@@ -688,9 +688,10 @@ export function ReportPage() {
             </div>
             <button 
               type="button"
+              dir="ltr"
               className={`w-12 h-6 rounded-full transition-colors relative shrink-0 ${isAnonymous ? 'bg-blue-500' : 'bg-slate-600'}`}
             >
-              <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${isAnonymous ? 'translate-x-6' : 'translate-x-1'}`} />
+              <div className={`w-4 h-4 bg-white rounded-full absolute top-1 left-1 transition-transform ${isAnonymous ? 'translate-x-6' : 'translate-x-0'}`} />
             </button>
           </div>
 

@@ -69,6 +69,7 @@ function ToggleItem({ label, description, checked, onChange }: { label: string, 
       </div>
       <button 
         onClick={onChange} 
+        dir="ltr"
         className={`w-12 h-6 rounded-full transition-colors relative shrink-0 ${checked ? 'bg-blue-500' : 'bg-slate-600'}`}
       >
         <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${checked ? 'left-7' : 'left-1'}`} />

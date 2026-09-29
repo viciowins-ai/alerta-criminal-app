@@ -19,9 +19,9 @@ export function TopBar({ title, action, onBack, showBack = true }: TopBarProps) 
         {showBack && (
           <button 
             onClick={onBack || (() => navigate(-1))}
-            className="p-2 -ml-2 rounded-full hover:bg-slate-700 transition-colors"
+            className="p-2 -ml-2 rtl:-mr-2 rtl:ml-0 rounded-full hover:bg-slate-700 transition-colors"
           >
-            <ArrowLeft size={20} className="text-slate-300" />
+            <ArrowLeft size={20} className="text-slate-300 rtl:rotate-180" />
           </button>
         )}
         {!showBack && <Logo className="w-6 h-6" />}
