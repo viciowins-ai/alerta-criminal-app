@@ -145,6 +145,10 @@
   "report": {
     "title": "Signaler un Incident",
     "selectType": "Sélectionner le type",
+    "exactLocation": "Emplacement Exact",
+    "myLocation": "Ma Position",
+    "searching": "Recherche...",
+    "dragMap": "Faites glisser la carte pour ajuster l'emplacement",
     "types": {
       "roubo": "Vol / Agression",
       "suspeito": "Activité Suspecte",
@@ -152,10 +156,47 @@
       "vandalismo": "Vandalisme",
       "outro": "Autre"
     },
+    "typesDesc": {
+      "roubo": "Agressions ou vols",
+      "suspeito": "Personnes ou véhicules",
+      "zeladoria": "Rues sombres, inondations...",
+      "vandalismo": "Dégradations matérielles",
+      "outro": "Autres incidents"
+    },
+    "typesPlaceholder": {
+      "roubo": "Ex: Deux hommes armés sur une moto noire. Il y a 10 min...",
+      "suspeito": "Ex: Voiture argentée rodant lentement, plaque XYZ...",
+      "zeladoria": "Ex: Lampadaire éteint, nid-de-poule, inondation, bouche d'égout bouchée...",
+      "vandalismo": "Ex: Tag récent, abribus vandalisé...",
+      "outro": "Donnez plus de détails sur ce qui s'est passé..."
+    },
+    "descTitle": "Description (Optionnelle)",
+    "attachmentsTitle": "Pièces jointes (Optionnel)",
+    "takePhoto": "Prendre une Photo",
+    "recordVideo": "Enregistrer une Vidéo",
+    "legalNotice": "⚠️ Pour des raisons légales, évitez de filmer les visages de tiers et les plaques d'immatriculation des véhicules de police.",
+    "visibilityTitle": "Visibilité de l'Alerte",
+    "publicAll": "Public (Tous)",
+    "privateNetwork": "Réseau Privé",
+    "selectGroup": "Sélectionnez le groupe privé qui recevra cette alerte :",
+    "ghostModeTitle": "Masquer mon identité (Mode Fantôme)",
+    "ghostModeDesc": "Vous apparaîtrez comme \"Résident Anonyme\" dans le fil d'actualité.",
+    "submitBtn": "Envoyer l'Alerte de Sécurité",
+    "sending": "Envoi en cours...",
+    "successTitle": "Incident Signalé !",
+    "successSub": "Merci de contribuer à la sécurité de la communauté.",
+    "backToMap": "Retour à la Carte",
     "submit": "Publier l'incident",
     "anonymous": "Publier anonymement",
     "public": "Alerte Publique",
     "private": "Groupe Privé"
+  },
+  "blur": {
+    "title": "Flouter les Visages",
+    "hint": "Glissez votre doigt sur les personnes et les plaques pour les flouter.",
+    "loading": "Chargement de l'image...",
+    "brushSize": "Taille du Pinceau",
+    "undo": "Annuler"
   },
   "common": {
     "close": "Fermer",
