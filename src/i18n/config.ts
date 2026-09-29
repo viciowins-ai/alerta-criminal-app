@@ -11,15 +11,10 @@ import ar from './locales/ar.json';
 
 const getInitialLang = (): string => {
   if (typeof window === 'undefined') return 'pt';
-  const explicit = localStorage.getItem('appUserLanguage');
-  if (explicit && explicit !== 'it' && ['pt', 'en', 'es', 'fr', 'hi', 'ar'].includes(explicit)) {
+  const explicit = localStorage.getItem('appUserLanguage') || localStorage.getItem('i18nextLng');
+  if (explicit && ['pt', 'en', 'es', 'fr', 'it', 'hi', 'ar'].includes(explicit)) {
     return explicit;
   }
-  // Default language is Portuguese (Brazil). Clear any rogue language.
-  try {
-    localStorage.setItem('i18nextLng', 'pt');
-    localStorage.setItem('appUserLanguage', 'pt');
-  } catch (e) {}
   return 'pt';
 };
 
@@ -37,16 +32,12 @@ i18n
       hi: { translation: hi },
       ar: { translation: ar }
     },
-    lng: 'pt',
+    lng: savedLang,
     fallbackLng: 'pt',
     interpolation: {
       escapeValue: false // React already safes from xss
     }
   });
-
-if (typeof window !== 'undefined') {
-  i18n.changeLanguage(savedLang);
-}
 
 if (typeof document !== 'undefined') {
   document.documentElement.lang = savedLang;

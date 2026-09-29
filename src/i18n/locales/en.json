@@ -145,6 +145,10 @@
   "report": {
     "title": "Report Incident",
     "selectType": "Select Incident Type",
+    "exactLocation": "Exact Location",
+    "myLocation": "My Location",
+    "searching": "Locating...",
+    "dragMap": "Drag the map to adjust location",
     "types": {
       "roubo": "Robbery / Theft",
       "suspeito": "Suspicious Activity",
@@ -152,6 +156,36 @@
       "vandalismo": "Vandalism",
       "outro": "Other"
     },
+    "typesDesc": {
+      "roubo": "Muggings or thefts",
+      "suspeito": "People or vehicles",
+      "zeladoria": "Dark streets, floods...",
+      "vandalismo": "Property damage",
+      "outro": "Other incidents"
+    },
+    "typesPlaceholder": {
+      "roubo": "Ex: Two armed men on a black motorcycle. Happened 10 min ago...",
+      "suspeito": "Ex: Silver car circling slowly, license plate XYZ...",
+      "zeladoria": "Ex: Streetlight out, pothole in the road, flood, blocked drain...",
+      "vandalismo": "Ex: Fresh graffiti, damaged bus stop...",
+      "outro": "Provide more details about what happened..."
+    },
+    "descTitle": "Description (Optional)",
+    "attachmentsTitle": "Attachments (Optional)",
+    "takePhoto": "Take Photo",
+    "recordVideo": "Record Video",
+    "legalNotice": "⚠️ For legal reasons, avoid filming faces of third parties and police license plates.",
+    "visibilityTitle": "Alert Visibility",
+    "publicAll": "Public (Everyone)",
+    "privateNetwork": "Private Network",
+    "selectGroup": "Select the private group that will receive this alert:",
+    "ghostModeTitle": "Hide my identity (Ghost Mode)",
+    "ghostModeDesc": "You will appear as \"Anonymous Resident\" in the feed.",
+    "submitBtn": "Send Security Alert",
+    "sending": "Sending...",
+    "successTitle": "Incident Reported!",
+    "successSub": "Thank you for contributing to community safety.",
+    "backToMap": "Back to Map",
     "submit": "Submit Incident",
     "anonymous": "Post Anonymously",
     "public": "Public Alert",

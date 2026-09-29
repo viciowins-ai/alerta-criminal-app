@@ -143,19 +143,53 @@
     "trustPoints": "Punti Fiducia"
   },
   "report": {
-    "title": "Reportar Ocorrência",
-    "selectType": "Tipo de Ocorrência",
+    "title": "Segnala Evento",
+    "selectType": "Seleziona il Tipo",
+    "exactLocation": "Posizione Esatta",
+    "myLocation": "Mia Posizione",
+    "searching": "Ricerca...",
+    "dragMap": "Trascina la mappa per regolare la posizione",
     "types": {
-      "roubo": "Roubo / Furto",
-      "suspeito": "Atividade Suspeita",
-      "zeladoria": "Zeladoria / Risco",
+      "roubo": "Rapina / Furto",
+      "suspeito": "Attività Sospetta",
+      "zeladoria": "Manutenzione / Rischio",
       "vandalismo": "Vandalismo",
-      "outro": "Outro"
+      "outro": "Altro"
     },
-    "submit": "Publicar Ocorrência",
-    "anonymous": "Publicar como Anônimo",
-    "public": "Alerta Público",
-    "private": "Grupo Privado"
+    "typesDesc": {
+      "roubo": "Aggressioni o furti",
+      "suspeito": "Persone o veicoli",
+      "zeladoria": "Strade buie, allagamenti...",
+      "vandalismo": "Danni al patrimonio",
+      "outro": "Altre segnalazioni"
+    },
+    "typesPlaceholder": {
+      "roubo": "Es: Due uomini armati su una moto nera. Accaduto 10 min fa...",
+      "suspeito": "Es: Auto argento che gira lentamente sul posto, targa XYZ...",
+      "zeladoria": "Es: Lampione spento, buca sulla strada, allagamento, tombino ostruito...",
+      "vandalismo": "Es: Graffiti recenti, fermata dell'autobus danneggiata...",
+      "outro": "Fornisci maggiori dettagli su quanto accaduto..."
+    },
+    "descTitle": "Descrizione (Opzionale)",
+    "attachmentsTitle": "Allegati (Opzionale)",
+    "takePhoto": "Scatta Foto",
+    "recordVideo": "Registra Video",
+    "legalNotice": "⚠️ Per motivi legali, evita di riprendere volti di terzi e targhe dei veicoli delle forze dell'ordine.",
+    "visibilityTitle": "Visibilità dell'Avviso",
+    "publicAll": "Pubblico (Tutti)",
+    "privateNetwork": "Rete Privata",
+    "selectGroup": "Seleziona il gruppo privato che riceverà questo avviso:",
+    "ghostModeTitle": "Nascondi la mia identità (Modalità Fantasma)",
+    "ghostModeDesc": "Apparirai come \"Cittadino Anonimo\" nel feed.",
+    "submitBtn": "Invia Segnalazione di Sicurezza",
+    "sending": "Invio in corso...",
+    "successTitle": "Segnalazione Inviata!",
+    "successSub": "Grazie per aver contribuito alla sicurezza della comunità.",
+    "backToMap": "Torna alla Mappa",
+    "submit": "Pubblica Segnalazione",
+    "anonymous": "Pubblica in forma anonima",
+    "public": "Avviso Pubblico",
+    "private": "Gruppo Privato"
   },
   "common": {
     "close": "Chiudi",

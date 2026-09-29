@@ -32,18 +32,6 @@ export function ReportPage() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAuth();
-
-  // Garante que a tela de reporte esteja sempre no idioma oficial (Português) a menos que o usuário tenha configurado explicitamente
-  useEffect(() => {
-    const explicit = localStorage.getItem('appUserLanguage');
-    if (!explicit || explicit === 'it' || i18n.language === 'it') {
-      i18n.changeLanguage('pt');
-      try {
-        localStorage.setItem('i18nextLng', 'pt');
-        localStorage.setItem('appUserLanguage', 'pt');
-      } catch (e) {}
-    }
-  }, [i18n]);
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [description, setDescription] = useState('');
   const [isAnonymous, setIsAnonymous] = useState(false);
@@ -422,13 +410,17 @@ export function ReportPage() {
         <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center mb-6 animate-bounce">
           <CheckCircle2 size={40} className="text-green-500" />
         </div>
-        <h2 className="text-2xl font-bold text-white mb-2 text-center">Ocorrência Reportada!</h2>
-        <p className="text-slate-400 text-center mb-8">Obrigado por contribuir com a segurança da comunidade.</p>
+        <h2 className="text-2xl font-bold text-white mb-2 text-center">
+          {t('report.successTitle', 'Ocorrência Reportada!')}
+        </h2>
+        <p className="text-slate-400 text-center mb-8">
+          {t('report.successSub', 'Obrigado por contribuir com a segurança da comunidade.')}
+        </p>
         <button 
           onClick={() => navigate('/')}
           className="w-full bg-blue-600 text-white font-semibold py-4 rounded-xl hover:bg-blue-700 transition-colors"
         >
-          Voltar ao Mapa
+          {t('report.backToMap', 'Voltar ao Mapa')}
         </button>
       </div>
     );
@@ -518,6 +510,7 @@ export function ReportPage() {
               const isSelected = selectedType === type.id;
               const colors = COLOR_MAP[type.baseColor];
               const translatedLabel = t(`report.types.${type.id}`, type.label);
+              const translatedDesc = t(`report.typesDesc.${type.id}`, type.desc);
               
               return (
                 <button
@@ -547,7 +540,7 @@ export function ReportPage() {
                   <span className={`text-[10px] mt-1 relative z-10 transition-colors duration-300 text-center leading-tight ${
                     isSelected ? 'text-slate-300' : 'text-slate-500 group-hover:text-slate-400'
                   }`}>
-                    {type.desc}
+                    {translatedDesc}
                   </span>
                 </button>
               );
@@ -563,7 +556,7 @@ export function ReportPage() {
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder={INCIDENT_TYPES.find(t => t.id === selectedType)?.placeholder || "Forneça mais detalhes sobre o que aconteceu..."}
+            placeholder={t(`report.typesPlaceholder.${selectedType || 'outro'}`, INCIDENT_TYPES.find(t => t.id === selectedType)?.placeholder || "Forneça mais detalhes sobre o que aconteceu...")}
             className="w-full bg-slate-800 border border-slate-700 rounded-xl p-4 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none h-28"
           />
         </div>
@@ -664,7 +657,9 @@ export function ReportPage() {
             
             {visibility === 'group' && (
               <div className="mt-3">
-                <p className="text-xs text-slate-400 mb-2">Selecione o grupo privado que receberá este alerta:</p>
+                <p className="text-xs text-slate-400 mb-2">
+                  {t('report.selectGroup', 'Selecione o grupo privado que receberá este alerta:')}
+                </p>
                 <select 
                   value={selectedGroupId}
                   onChange={(e) => setSelectedGroupId(e.target.value)}
@@ -715,7 +710,7 @@ export function ReportPage() {
               {isSubmitting ? (
                 <>
                   <div className="flex items-center gap-2">
-                    <span className="animate-pulse">Enviando...</span>
+                    <span className="animate-pulse">{t('report.sending', 'Enviando...')}</span>
                   </div>
                   {uploadProgress > 0 && uploadProgress < 100 && (
                     <div className="w-full max-w-[200px] h-1.5 bg-slate-700 rounded-full overflow-hidden mt-1">

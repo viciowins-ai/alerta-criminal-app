@@ -145,6 +145,10 @@
   "report": {
     "title": "Reportar Incidente",
     "selectType": "Seleccionar Tipo",
+    "exactLocation": "Ubicación Exacta",
+    "myLocation": "Mi Ubicación",
+    "searching": "Buscando...",
+    "dragMap": "Arrastra el mapa para ajustar la ubicación",
     "types": {
       "roubo": "Robo / Hurto",
       "suspeito": "Actividad Sospechosa",
@@ -152,6 +156,36 @@
       "vandalismo": "Vandalismo",
       "outro": "Otro"
     },
+    "typesDesc": {
+      "roubo": "Asaltos o hurtos",
+      "suspeito": "Personas o vehículos",
+      "zeladoria": "Calles oscuras, inundaciones...",
+      "vandalismo": "Daños a la propiedad",
+      "outro": "Otros incidentes"
+    },
+    "typesPlaceholder": {
+      "roubo": "Ej: Dos hombres armados en moto negra. Ocurrió hace 10 min...",
+      "suspeito": "Ej: Auto plateado rondando despacio, matrícula XYZ...",
+      "zeladoria": "Ej: Farola apagada, bache en la vía, inundación, desagüe tapado...",
+      "vandalismo": "Ej: Pintada reciente, parada de autobús destrozada...",
+      "outro": "Proporciona más detalles sobre lo ocurrido..."
+    },
+    "descTitle": "Descripción (Opcional)",
+    "attachmentsTitle": "Adjuntos (Opcional)",
+    "takePhoto": "Tomar Foto",
+    "recordVideo": "Grabar Video",
+    "legalNotice": "⚠️ Por razones legales, evite filmar rostos de terceros y matrículas de vehículos policiales.",
+    "visibilityTitle": "Visibilidad de la Alerta",
+    "publicAll": "Público (Todos)",
+    "privateNetwork": "Red Privada",
+    "selectGroup": "Selecciona el grupo privado que recibirá esta alerta:",
+    "ghostModeTitle": "Ocultar mi identidad (Modo Fantasma)",
+    "ghostModeDesc": "Aparecerás como \"Vecino Anónimo\" en el feed.",
+    "submitBtn": "Enviar Alerta de Seguridad",
+    "sending": "Enviando...",
+    "successTitle": "¡Incidente Reportado!",
+    "successSub": "Gracias por contribuir a la seguridad de la comunidad.",
+    "backToMap": "Volver al Mapa",
     "submit": "Publicar Incidente",
     "anonymous": "Publicar como Anónimo",
     "public": "Alerta Pública",

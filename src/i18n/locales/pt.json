@@ -156,6 +156,20 @@
       "vandalismo": "Vandalismo",
       "outro": "Outro"
     },
+    "typesDesc": {
+      "roubo": "Assaltos ou furtos",
+      "suspeito": "Pessoas ou veículos",
+      "zeladoria": "Ruas escuras, alagamentos...",
+      "vandalismo": "Danos ao patrimônio",
+      "outro": "Outras ocorrências"
+    },
+    "typesPlaceholder": {
+      "roubo": "Ex: Dois homens em uma moto preta, armados. Ocorreu há 10 min...",
+      "suspeito": "Ex: Veículo prata rondando o local devagar, placa XYZ...",
+      "zeladoria": "Ex: Poste apagado, buraco na via, enchente, bueiro entupido...",
+      "vandalismo": "Ex: Pichação recente, ponto de ônibus depredado...",
+      "outro": "Forneça mais detalhes sobre o que aconteceu..."
+    },
     "descTitle": "Descrição (Opcional)",
     "attachmentsTitle": "Anexos (Opcional)",
     "takePhoto": "Tirar Foto",
@@ -164,9 +178,14 @@
     "visibilityTitle": "Visibilidade do Alerta",
     "publicAll": "Público (Todos)",
     "privateNetwork": "Rede Privada",
+    "selectGroup": "Selecione o grupo privado que receberá este alerta:",
     "ghostModeTitle": "Ocultar minha identidade (Modo Fantasma)",
     "ghostModeDesc": "Você aparecerá como \"Morador Anônimo\" no feed.",
     "submitBtn": "Enviar Alerta de Segurança",
+    "sending": "Enviando...",
+    "successTitle": "Ocorrência Reportada!",
+    "successSub": "Obrigado por contribuir com a segurança da comunidade.",
+    "backToMap": "Voltar ao Mapa",
     "submit": "Publicar Ocorrência",
     "anonymous": "Publicar como Anônimo",
     "public": "Alerta Público",
