@@ -912,6 +912,7 @@ export function MapPage() {
       {/* Map */}
       <Map
         ref={mapRef}
+        reuseMaps
         initialViewState={{
           longitude: userLocation?.lng || -46.6333,
           latitude: userLocation?.lat || -23.5505,

@@ -169,6 +169,7 @@ export function TrackingPage() {
       <div className="flex-1 relative">
         <Map
           ref={mapRef}
+          reuseMaps
           mapboxAccessToken={MAPBOX_TOKEN}
           onError={(e) => console.warn('Mapbox warning:', e.error?.message || 'Erro no mapa')}
           initialViewState={{

@@ -566,6 +566,7 @@ export function RoutePage() {
       <div className="flex-1 relative">
         <Map
           ref={mapRef}
+          reuseMaps
           initialViewState={{
             longitude: userLocation?.lng || -46.6366,
             latitude: userLocation?.lat || -23.5552,

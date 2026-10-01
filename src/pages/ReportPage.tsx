@@ -478,6 +478,7 @@ export function ReportPage() {
           <div className="h-80 bg-slate-900 rounded-xl relative overflow-hidden mb-3 border border-slate-700">
             <Map
               ref={mapRef}
+              reuseMaps
               initialViewState={{
                 longitude: reportLocation.longitude,
                 latitude: reportLocation.latitude,
@@ -584,6 +585,27 @@ export function ReportPage() {
           />
         </div>
 
+        {/* Dedicated Voice Audio Message Section */}
+        <div className="bg-gradient-to-r from-slate-900 to-indigo-950/40 border border-indigo-500/30 rounded-2xl p-4 shadow-sm">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm font-bold text-white flex items-center gap-2">
+              <Mic size={17} className="text-indigo-400" />
+              <span>Mensagem de Voz (Opcional)</span>
+            </h3>
+            <span className="text-[10px] text-indigo-300 font-bold bg-indigo-500/20 border border-indigo-500/30 px-2.5 py-0.5 rounded-full">
+              Até 60s
+            </span>
+          </div>
+          <p className="text-xs text-slate-400 mb-3">
+            Grave um áudio rápido relatando a ocorrência para que outros moradores possam ouvir o que aconteceu.
+          </p>
+          <VoiceRecorder
+            maxDuration={60}
+            label={t('report.voiceMessage', 'Pressione para Gravar Áudio de Voz')}
+            onAudioRecorded={(audio) => setAudioData(audio)}
+          />
+        </div>
+
         {/* Attachments */}
         <div>
           <h3 className="text-sm font-semibold text-white mb-3">
@@ -652,15 +674,6 @@ export function ReportPage() {
               ))}
             </div>
           )}
-
-          {/* Voice Audio Message Recording */}
-          <div className="mt-4 pt-3 border-t border-slate-700/60">
-            <VoiceRecorder
-              maxDuration={60}
-              label={t('report.voiceMessage', 'Gravar Mensagem de Voz')}
-              onAudioRecorded={(audio) => setAudioData(audio)}
-            />
-          </div>
         </div>
 
         

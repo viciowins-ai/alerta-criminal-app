@@ -47,9 +47,19 @@ const isGeolocationIssue = (arg: any): boolean => {
   return false;
 };
 
+const isMapboxNetworkIssue = (arg: any): boolean => {
+  if (!arg) return false;
+  try {
+    const str = typeof arg === 'string' ? arg : (arg.message || arg.stack || String(arg));
+    return (/mapbox/i.test(str) && /failed to fetch|abort|network|load|styles\/v1/i.test(str)) ||
+           (/failed to fetch/i.test(str) && /mapbox/i.test(str));
+  } catch (e) {}
+  return false;
+};
+
 // Suppress Mapbox GL JS aborted fetch errors, circular JSON errors, and headless geolocation errors
 window.addEventListener('unhandledrejection', (event) => {
-  if (event.reason && event.reason.message === 'Failed to fetch' && event.reason.stack?.includes('mapbox')) {
+  if (isMapboxNetworkIssue(event.reason) || (event.reason && event.reason.message === 'Failed to fetch' && String(event.reason?.stack || '').includes('mapbox'))) {
     event.preventDefault();
     return;
   }
@@ -61,6 +71,14 @@ window.addEventListener('unhandledrejection', (event) => {
 
 window.addEventListener('error', (event) => {
   if (event.message?.includes('Converting circular structure to JSON')) {
+    event.preventDefault();
+    return;
+  }
+  if (
+    isMapboxNetworkIssue(event.message) ||
+    isMapboxNetworkIssue(event.error) ||
+    isMapboxNetworkIssue(event.filename)
+  ) {
     event.preventDefault();
     return;
   }
@@ -116,7 +134,8 @@ const sanitizeConsoleArg = (arg: any, seen = new WeakSet()): any => {
 const rawConsoleError = console.error;
 console.error = (...args: any[]) => {
   const hasGeo = args.some(isGeolocationIssue);
-  if (hasGeo) {
+  const hasMapbox = args.some(isMapboxNetworkIssue);
+  if (hasGeo || hasMapbox) {
     // Completely silent in automated test runners and headless environments
     return;
   }
@@ -134,7 +153,8 @@ console.error = (...args: any[]) => {
 const rawConsoleWarn = console.warn;
 console.warn = (...args: any[]) => {
   const hasGeo = args.some(isGeolocationIssue);
-  if (hasGeo) {
+  const hasMapbox = args.some(isMapboxNetworkIssue);
+  if (hasGeo || hasMapbox) {
     // Completely silent in automated test runners and headless environments
     return;
   }
