@@ -192,6 +192,8 @@ app.post('/api/push/broadcast', verifyFirebaseToken, async (req, res) => {
         }
         // Disparo de email via Nodemailer
         if (emailBccList.length > 0 && htmlContent) {
+            const timeBR = new Date().toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' });
+            const finalSubject = title.includes(timeBR) ? title : `${title} às ${timeBR}`;
             if (isGroupBroadcast) {
                 // Envio individual e estrito para os membros do grupo privado
                 // JAMAIS inclui alertacriminaloficial no 'to' a menos que seja membro do grupo
@@ -200,7 +202,7 @@ app.post('/api/push/broadcast', verifyFirebaseToken, async (req, res) => {
                         await transporter.sendMail({
                             from: '"Alerta Criminal" <alertacriminaloficial@gmail.com>',
                             to: memberEmail,
-                            subject: title,
+                            subject: finalSubject,
                             html: htmlContent
                         });
                         console.log(`[Email Privado] Enviado diretamente para membro do grupo: ${memberEmail}`);
@@ -219,7 +221,7 @@ app.post('/api/push/broadcast', verifyFirebaseToken, async (req, res) => {
                             from: '"Alerta Criminal" <alertacriminaloficial@gmail.com>',
                             to: 'nao-responda@alertacriminal.com.br',
                             bcc: chunk,
-                            subject: title,
+                            subject: finalSubject,
                             html: htmlContent
                         });
                         console.log(`Chunk público de ${chunk.length} emails enviado com sucesso.`);
