@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Shield, Plus, Users, Search, ArrowRight, UserPlus, LogOut, Copy, Check, Lock, ChevronDown, ChevronUp, MapPin, AlertTriangle, Eye, Siren, Flame, MoreHorizontal, Clock, Crown, ShieldCheck, Trash2 } from 'lucide-react';
+import { Shield, Plus, Users, Search, ArrowRight, UserPlus, LogOut, Copy, Check, Lock, ChevronDown, ChevronUp, MapPin, AlertTriangle, Eye, Siren, Flame, MoreHorizontal, Clock, Crown, ShieldCheck, Trash2, Mic } from 'lucide-react';
 import { TopBar } from '../components/TopBar';
 import { AttachmentGallery } from '../components/AttachmentGallery';
+import { AudioPlayer } from '../components/AudioPlayer';
+import { VoiceRecorder } from '../components/VoiceRecorder';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
 import { collection, addDoc, query, where, getDocs, doc, getDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove, serverTimestamp } from 'firebase/firestore';
@@ -19,6 +21,8 @@ export function GroupsPage() {
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [expandedGroupId, setExpandedGroupId] = useState<string | null>(null);
   const [expandedMembersGroupId, setExpandedMembersGroupId] = useState<string | null>(null);
+  const [recordingGroupId, setRecordingGroupId] = useState<string | null>(null);
+  const [isSubmittingVoice, setIsSubmittingVoice] = useState(false);
   const [groupReports, setGroupReports] = useState<Record<string, any[]>>({});
   const [loadingReports, setLoadingReports] = useState<Record<string, boolean>>({});
   const [membersMap, setMembersMap] = useState<Record<string, { uid: string; name: string; avatar: string; level?: string }>>({});
@@ -102,6 +106,111 @@ export function GroupsPage() {
     } catch (err) {
       console.error("Erro ao excluir ocorrência:", err);
       alert("Não foi possível excluir a ocorrência.");
+    }
+  };
+
+  const handleSendVoiceReport = async (group: any, audio: { url: string; duration: number }) => {
+    if (!user || !audio) return;
+    setIsSubmittingVoice(true);
+    try {
+      const timeFormatted = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      const reportPayload: any = {
+        authorId: user.uid,
+        authorName: user.displayName || 'Membro da Rede',
+        authorAvatar: user.photoURL || '',
+        authorLevel: 'Membro Ativo',
+        isAnonymous: false,
+        verified: false,
+        type: 'suspeito',
+        description: `🎙️ Mensagem de voz gravada para o grupo (${audio.duration}s)`,
+        audioUrl: audio.url,
+        audioDuration: audio.duration,
+        location: {
+          lat: -25.4284,
+          lng: -49.2733,
+          address: `Rede Privada: ${group.name}`
+        },
+        status: 'pending',
+        upvotes: 0,
+        upvotedBy: [],
+        createdAt: serverTimestamp(),
+        visibility: 'group',
+        groupId: group.id,
+        groupName: group.name
+      };
+
+      if (navigator.geolocation) {
+        await new Promise<void>((resolve) => {
+          navigator.geolocation.getCurrentPosition(
+            (pos) => {
+              reportPayload.location.lat = pos.coords.latitude;
+              reportPayload.location.lng = pos.coords.longitude;
+              resolve();
+            },
+            () => resolve(),
+            { timeout: 3000 }
+          );
+        });
+      }
+
+      const docRef = await addDoc(collection(db, 'reports'), reportPayload);
+      
+      setGroupReports(prev => ({
+        ...prev,
+        [group.id]: [
+          {
+            id: docRef.id,
+            ...reportPayload,
+            createdAt: { toMillis: () => Date.now() }
+          },
+          ...(prev[group.id] || [])
+        ]
+      }));
+
+      try {
+        const idToken = await user.getIdToken();
+        const shortProtocol = docRef.id.slice(0, 5).toUpperCase();
+        await fetch('/api/push/broadcast', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${idToken}`
+          },
+          body: JSON.stringify({
+            title: `🔒 [${group.name}] Alerta de Voz às ${timeFormatted} (#${shortProtocol})`,
+            body: `🎙️ Nova mensagem de voz gravada no grupo por ${user.displayName || 'um membro'}`,
+            url: `/?reportId=${docRef.id}`,
+            htmlContent: `
+              <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+                <div style="background-color: #0f172a; padding: 20px; text-align: center;">
+                  <img src="https://alertacriminal.com.br/escudo-logo.png" alt="Alerta Criminal" width="80" style="display: block; margin: 0 auto;" />
+                </div>
+                <div style="padding: 24px; background-color: #ffffff;">
+                  <h2 style="color: #4f46e5; margin-top: 0; font-size: 24px;">🎙️ Mensagem de Voz na Rede Privada</h2>
+                  <p style="font-size: 16px;">O morador <strong>${user.displayName || 'Membro da Rede'}</strong> enviou um áudio (${audio.duration}s) no grupo privado <strong>${group.name}</strong>.</p>
+                  <div style="text-align: center; margin-top: 24px;">
+                    <a href="https://alertacriminal.com.br/?reportId=${docRef.id}" style="display: inline-block; background-color: #4f46e5; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 15px;">
+                      Ouvir Mensagem de Voz no Aplicativo
+                    </a>
+                  </div>
+                </div>
+              </div>
+            `,
+            visibility: 'group',
+            groupId: group.id,
+            reportId: docRef.id
+          })
+        });
+      } catch (e) {
+        console.error("Erro ao notificar grupo sobre mensagem de voz:", e);
+      }
+
+      setRecordingGroupId(null);
+    } catch (err) {
+      console.error("Erro ao enviar mensagem de voz no grupo:", err);
+      alert("Não foi possível enviar o áudio.");
+    } finally {
+      setIsSubmittingVoice(false);
     }
   };
 
@@ -545,6 +654,17 @@ export function GroupsPage() {
                                     </p>
                                   )}
 
+                                  {/* Voice Audio Message */}
+                                  {rep.audioUrl && (
+                                    <div className="mb-3">
+                                      <div className="flex items-center gap-1.5 text-[11px] font-semibold text-indigo-300 mb-1.5">
+                                        <Mic size={13} className="text-indigo-400" />
+                                        <span>Mensagem de Voz da Ocorrência</span>
+                                      </div>
+                                      <AudioPlayer src={rep.audioUrl} duration={rep.audioDuration} />
+                                    </div>
+                                  )}
+
                                   {/* Photos & Attachments */}
                                   {rep.attachments && rep.attachments.length > 0 && (
                                     <div className="mb-3">
@@ -587,16 +707,62 @@ export function GroupsPage() {
                       )}
                     </div>
                     
+                    {/* Inline Quick Voice Message Recorder */}
+                    {recordingGroupId === group.id && (
+                      <div className="mt-3 p-3 bg-indigo-950/40 border border-indigo-500/40 rounded-xl space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-indigo-300 flex items-center gap-1.5">
+                            <Mic size={14} className="text-indigo-400" />
+                            Gravar Áudio Rápido para o Grupo
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setRecordingGroupId(null)}
+                            className="text-xs text-slate-400 hover:text-white"
+                          >
+                            Fechar
+                          </button>
+                        </div>
+                        <VoiceRecorder
+                          maxDuration={60}
+                          label="Pressione para falar aos vizinhos (até 60s)"
+                          onAudioRecorded={(audio) => {
+                            if (audio) {
+                              handleSendVoiceReport(group, audio);
+                            }
+                          }}
+                        />
+                        {isSubmittingVoice && (
+                          <div className="flex items-center justify-center gap-2 py-2 text-xs text-indigo-300">
+                            <div className="w-3.5 h-3.5 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin"></div>
+                            <span>Publicando e notificando membros do grupo...</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     {/* Bottom Actions */}
-                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-700/40">
-                      <button
-                        onClick={() => navigate(`/report?groupId=${group.id}`)}
-                        className="bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 border border-indigo-500/30 rounded-lg px-3 py-1.5 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
-                      >
-                        <Plus size={13} />
-                        Novo Alerta neste Grupo
-                      </button>
+                    <div className="flex flex-wrap items-center justify-between gap-2 mt-2 pt-2 border-t border-slate-700/40">
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setRecordingGroupId(prev => prev === group.id ? null : group.id)}
+                          className="bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg px-3 py-1.5 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm"
+                        >
+                          <Mic size={13} />
+                          Áudio Rápido
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/report?groupId=${group.id}`)}
+                          className="bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 border border-indigo-500/30 rounded-lg px-3 py-1.5 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                        >
+                          <Plus size={13} />
+                          Novo Alerta
+                        </button>
+                      </div>
                       <button 
+                        type="button"
                         onClick={() => handleLeaveGroup(group.id, group.name)}
                         className="text-red-400 hover:text-red-300 text-xs font-medium flex items-center gap-1 cursor-pointer transition-colors"
                       >

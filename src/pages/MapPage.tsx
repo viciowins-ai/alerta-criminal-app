@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import Map, { Source, Layer, Marker, MapRef } from 'react-map-gl/mapbox';
 import { AttachmentGallery } from '../components/AttachmentGallery';
+import { AudioPlayer } from '../components/AudioPlayer';
 import { Search, Filter, ShieldAlert, Navigation, Building2, Landmark, Coffee, Train, LocateFixed, X, AlertCircle, ThumbsUp, Moon, ShieldCheck, Share2, MapPin, Play, Car, Bike, Globe, Siren, Eye, Flame, AlertTriangle, Check, Layers } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -1095,6 +1096,12 @@ export function MapPage() {
           
           {selectedLocation.description && (
             <p className="text-sm text-slate-300 mb-4 italic border-l-2 border-slate-600 pl-3">"{selectedLocation.description}"</p>
+          )}
+
+          {selectedLocation.audioUrl && (
+            <div className="mb-4">
+              <AudioPlayer src={selectedLocation.audioUrl} duration={selectedLocation.audioDuration} />
+            </div>
           )}
 
           {selectedLocation.attachments && selectedLocation.attachments.length > 0 && (

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { TopBar } from '../components/TopBar';
 import { AttachmentGallery } from '../components/AttachmentGallery';
+import { AudioPlayer } from '../components/AudioPlayer';
 import { MessageSquare, Heart, Share2, MoreHorizontal, AlertTriangle, ShieldCheck, Send, MapPin, Users, Lock, Plus, ArrowRight, Shield } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
@@ -806,6 +807,11 @@ export function FeedPage() {
                       "{item.description}"
                     </p>
                   )}
+                  {item.audioUrl && (
+                    <div className="mb-2.5">
+                      <AudioPlayer src={item.audioUrl} duration={item.audioDuration} />
+                    </div>
+                  )}
                   {item.attachments && item.attachments.length > 0 && (
                     <AttachmentGallery attachments={item.attachments} />
                   )}
@@ -915,6 +921,11 @@ export function FeedPage() {
                   </div>
                 </div>
                 <p dir="auto" className="text-sm text-slate-200 leading-relaxed text-start">{item.content}</p>
+                {item.audioUrl && (
+                  <div className="my-2.5">
+                    <AudioPlayer src={item.audioUrl} duration={item.audioDuration} />
+                  </div>
+                )}
                 {item.attachments && item.attachments.length > 0 && (
                   <AttachmentGallery attachments={item.attachments} />
                 )}

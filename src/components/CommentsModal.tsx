@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { X, Send, User } from 'lucide-react';
+import { X, Send, User, Mic } from 'lucide-react';
 import { db } from '../firebase';
 import { collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp, doc, updateDoc, increment } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
 import { handleFirestoreError, OperationType } from '../utils/firestoreErrorHandler';
 import { useTranslation } from 'react-i18next';
+import { AudioPlayer } from './AudioPlayer';
+import { VoiceRecorder } from './VoiceRecorder';
 
 interface CommentsModalProps {
   isOpen: boolean;
@@ -19,6 +21,8 @@ export function CommentsModal({ isOpen, onClose, itemId, itemType, authorName }:
   const { user } = useAuth();
   const [comments, setComments] = useState<any[]>([]);
   const [newComment, setNewComment] = useState('');
+  const [audioComment, setAudioComment] = useState<{ url: string; duration: number } | null>(null);
+  const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -51,24 +55,32 @@ export function CommentsModal({ isOpen, onClose, itemId, itemType, authorName }:
   }, [isOpen, itemId]);
 
   const handlePostComment = async () => {
-    if (!newComment.trim() || !user) return;
+    if ((!newComment.trim() && !audioComment) || !user) return;
     setIsSubmitting(true);
     
     try {
-      await addDoc(collection(db, 'comments'), {
+      const commentPayload: any = {
         itemId,
         itemType,
         authorId: user.uid,
         authorName: user.displayName || 'Usuário Anônimo',
         authorAvatar: user.photoURL || '',
-        content: newComment.trim(),
+        content: newComment.trim() || (audioComment ? '🎙️ Mensagem de voz' : ''),
         createdAt: serverTimestamp()
-      });
+      };
+
+      if (audioComment) {
+        commentPayload.audioUrl = audioComment.url;
+        commentPayload.audioDuration = audioComment.duration;
+      }
+
+      await addDoc(collection(db, 'comments'), commentPayload);
 
       // Track comment event
       import('../firebase').then(({ trackEvent }) => {
         trackEvent('comment_created', {
-          item_type: itemType
+          item_type: itemType,
+          has_audio: Boolean(audioComment)
         });
       }).catch(console.error);
 
@@ -79,6 +91,8 @@ export function CommentsModal({ isOpen, onClose, itemId, itemType, authorName }:
       });
 
       setNewComment('');
+      setAudioComment(null);
+      setShowVoiceRecorder(false);
     } catch (error) {
       handleFirestoreError(error, OperationType.WRITE, 'comments');
     } finally {
@@ -135,21 +149,64 @@ export function CommentsModal({ isOpen, onClose, itemId, itemType, authorName }:
                       }
                     </span>
                   </div>
-                  <p dir="auto" className="text-sm text-slate-200 text-start">{comment.content}</p>
+                  {comment.content && <p dir="auto" className="text-sm text-slate-200 text-start">{comment.content}</p>}
+                  {comment.audioUrl && (
+                    <div className="mt-2">
+                      <AudioPlayer src={comment.audioUrl} duration={comment.audioDuration} compact />
+                    </div>
+                  )}
                 </div>
               </div>
             ))
           )}
         </div>
 
+        {/* Voice Recorder Overlay / Section */}
+        {showVoiceRecorder && (
+          <div className="p-3 bg-slate-800/90 border-t border-slate-700">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-indigo-300 flex items-center gap-1">
+                <Mic size={13} /> Gravar Áudio do Comentário
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowVoiceRecorder(false);
+                  setAudioComment(null);
+                }}
+                className="text-xs text-slate-400 hover:text-white"
+              >
+                Cancelar
+              </button>
+            </div>
+            <VoiceRecorder
+              maxDuration={60}
+              label="Gravar áudio (até 60s)"
+              onAudioRecorded={(audio) => setAudioComment(audio)}
+            />
+          </div>
+        )}
+
         {/* Input Area */}
         <div className="p-4 border-t border-slate-800 bg-slate-900 pb-safe">
           <div className="flex gap-2 items-end">
+            <button
+              type="button"
+              onClick={() => setShowVoiceRecorder(prev => !prev)}
+              title="Gravar mensagem de voz"
+              className={`p-3 rounded-xl border transition-colors flex items-center justify-center shrink-0 h-[44px] ${
+                showVoiceRecorder || audioComment
+                  ? 'bg-indigo-600 border-indigo-500 text-white'
+                  : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-indigo-300 hover:border-indigo-500/50'
+              }`}
+            >
+              <Mic size={18} />
+            </button>
             <textarea
               dir="auto"
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
-              placeholder={t('comments.placeholder', 'Adicione um comentário...')}
+              placeholder={audioComment ? 'Áudio gravado! Adicione texto se desejar...' : t('comments.placeholder', 'Adicione um comentário...')}
               className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none max-h-32 min-h-[44px] text-start"
               rows={1}
               onKeyDown={(e) => {
@@ -160,8 +217,9 @@ export function CommentsModal({ isOpen, onClose, itemId, itemType, authorName }:
               }}
             />
             <button
+              type="button"
               onClick={handlePostComment}
-              disabled={!newComment.trim() || isSubmitting}
+              disabled={(!newComment.trim() && !audioComment) || isSubmitting}
               className="bg-blue-600 text-white p-3 rounded-xl hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center shrink-0 h-[44px]"
             >
               <Send size={18} />

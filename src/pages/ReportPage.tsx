@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { TopBar } from '../components/TopBar';
 import { ImageBlurEditor } from '../components/ImageBlurEditor';
-import { MapPin, Camera, Video, CheckCircle2, Siren, Eye, Flame, MoreHorizontal, Send, X, LocateFixed, AlertTriangle } from 'lucide-react';
+import { VoiceRecorder } from '../components/VoiceRecorder';
+import { MapPin, Camera, Video, CheckCircle2, Siren, Eye, Flame, MoreHorizontal, Send, X, LocateFixed, AlertTriangle, Mic } from 'lucide-react';
 import Map, { ViewStateChangeEvent, MapRef, Marker } from 'react-map-gl/mapbox';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -41,6 +42,7 @@ export function ReportPage() {
   const [attachments, setAttachments] = useState<File[]>([]);
   const [editingImage, setEditingImage] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [audioData, setAudioData] = useState<{ url: string; duration: number } | null>(null);
   const [searchParams] = useSearchParams();
   const urlGroupId = searchParams.get('groupId');
   const [userGroups, setUserGroups] = useState<any[]>([]);
@@ -306,6 +308,11 @@ export function ReportPage() {
         reportPayload.attachments = attachmentData;
       }
 
+      if (audioData) {
+        reportPayload.audioUrl = audioData.url;
+        reportPayload.audioDuration = audioData.duration;
+      }
+
       const reportRef = await addDoc(collection(db, 'reports'), reportPayload);
 
       // Track report creation
@@ -342,6 +349,15 @@ export function ReportPage() {
             </div>
         `;
       }
+
+      if (audioData) {
+        htmlContent += `
+            <div style="margin: 20px 0; padding: 14px 18px; background-color: #e0e7ff; border: 1px solid #c7d2fe; border-radius: 8px; color: #3730a3; font-size: 14px;">
+              🎙️ <strong>Mensagem de Voz anexada:</strong> O morador gravou um relato em áudio (${audioData.duration}s). <a href="https://alertacriminal.com.br/?reportId=${reportRef.id}" style="color: #4338ca; text-decoration: underline; font-weight: bold;">Clique para ouvir no app</a>.
+            </div>
+        `;
+      }
+
       htmlContent += `
             <div style="text-align: center; margin-top: 32px;">
               <a href="https://alertacriminal.com.br/?reportId=${reportRef.id}" style="display: inline-block; background-color: #0f172a; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
@@ -636,6 +652,15 @@ export function ReportPage() {
               ))}
             </div>
           )}
+
+          {/* Voice Audio Message Recording */}
+          <div className="mt-4 pt-3 border-t border-slate-700/60">
+            <VoiceRecorder
+              maxDuration={60}
+              label={t('report.voiceMessage', 'Gravar Mensagem de Voz')}
+              onAudioRecorded={(audio) => setAudioData(audio)}
+            />
+          </div>
         </div>
 
         
