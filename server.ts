@@ -5,6 +5,9 @@ import fs from "fs";
 import dotenv from "dotenv";
 import twilio from "twilio";
 import webPush from "web-push";
+import { GoogleGenAI } from '@google/genai';
+
+dotenv.config({ override: true });
 
 // Configurações do Web Push (VAPID)
 // Você deve gerar essas chaves usando: npx web-push generate-vapid-keys
@@ -17,9 +20,6 @@ webPush.setVapidDetails(
   publicVapidKey,
   privateVapidKey
 );
-import { GoogleGenAI } from '@google/genai';
-
-dotenv.config({ override: true });
 
 // Initialize AI
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
@@ -71,7 +71,14 @@ if (TWILIO_ACCOUNT_SID && TWILIO_AUTH_TOKEN) {
 async function startServer() {
   const app = express();
   const isProduction = process.env.NODE_ENV === "production";
-  const PORT = 3000;
+  
+  const portArgIndex = process.argv.indexOf('--port');
+  const portFromArg = portArgIndex !== -1 ? parseInt(process.argv[portArgIndex + 1], 10) : undefined;
+  const PORT = Number(process.env.PORT) || portFromArg || 3000;
+
+  const hostArgIndex = process.argv.indexOf('--host');
+  const hostFromArg = hostArgIndex !== -1 ? process.argv[hostArgIndex + 1] : undefined;
+  const HOST = process.env.HOST || hostFromArg || "0.0.0.0";
 
   app.use(express.json());
 
@@ -178,19 +185,64 @@ async function startServer() {
   // Endpoint to broadcast a push notification
   app.post('/api/push/broadcast', verifyFirebaseToken, async (req, res) => {
     try {
-      const { title, body, url, htmlContent } = req.body;
-      const uid = (req as any).user.uid;
-
+      const { title, body, url, htmlContent, visibility, groupId, reportId } = req.body;
+      const requesterUid = (req as any).user.uid;
       const db = admin.firestore();
-      const usersSnapshot = await db.collection('users').get();
+
+      let isGroupBroadcast = Boolean(groupId) || visibility === 'group';
+      let targetGroupId = groupId;
+
+      // Se um reportId for informado, valida com o documento real salvo no Firestore
+      if (reportId) {
+        const reportDoc = await db.collection('reports').doc(reportId).get();
+        if (reportDoc.exists) {
+          const reportData = reportDoc.data();
+          if (reportData?.groupId || reportData?.visibility === 'group') {
+            isGroupBroadcast = true;
+            targetGroupId = reportData.groupId;
+          }
+        }
+      }
+
+      let targetUserDocs: FirebaseFirestore.DocumentSnapshot[] = [];
+
+      if (isGroupBroadcast) {
+        if (!targetGroupId) {
+          return res.status(400).json({ error: 'Grupo não especificado para ocorrência privada.' });
+        }
+
+        const groupDoc = await db.collection('groups').doc(targetGroupId).get();
+        if (!groupDoc.exists) {
+          return res.status(404).json({ error: 'Grupo privado não encontrado.' });
+        }
+
+        const groupData = groupDoc.data()!;
+        const members: string[] = groupData.members || [];
+
+        // Trava de segurança: apenas membros do grupo podem acionar notificação para o grupo
+        if (!members.includes(requesterUid)) {
+          return res.status(403).json({ error: 'Acesso negado: Você não é membro deste grupo privado.' });
+        }
+
+        // CARREGA ESTRITAMENTE APENAS OS MEMBROS DO GRUPO PRIVADO
+        const memberPromises = members.map(uid => db.collection('users').doc(uid).get());
+        const memberDocs = await Promise.all(memberPromises);
+        targetUserDocs = memberDocs.filter(d => d.exists);
+        console.log(`[Push Broadcast Grupo] Disparando exclusivamente para ${targetUserDocs.length} membros do grupo ${groupData.name}`);
+      } else {
+        // Ocorrência pública: carrega todos os usuários
+        const usersSnapshot = await db.collection('users').get();
+        targetUserDocs = usersSnapshot.docs;
+      }
       
       let sendCount = 0;
       let emailBccList: string[] = [];
       
-      fs.appendFileSync("server.log", `[Push Broadcast] Iniciando...\n`); console.log(`[Push Broadcast] Iniciando...`);
+      fs.appendFileSync("server.log", `[Push Broadcast] Iniciando (${isGroupBroadcast ? 'Grupo Privado' : 'Público'})...\n`);
+      console.log(`[Push Broadcast] Iniciando (${isGroupBroadcast ? 'Grupo Privado' : 'Público'})...`);
 
-      for (const userDoc of usersSnapshot.docs) {
-        const userData = userDoc.data();
+      for (const userDoc of targetUserDocs) {
+        const userData = userDoc.data()!;
         
         // Coletar emails para broadcast (ativo por padrão a menos que explicitamente desativado)
         const isEmailEnabled = userData.notificationSettings?.email ?? true;
@@ -226,7 +278,14 @@ async function startServer() {
          console.log(`[Push Broadcast] Não enviou emails porque: emailsList.length=${emailBccList.length}, htmlContent=${!!htmlContent}`);
       }
 
-      res.status(200).json({ message: `Notificação enviada com sucesso para ${sendCount} dispositivos e ${emailBccList.length} emails.` });
+      res.status(200).json({ 
+        message: isGroupBroadcast 
+          ? `Notificação enviada exclusivamente para ${sendCount} dispositivos e ${emailBccList.length} membros do grupo.` 
+          : `Notificação enviada com sucesso para ${sendCount} dispositivos e ${emailBccList.length} emails.`,
+        isGroupBroadcast,
+        sendCount,
+        emailsSent: emailBccList.length
+      });
     } catch (error) {
       console.error('Erro ao enviar notificações push:', error);
       res.status(500).json({ error: 'Falha ao enviar notificações' });
@@ -282,14 +341,36 @@ async function startServer() {
     // Vite middleware for development
     const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
-      server: { middlewareMode: true },
+      server: {
+        middlewareMode: true,
+        hmr: process.env.DISABLE_HMR !== 'true',
+      },
       appType: "spa",
     });
     app.use(vite.middlewares);
+    app.use('*', async (req, res, next) => {
+      const url = req.originalUrl;
+      try {
+        const indexPath = path.resolve(process.cwd(), 'index.html');
+        if (fs.existsSync(indexPath)) {
+          let template = fs.readFileSync(indexPath, 'utf-8');
+          template = await vite.transformIndexHtml(url, template);
+          res.status(200).set({ 'Content-Type': 'text/html' }).end(template);
+        } else {
+          next();
+        }
+      } catch (e) {
+        vite.ssrFixStacktrace(e as Error);
+        next(e);
+      }
+    });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://localhost:${PORT} in ${isProduction ? 'production' : 'development'} mode`);
+  app.listen(PORT, HOST, () => {
+    console.log(`\n  VITE v6.2.0 ready\n`);
+    console.log(`  ➜  Local:   http://localhost:${PORT}/`);
+    console.log(`  ➜  Network: http://${HOST}:${PORT}/\n`);
+    console.log(`Server running in ${isProduction ? 'production' : 'development'} mode on http://${HOST}:${PORT}`);
   });
 }
 

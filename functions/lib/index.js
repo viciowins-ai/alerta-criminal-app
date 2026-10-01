@@ -114,19 +114,63 @@ app.post('/api/push/subscribe', verifyFirebaseToken, async (req, res) => {
     }
 });
 app.post('/api/push/broadcast', verifyFirebaseToken, async (req, res) => {
-    var _a, _b;
+    var _a, _b, _c;
     try {
-        const { title, body, url, htmlContent } = req.body;
+        const { title, body, url, htmlContent, visibility, groupId, reportId } = req.body;
+        const requesterUid = (_a = req.user) === null || _a === void 0 ? void 0 : _a.uid;
         const db = admin.firestore();
-        const usersSnapshot = await db.collection('users').get();
+        let isGroupBroadcast = Boolean(groupId) || visibility === 'group';
+        let targetGroupId = groupId;
+        // Se um reportId for informado, valida com o documento real salvo no Firestore
+        if (reportId) {
+            const reportDoc = await db.collection('reports').doc(reportId).get();
+            if (reportDoc.exists) {
+                const reportData = reportDoc.data();
+                if ((reportData === null || reportData === void 0 ? void 0 : reportData.groupId) || (reportData === null || reportData === void 0 ? void 0 : reportData.visibility) === 'group') {
+                    isGroupBroadcast = true;
+                    targetGroupId = reportData.groupId;
+                }
+            }
+        }
+        let targetUserDocs = [];
+        if (isGroupBroadcast) {
+            if (!targetGroupId) {
+                res.status(400).json({ error: 'Grupo não especificado para ocorrência privada.' });
+                return;
+            }
+            const groupDoc = await db.collection('groups').doc(targetGroupId).get();
+            if (!groupDoc.exists) {
+                res.status(404).json({ error: 'Grupo privado não encontrado.' });
+                return;
+            }
+            const groupData = groupDoc.data();
+            const members = groupData.members || [];
+            // Trava de segurança: apenas membros do grupo podem acionar notificação para o grupo
+            if (!members.includes(requesterUid)) {
+                res.status(403).json({ error: 'Acesso negado: Você não é membro deste grupo privado.' });
+                return;
+            }
+            // CARREGA ESTRITAMENTE APENAS OS MEMBROS DO GRUPO PRIVADO
+            const memberPromises = members.map(uid => db.collection('users').doc(uid).get());
+            const memberDocs = await Promise.all(memberPromises);
+            targetUserDocs = memberDocs.filter(d => d.exists);
+            console.log(`[Broadcast Grupo] Disparando para ${targetUserDocs.length} membros exclusivos do grupo ${groupData.name}`);
+        }
+        else {
+            // Ocorrência pública: carrega os usuários gerais
+            const usersSnapshot = await db.collection('users').get();
+            targetUserDocs = usersSnapshot.docs;
+        }
         let sendCount = 0;
         let emailBccList = [];
-        for (const userDoc of usersSnapshot.docs) {
+        for (const userDoc of targetUserDocs) {
             const userData = userDoc.data();
-            const isEmailEnabled = (_b = (_a = userData.notificationSettings) === null || _a === void 0 ? void 0 : _a.email) !== null && _b !== void 0 ? _b : true;
+            const isEmailEnabled = (_c = (_b = userData.notificationSettings) === null || _b === void 0 ? void 0 : _b.email) !== null && _c !== void 0 ? _c : true;
+            // Coleta email se habilitado
             if (htmlContent && userData.email && !userData.email.endsWith('@anonymous.com') && isEmailEnabled && userData.termsAccepted === true) {
                 emailBccList.push(userData.email);
             }
+            // Envio de Web Push para os dispositivos do usuário
             const subsSnapshot = await userDoc.ref.collection('pushSubscriptions').get();
             for (const subDoc of subsSnapshot.docs) {
                 const subscription = subDoc.data();
@@ -146,7 +190,7 @@ app.post('/api/push/broadcast', verifyFirebaseToken, async (req, res) => {
                 }
             }
         }
-        // NOVO DISPARO SMTP VIA NODEMAILER (Substituindo a collection mail)
+        // Disparo de email via Nodemailer
         if (emailBccList.length > 0 && htmlContent) {
             const chunkSize = 50;
             for (let i = 0; i < emailBccList.length; i += chunkSize) {
@@ -166,7 +210,11 @@ app.post('/api/push/broadcast', verifyFirebaseToken, async (req, res) => {
                 }
             }
         }
-        res.status(200).json({ message: 'Broadcast processado', pushSent: sendCount, emailsSent: emailBccList.length });
+        res.status(200).json({
+            message: isGroupBroadcast ? 'Notificação enviada exclusivamente para membros do grupo' : 'Broadcast público processado',
+            pushSent: sendCount,
+            emailsSent: emailBccList.length
+        });
     }
     catch (error) {
         console.error('Erro no broadcast:', error);
