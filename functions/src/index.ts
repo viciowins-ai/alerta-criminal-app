@@ -180,21 +180,39 @@ app.post('/api/push/broadcast', verifyFirebaseToken, async (req, res) => {
     
     // Disparo de email via Nodemailer
     if (emailBccList.length > 0 && htmlContent) {
-      const chunkSize = 50;
-      for (let i = 0; i < emailBccList.length; i += chunkSize) {
+      if (isGroupBroadcast) {
+        // Envio individual e estrito para os membros do grupo privado
+        // JAMAIS inclui alertacriminaloficial no 'to' a menos que seja membro do grupo
+        for (const memberEmail of emailBccList) {
+          try {
+            await transporter.sendMail({
+              from: '"Alerta Criminal" <alertacriminaloficial@gmail.com>',
+              to: memberEmail,
+              subject: title,
+              html: htmlContent
+            });
+            console.log(`[Email Privado] Enviado diretamente para membro do grupo: ${memberEmail}`);
+          } catch (smtpErr) {
+            console.error(`Erro no envio para membro ${memberEmail}:`, smtpErr);
+          }
+        }
+      } else {
+        const chunkSize = 50;
+        for (let i = 0; i < emailBccList.length; i += chunkSize) {
           const chunk = emailBccList.slice(i, i + chunkSize);
           try {
             await transporter.sendMail({
               from: '"Alerta Criminal" <alertacriminaloficial@gmail.com>',
-              to: 'alertacriminaloficial@gmail.com',
+              to: 'nao-responda@alertacriminal.com.br',
               bcc: chunk,
               subject: title,
               html: htmlContent
             });
-            console.log(`Chunk de ${chunk.length} emails enviado com sucesso.`);
+            console.log(`Chunk público de ${chunk.length} emails enviado com sucesso.`);
           } catch (smtpErr) {
-            console.error("Erro no envio SMTP", smtpErr);
+            console.error("Erro no envio SMTP público:", smtpErr);
           }
+        }
       }
     }
 
