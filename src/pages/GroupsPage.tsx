@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Shield, Plus, Users, Search, ArrowRight, UserPlus, LogOut, Copy, Check, Lock, ChevronDown, ChevronUp, MapPin, AlertTriangle, Eye, Siren, Flame, MoreHorizontal, Clock, Crown, ShieldCheck } from 'lucide-react';
+import { Shield, Plus, Users, Search, ArrowRight, UserPlus, LogOut, Copy, Check, Lock, ChevronDown, ChevronUp, MapPin, AlertTriangle, Eye, Siren, Flame, MoreHorizontal, Clock, Crown, ShieldCheck, Trash2 } from 'lucide-react';
 import { TopBar } from '../components/TopBar';
 import { AttachmentGallery } from '../components/AttachmentGallery';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
-import { collection, addDoc, query, where, getDocs, doc, getDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs, doc, getDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove, serverTimestamp } from 'firebase/firestore';
 
 export function GroupsPage() {
   const navigate = useNavigate();
@@ -88,6 +88,20 @@ export function GroupsPage() {
       } finally {
         setLoadingReports(prev => ({ ...prev, [groupId]: false }));
       }
+    }
+  };
+
+  const handleDeleteReport = async (groupId: string, reportId: string) => {
+    if (!window.confirm('Tem certeza de que deseja excluir esta ocorrência deste grupo privado?')) return;
+    try {
+      await deleteDoc(doc(db, 'reports', reportId));
+      setGroupReports(prev => ({
+        ...prev,
+        [groupId]: (prev[groupId] || []).filter(r => r.id !== reportId)
+      }));
+    } catch (err) {
+      console.error("Erro ao excluir ocorrência:", err);
+      alert("Não foi possível excluir a ocorrência.");
     }
   };
 
@@ -538,18 +552,32 @@ export function GroupsPage() {
                                     </div>
                                   )}
 
-                                  {/* Footer with Map Action */}
+                                  {/* Footer with Map Action and Delete */}
                                   <div className="flex items-center justify-between pt-2 border-t border-slate-800">
                                     <span className="text-[10px] text-slate-500 flex items-center gap-1">
                                       <Lock size={10} className="text-indigo-400" />
                                       Exclusivo para membros deste grupo
                                     </span>
-                                    <button
-                                      onClick={() => navigate(`/?reportId=${rep.id}`)}
-                                      className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold flex items-center gap-1 transition-colors cursor-pointer"
-                                    >
-                                      Ver no Mapa <ArrowRight size={12} />
-                                    </button>
+                                    <div className="flex items-center gap-3">
+                                      {(rep.authorId === user?.uid || user?.email === 'viciowins@gmail.com') && (
+                                        <button
+                                          type="button"
+                                          onClick={() => handleDeleteReport(group.id, rep.id)}
+                                          title="Excluir ocorrência"
+                                          className="text-xs text-red-400 hover:text-red-300 font-medium flex items-center gap-1 transition-colors cursor-pointer p-1 rounded hover:bg-red-500/10"
+                                        >
+                                          <Trash2 size={13} />
+                                          <span>Excluir</span>
+                                        </button>
+                                      )}
+                                      <button
+                                        type="button"
+                                        onClick={() => navigate(`/?reportId=${rep.id}`)}
+                                        className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                                      >
+                                        Ver no Mapa <ArrowRight size={12} />
+                                      </button>
+                                    </div>
                                   </div>
                                 </div>
                               );
