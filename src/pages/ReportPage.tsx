@@ -359,6 +359,9 @@ export function ReportPage() {
       try {
         const idToken = await user.getIdToken();
         const isPrivate = visibility === 'group' || Boolean(reportPayload.groupId);
+        const timeFormatted = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        const shortProtocol = reportRef.id.slice(0, 5).toUpperCase();
+        
         await fetch('/api/push/broadcast', {
           method: 'POST',
           headers: {
@@ -367,8 +370,8 @@ export function ReportPage() {
           },
           body: JSON.stringify({
             title: isPrivate 
-              ? `🔒 [${reportPayload.groupName || 'Grupo Privado'}] ${typeLabel}`
-              : `🚨 Alerta Criminal: ${typeLabel}`,
+              ? `🔒 [${reportPayload.groupName || 'Grupo Privado'}] ${typeLabel} às ${timeFormatted} (#${shortProtocol})`
+              : `🚨 Alerta Criminal: ${typeLabel} às ${timeFormatted} (#${shortProtocol})`,
             body: `Reportado em: ${address || 'Localização aproximada'}`,
             url: `/?reportId=${reportRef.id}`,
             htmlContent,
