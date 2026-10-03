@@ -98,54 +98,49 @@ export function RoutePage() {
       return;
     }
 
-    let watchId: number | undefined;
-
-    const startWatching = (highAccuracy: boolean) => {
-      try {
-        return navigator.geolocation.watchPosition(
-          (position) => {
-            const { latitude, longitude } = position.coords;
-            
-            if (!initialCenterDone.current && mapRef.current) {
-              mapRef.current.flyTo({
-                center: [longitude, latitude],
-                zoom: 16,
-                duration: 1500,
-                essential: true
-              });
-              initialCenterDone.current = true;
-            }
-
-            setUserLocation(prev => {
-              if (!prev) return { lat: latitude, lng: longitude };
-              
-              const R = 6371e3;
-              const p1 = prev.lat * Math.PI/180;
-              const p2 = latitude * Math.PI/180;
-              const dp = (latitude-prev.lat) * Math.PI/180;
-              const dl = (longitude-prev.lng) * Math.PI/180;
-              const a = Math.sin(dp/2) * Math.sin(dp/2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl/2) * Math.sin(dl/2);
-              const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-              const d = R * c;
-              
-              if (d > 2) return { lat: latitude, lng: longitude };
-              return prev;
+    let watchId: number;
+    try {
+      watchId = navigator.geolocation.watchPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          
+          if (!initialCenterDone.current && mapRef.current) {
+            mapRef.current.flyTo({
+              center: [longitude, latitude],
+              zoom: 15,
+              duration: 2000,
+              essential: true
             });
-          },
-          (error) => {
-            if (error && error.code !== 1) {
-              setGeoError('Sinal de GPS indisponível ou fraco. Certifique-se de que a Localização Exata está ativa.');
-              setTimeout(() => setGeoError(null), 5000);
-            }
-          },
-          { enableHighAccuracy: true, timeout: 12000, maximumAge: 3000 }
-        );
-      } catch (_e) {
-        return undefined;
-      }
-    };
+            initialCenterDone.current = true;
+          }
 
-    watchId = startWatching(true);
+          setUserLocation(prev => {
+            if (!prev) return { lat: latitude, lng: longitude };
+            
+            const R = 6371e3;
+            const p1 = prev.lat * Math.PI/180;
+            const p2 = latitude * Math.PI/180;
+            const dp = (latitude-prev.lat) * Math.PI/180;
+            const dl = (longitude-prev.lng) * Math.PI/180;
+            const a = Math.sin(dp/2) * Math.sin(dp/2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl/2) * Math.sin(dl/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            const d = R * c;
+            
+            if (d > 5) return { lat: latitude, lng: longitude };
+            return prev;
+          });
+        },
+        (error) => {
+          if (error && error.code !== 1) {
+            setGeoError('Não foi possível obter sua localização.');
+            setTimeout(() => setGeoError(null), 6000);
+          }
+        },
+        { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
+      );
+    } catch (_e) {
+      // Silently handle synchronous geolocation in headless or restricted environment
+    }
 
     return () => {
       try {

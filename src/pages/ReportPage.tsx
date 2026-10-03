@@ -166,40 +166,40 @@ export function ReportPage() {
   }, []);
 
   const requestLocation = useCallback(() => {
-    setIsLocating(true);
-    setAddress('Buscando localização de alta precisão...');
-    if ('geolocation' in navigator) {
-      try {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const { longitude, latitude } = position.coords;
-            setUserLocation({ lng: longitude, lat: latitude });
-            setReportLocation({ longitude, latitude });
-            userHasDragged.current = false;
-            mapRef.current?.flyTo({ center: [longitude, latitude], zoom: 17, duration: 1000 });
-            fetchAddress(longitude, latitude);
-            setIsLocating(false);
-          }, 
-          (_error) => {
-            if (userLocation) {
+    if (userLocation) {
+      userHasDragged.current = false;
+      setReportLocation({ longitude: userLocation.lng, latitude: userLocation.lat });
+      mapRef.current?.flyTo({ center: [userLocation.lng, userLocation.lat], zoom: 16, duration: 1000 });
+      fetchAddress(userLocation.lng, userLocation.lat);
+    } else {
+      setIsLocating(true);
+      setAddress('Buscando localização...');
+      if ('geolocation' in navigator) {
+        try {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              const { longitude, latitude } = position.coords;
+              setUserLocation({ lng: longitude, lat: latitude });
+              setReportLocation({ longitude, latitude });
               userHasDragged.current = false;
-              setReportLocation({ longitude: userLocation.lng, latitude: userLocation.lat });
-              mapRef.current?.flyTo({ center: [userLocation.lng, userLocation.lat], zoom: 16, duration: 1000 });
-              fetchAddress(userLocation.lng, userLocation.lat);
-            } else {
-              setAddress('Não foi possível obter sua localização precisa.');
-            }
-            setIsLocating(false);
-          },
-          { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
-        );
-      } catch (_e) {
-        setAddress('Erro ao acessar o GPS.');
+              mapRef.current?.flyTo({ center: [longitude, latitude], zoom: 16, duration: 1000 });
+              fetchAddress(longitude, latitude);
+              setIsLocating(false);
+            }, 
+            (_error) => {
+              setAddress('Não foi possível obter sua localização.');
+              setIsLocating(false);
+            },
+            { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+          );
+        } catch (_e) {
+          setAddress('Erro ao acessar o GPS.');
+          setIsLocating(false);
+        }
+      } else {
+        setAddress('GPS não suportado neste dispositivo.');
         setIsLocating(false);
       }
-    } else {
-      setAddress('GPS não suportado neste dispositivo.');
-      setIsLocating(false);
     }
   }, [userLocation]);
 
