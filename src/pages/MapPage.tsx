@@ -175,6 +175,16 @@ export function MapPage() {
       return;
     }
 
+    // Instant visual response: if we already have a location, center immediately!
+    if (userLocation && mapRef.current) {
+      mapRef.current.flyTo({
+        center: [userLocation.lng, userLocation.lat],
+        zoom: 16.5,
+        duration: 700,
+        essential: true
+      });
+    }
+
     navigator.geolocation.getCurrentPosition(
       (position) => {
         evaluatePosition(position.coords);
@@ -187,7 +197,7 @@ export function MapPage() {
             zoom: 16.5,
             pitch: 0,
             bearing: 0,
-            duration: 1200,
+            duration: 900,
             essential: true
           });
         }
@@ -208,11 +218,11 @@ export function MapPage() {
       },
       {
         enableHighAccuracy: true,
-        timeout: 5000,
-        maximumAge: 0
+        timeout: 4000,
+        maximumAge: 3000
       }
     );
-  }, [evaluatePosition]);
+  }, [evaluatePosition, userLocation]);
 
   // Monitor device permission & app focus/visibility changes in real-time
   useEffect(() => {
@@ -247,15 +257,28 @@ export function MapPage() {
     // Initial check on mount
     triggerGPS(false);
 
-    // Fast check interval (every 2s) while GPS is disabled, to clear the notice immediately when activated
-    const autoClearInterval = setInterval(() => {
-      if (gpsStatus === 'disabled') {
-        triggerGPS(false);
-      }
-    }, 2000);
+    // Bidirectional real-time sync: detects both when GPS is turned OFF and when turned back ON
+    const autoSyncInterval = setInterval(() => {
+      if (typeof navigator === 'undefined' || !navigator.geolocation) return;
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          evaluatePosition(position.coords);
+        },
+        (error) => {
+          // If the user turns off GPS in phone quick settings:
+          if (error && (error.code === 1 || error.code === 2)) {
+            setGpsStatus('disabled');
+            setUserLocation(null);
+            try { sessionStorage.removeItem('lastKnownLocation'); } catch (e) {}
+          }
+        },
+        { enableHighAccuracy: true, timeout: 2500, maximumAge: 3000 }
+      );
+    }, 2500);
 
     return () => {
-      clearInterval(autoClearInterval);
+      clearInterval(autoSyncInterval);
       window.removeEventListener('focus', handleVisibilityOrFocus);
       document.removeEventListener('visibilitychange', handleVisibilityOrFocus);
     };
