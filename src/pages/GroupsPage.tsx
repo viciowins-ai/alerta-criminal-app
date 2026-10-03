@@ -148,7 +148,7 @@ export function GroupsPage() {
               resolve();
             },
             () => resolve(),
-            { timeout: 3000 }
+            { enableHighAccuracy: true, timeout: 6000, maximumAge: 5000 }
           );
         });
       }

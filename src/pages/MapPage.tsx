@@ -123,7 +123,9 @@ export function MapPage() {
   const [riskZones, setRiskZones] = useState<any[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<any | null>(null);
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
-  const [isLocating, setIsLocating] = useState(false);
+  const [locationAccuracy, setLocationAccuracy] = useState<number | null>(null);
+  const [isLocatingHighPrecision, setIsLocatingHighPrecision] = useState(false);
+  const [gpsToast, setGpsToast] = useState<{ message: string; type: 'success' | 'info' | 'warn' } | null>(null);
   const [isSOSActive, setIsSOSActive] = useState(false);
   const [isPanicMode, setIsPanicMode] = useState(false);
   const [isGuardianMode, setIsGuardianMode] = useState(false);
@@ -131,8 +133,6 @@ export function MapPage() {
 
   const mapRef = useRef<MapRef>(null);
   const initialCenterDone = useRef(false);
-  const bestAccuracyRef = useRef<number>(Infinity);
-  const userInteractedWithMap = useRef(false);
 
   useEffect(() => {
     if (!navigator.geolocation) {
@@ -140,71 +140,75 @@ export function MapPage() {
       return;
     }
 
-    let watchId: number;
-    try {
-      watchId = navigator.geolocation.watchPosition(
-        (position) => {
-          const { latitude, longitude, accuracy } = position.coords;
-          const hasSharedReport = new URLSearchParams(window.location.search).get('reportId');
+    let watchId: number | undefined;
 
-          // Se a precisão for substancialmente melhor (ex: GPS de satélite substituindo torre celular)
-          const isSignificantlyBetter = accuracy < bestAccuracyRef.current - 15;
-          const shouldCenter = (!initialCenterDone.current || isSignificantlyBetter) && !hasSharedReport && !userInteractedWithMap.current;
-
-          if (shouldCenter && mapRef.current) {
-            mapRef.current.flyTo({
-              center: [longitude, latitude],
-              zoom: 16.5,
-              pitch: 0,
-              bearing: 0,
-              duration: 1500,
-              essential: true
-            });
-            if (accuracy <= 80) {
+    const startWatching = (highAccuracy: boolean) => {
+      try {
+        return navigator.geolocation.watchPosition(
+          (position) => {
+            const { latitude, longitude, accuracy } = position.coords;
+            setLocationAccuracy(accuracy);
+            
+            // Only center on user if there's no shared report to center on
+            const hasSharedReport = new URLSearchParams(window.location.search).get('reportId');
+            if (!initialCenterDone.current && mapRef.current && !hasSharedReport) {
+              mapRef.current.flyTo({
+                center: [longitude, latitude],
+                zoom: 16.5,
+                pitch: 0,
+                bearing: 0,
+                duration: 1500,
+                essential: true
+              });
               initialCenterDone.current = true;
             }
-          }
 
-          if (accuracy < bestAccuracyRef.current) {
-            bestAccuracyRef.current = accuracy;
-          }
+            try {
+              sessionStorage.setItem('lastKnownLocation', JSON.stringify({ lat: latitude, lng: longitude }));
+            } catch (e) {}
 
-          try {
-            sessionStorage.setItem('lastKnownLocation', JSON.stringify({ lat: latitude, lng: longitude }));
-          } catch (e) {}
+            setUserLocation(prev => {
+              if (!prev) return { lat: latitude, lng: longitude };
+              
+              const R = 6371e3;
+              const p1 = prev.lat * Math.PI/180;
+              const p2 = latitude * Math.PI/180;
+              const dp = (latitude-prev.lat) * Math.PI/180;
+              const dl = (longitude-prev.lng) * Math.PI/180;
+              const a = Math.sin(dp/2) * Math.sin(dp/2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl/2) * Math.sin(dl/2);
+              const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+              const d = R * c;
+              
+              // Only update if moved > 2m to prevent stationary jitter
+              if (d > 2) return { lat: latitude, lng: longitude };
+              return prev;
+            });
+          },
+          (error) => {
+            if (highAccuracy && error && error.code === 3) {
+              // High accuracy timed out indoors - gracefully fall back to network/cell tower
+              if (watchId !== undefined) {
+                try { navigator.geolocation.clearWatch(watchId); } catch (e) {}
+              }
+              watchId = startWatching(false);
+              return;
+            }
+            if (error && error.code !== 1) {
+              let errorMessage = 'Sinal de GPS fraco.';
+              if (error.code === 2) errorMessage = 'Sinal de GPS indisponível no momento.';
+              else if (error.code === 3) errorMessage = 'Tempo limite ao buscar sinal GPS.';
+              setGeoError(errorMessage);
+              setTimeout(() => setGeoError(null), 5000);
+            }
+          },
+          { enableHighAccuracy: highAccuracy, timeout: 12000, maximumAge: 3000 }
+        );
+      } catch (_e) {
+        return undefined;
+      }
+    };
 
-          setUserLocation(prev => {
-            if (!prev) return { lat: latitude, lng: longitude };
-            
-            const R = 6371e3;
-            const p1 = prev.lat * Math.PI/180;
-            const p2 = latitude * Math.PI/180;
-            const dp = (latitude-prev.lat) * Math.PI/180;
-            const dl = (longitude-prev.lng) * Math.PI/180;
-            const a = Math.sin(dp/2) * Math.sin(dp/2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl/2) * Math.sin(dl/2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            const d = R * c;
-            
-            if (d > 3) return { lat: latitude, lng: longitude };
-            return prev;
-          });
-        },
-        (error) => {
-          let errorMessage = 'Erro ao buscar localização GPS.';
-          if (error && error.code === 1) errorMessage = 'Permissão negada. Autorize o uso do GPS.';
-          else if (error && error.code === 2) errorMessage = 'Sinal de GPS indisponível no momento.';
-          else if (error && error.code === 3) errorMessage = 'Tempo limite excedido ao buscar GPS.';
-          
-          if (error && error.code !== 1) {
-            setGeoError(errorMessage);
-            setTimeout(() => setGeoError(null), 6000);
-          }
-        },
-        { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
-      );
-    } catch (_e) {
-      // Silently handle synchronous geolocation in headless or restricted environment
-    }
+    watchId = startWatching(true);
 
     return () => {
       try {
@@ -320,27 +324,24 @@ export function MapPage() {
     return { type: 'FeatureCollection', features };
   }, [riskZones, reports]);
 
-  const triggerGPS = () => {
-    setIsLocating(true);
-    setGeoError(null);
+  const triggerGPS = useCallback(() => {
+    setIsLocatingHighPrecision(true);
+    setGpsToast({ message: 'Sintonizando sinal de satélite GPS...', type: 'info' });
 
     if (!navigator.geolocation) {
-      setGeoError("Geolocalização não suportada pelo navegador.");
-      setIsLocating(false);
+      setGeoError("Geolocalização não é suportada pelo seu navegador.");
+      setIsLocatingHighPrecision(false);
+      setGpsToast(null);
       return;
     }
 
-    // Força obter a posição exata via satélite (sem cache de torre)
+    // Actively query current high accuracy position with maximumAge: 0
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude, accuracy } = position.coords;
-        bestAccuracyRef.current = accuracy;
-        userInteractedWithMap.current = false;
         setUserLocation({ lat: latitude, lng: longitude });
-
-        try {
-          sessionStorage.setItem('lastKnownLocation', JSON.stringify({ lat: latitude, lng: longitude }));
-        } catch (e) {}
+        setLocationAccuracy(accuracy);
+        setIsLocatingHighPrecision(false);
 
         if (mapRef.current) {
           mapRef.current.flyTo({
@@ -352,28 +353,41 @@ export function MapPage() {
             essential: true
           });
         }
-        setIsLocating(false);
+
+        const accRounded = Math.round(accuracy);
+        setGpsToast({
+          message: `GPS Fixado: Precisão de ±${accRounded}m`,
+          type: 'success'
+        });
+        setTimeout(() => setGpsToast(null), 3500);
+
+        try {
+          sessionStorage.setItem('lastKnownLocation', JSON.stringify({ lat: latitude, lng: longitude }));
+        } catch (e) {}
       },
       (error) => {
-        console.warn("GPS direct error:", error);
+        setIsLocatingHighPrecision(false);
+        // Fallback to existing userLocation if available
         if (userLocation && mapRef.current) {
           mapRef.current.flyTo({
             center: [userLocation.lng, userLocation.lat],
-            zoom: 16.5,
-            duration: 1000
+            zoom: 16,
+            duration: 1200
           });
-        }
-        if (error.code === 1) {
-          setGeoError("Permissão de localização negada. Ative o GPS no seu navegador/celular.");
+          setGpsToast({ message: 'Local aproximado centralizado.', type: 'warn' });
+          setTimeout(() => setGpsToast(null), 3000);
         } else {
-          setGeoError("Ative a 'Precisão de Localização do Google' nas configurações do celular para obter a rua exata.");
+          setGpsToast({ message: 'Não foi possível obter sinal de satélite. Verifique se o GPS está ativo.', type: 'warn' });
+          setTimeout(() => setGpsToast(null), 4000);
         }
-        setTimeout(() => setGeoError(null), 6000);
-        setIsLocating(false);
       },
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      }
     );
-  };
+  }, [userLocation]);
 
   const onMapLoad = useCallback(() => {
     setIsMapLoaded(true);
@@ -963,7 +977,6 @@ export function MapPage() {
       <Map
         ref={mapRef}
         reuseMaps
-        onMoveStart={() => { userInteractedWithMap.current = true; }}
         initialViewState={{
           longitude: userLocation?.lng || -46.6333,
           latitude: userLocation?.lat || -23.5505,
@@ -977,12 +990,15 @@ export function MapPage() {
         style={{ width: '100%', height: '100%' }}
         onError={(e) => console.warn('Mapbox warning:', e.error?.message || 'Erro no mapa')}
       >
-        {/* Custom User Location Marker */}
+        {/* Custom User Location Marker with High Accuracy Halo */}
         {userLocation && (
           <Marker longitude={userLocation.lng} latitude={userLocation.lat} anchor="center">
             <div className="relative flex items-center justify-center">
               <div className="absolute w-12 h-12 bg-blue-500/30 rounded-full animate-ping" />
-              <div className="relative w-4 h-4 bg-blue-500 border-[2px] border-white rounded-full shadow-[0_0_15px_rgba(59,130,246,0.8)]" />
+              {locationAccuracy !== null && locationAccuracy <= 35 && (
+                <div className="absolute w-8 h-8 bg-blue-400/20 rounded-full border border-blue-400/40" />
+              )}
+              <div className="relative w-4 h-4 bg-blue-500 border-[2.5px] border-white rounded-full shadow-[0_0_15px_rgba(59,130,246,0.9)]" />
             </div>
           </Marker>
         )}
@@ -1047,47 +1063,62 @@ export function MapPage() {
       </Map>
 
       {/* Floating Action Buttons */}
-      <div className={`absolute right-3.5 flex flex-col gap-3 z-30 items-center transition-all duration-300 ${selectedLocation ? 'opacity-0 pointer-events-none translate-x-12 bottom-24' : 'opacity-100 bottom-[calc(5.75rem+env(safe-area-inset-bottom))] translate-x-0'}`}>
+      <div className={`absolute right-3.5 flex flex-col gap-2.5 z-30 items-center transition-all duration-300 ${selectedLocation ? 'opacity-0 pointer-events-none translate-x-12 bottom-24' : 'opacity-100 bottom-[calc(5.75rem+env(safe-area-inset-bottom))] translate-x-0'}`}>
         <button 
           onClick={() => setIsGuardianMode(true)}
-          className="bg-blue-600 text-white w-13 h-13 rounded-2xl shadow-xl shadow-black/40 border border-blue-400/40 hover:bg-blue-500 transition-all active:scale-90 flex items-center justify-center touch-manipulation cursor-pointer"
+          className="bg-blue-600 text-white w-11 h-11 rounded-2xl shadow-lg border border-blue-400/30 hover:bg-blue-500 transition-all active:scale-95 flex items-center justify-center"
           aria-label={t('map.buttons.guardian', 'Meu Guardião')}
           title={t('map.buttons.guardian', 'Meu Guardião (Acompanhamento)')}
         >
-          <ShieldCheck size={24} />
+          <ShieldCheck size={20} />
         </button>
         <button 
           onClick={() => setIsPanicMode(true)}
-          className="bg-slate-900/95 backdrop-blur-md text-slate-200 w-13 h-13 rounded-2xl shadow-xl shadow-black/40 border border-slate-700/80 hover:bg-slate-800 hover:text-white transition-all active:scale-90 flex items-center justify-center touch-manipulation cursor-pointer"
+          className="bg-slate-900/90 backdrop-blur-md text-slate-300 w-11 h-11 rounded-2xl shadow-lg border border-slate-700/60 hover:bg-slate-800 hover:text-white transition-all active:scale-95 flex items-center justify-center"
           aria-label={t('map.buttons.panic', 'Modo Pânico (Tela Escura)')}
           title={t('map.buttons.panic', 'Modo Pânico (Tela Escura)')}
         >
-          <Moon size={24} />
+          <Moon size={20} />
         </button>
         <button 
           onClick={handleSOS}
           disabled={isSOSActive}
-          className={`bg-red-600 text-white w-13 h-13 rounded-2xl shadow-xl shadow-red-950/60 border border-red-400/50 hover:bg-red-500 transition-all active:scale-90 flex flex-col items-center justify-center touch-manipulation cursor-pointer ${isSOSActive ? 'opacity-50 cursor-not-allowed' : 'animate-pulse'}`}
+          className={`bg-red-600 text-white w-11 h-11 rounded-2xl shadow-lg border border-red-400/40 hover:bg-red-500 transition-all active:scale-95 flex flex-col items-center justify-center ${isSOSActive ? 'opacity-50 cursor-not-allowed' : 'animate-pulse'}`}
           aria-label={t('map.buttons.sos', 'SOS Emergência')}
           title={t('map.buttons.sos', 'SOS Emergência')}
         >
-          <ShieldAlert size={20} />
-          <span className="text-[10px] font-black leading-none mt-0.5 tracking-tight">S.O.S</span>
+          <ShieldAlert size={16} />
+          <span className="text-[8px] font-black leading-none mt-0.5">S.O.S</span>
         </button>
         <button 
           onClick={triggerGPS}
-          disabled={isLocating}
-          className={`bg-slate-900/95 backdrop-blur-md text-blue-400 w-13 h-13 rounded-2xl shadow-xl shadow-black/40 border border-slate-700/80 hover:bg-slate-800 transition-all active:scale-90 flex items-center justify-center cursor-pointer touch-manipulation ${isLocating ? 'border-blue-500 text-blue-300' : ''}`}
-          aria-label={t('map.buttons.myLocation', 'Minha Localização')}
-          title={t('map.buttons.myLocation', 'Minha Localização')}
+          disabled={isLocatingHighPrecision}
+          className={`bg-slate-900/90 backdrop-blur-md ${isLocatingHighPrecision ? 'text-emerald-400 border-emerald-500/50' : 'text-blue-400 border-slate-700/60'} w-11 h-11 rounded-2xl shadow-lg border hover:bg-slate-800 transition-all active:scale-95 flex items-center justify-center relative`}
+          aria-label={t('map.buttons.myLocation', 'Minha Localização (Alta Precisão)')}
+          title={t('map.buttons.myLocation', 'Minha Localização (Alta Precisão)')}
         >
-          {isLocating ? (
-            <div className="w-6 h-6 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
-          ) : (
-            <LocateFixed size={24} />
+          <LocateFixed size={20} className={isLocatingHighPrecision ? 'animate-spin text-emerald-400' : ''} />
+          {locationAccuracy !== null && locationAccuracy <= 20 && !isLocatingHighPrecision && (
+            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-slate-900" title={`Sinal GPS forte: ±${Math.round(locationAccuracy)}m`} />
           )}
         </button>
       </div>
+
+      {/* Floating High Precision GPS Status Toast */}
+      {gpsToast && (
+        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-40 animate-in fade-in slide-in-from-top-2 duration-200 pointer-events-none">
+          <div className={`px-4 py-1.5 rounded-full text-xs font-semibold shadow-xl border backdrop-blur-md flex items-center gap-2 ${
+            gpsToast.type === 'success' 
+              ? 'bg-slate-900/95 text-emerald-300 border-emerald-500/40' 
+              : gpsToast.type === 'warn'
+              ? 'bg-slate-900/95 text-amber-300 border-amber-500/40'
+              : 'bg-slate-900/95 text-blue-300 border-blue-500/40'
+          }`}>
+            <span className={`w-2 h-2 rounded-full ${gpsToast.type === 'success' ? 'bg-emerald-400 animate-ping' : 'bg-blue-400 animate-pulse'}`} />
+            <span>{gpsToast.message}</span>
+          </div>
+        </div>
+      )}
 
       <PanicModeOverlay 
         isActive={isPanicMode} 

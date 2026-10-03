@@ -98,49 +98,62 @@ export function RoutePage() {
       return;
     }
 
-    let watchId: number;
-    try {
-      watchId = navigator.geolocation.watchPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          
-          if (!initialCenterDone.current && mapRef.current) {
-            mapRef.current.flyTo({
-              center: [longitude, latitude],
-              zoom: 15,
-              duration: 2000,
-              essential: true
-            });
-            initialCenterDone.current = true;
-          }
+    let watchId: number | undefined;
 
-          setUserLocation(prev => {
-            if (!prev) return { lat: latitude, lng: longitude };
+    const startWatching = (highAccuracy: boolean) => {
+      try {
+        return navigator.geolocation.watchPosition(
+          (position) => {
+            const { latitude, longitude } = position.coords;
             
-            const R = 6371e3;
-            const p1 = prev.lat * Math.PI/180;
-            const p2 = latitude * Math.PI/180;
-            const dp = (latitude-prev.lat) * Math.PI/180;
-            const dl = (longitude-prev.lng) * Math.PI/180;
-            const a = Math.sin(dp/2) * Math.sin(dp/2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl/2) * Math.sin(dl/2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            const d = R * c;
-            
-            if (d > 5) return { lat: latitude, lng: longitude };
-            return prev;
-          });
-        },
-        (error) => {
-          if (error && error.code !== 1) {
-            setGeoError('Não foi possível obter sua localização.');
-            setTimeout(() => setGeoError(null), 6000);
-          }
-        },
-        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-      );
-    } catch (_e) {
-      // Silently handle synchronous geolocation in headless or restricted environment
-    }
+            if (!initialCenterDone.current && mapRef.current) {
+              mapRef.current.flyTo({
+                center: [longitude, latitude],
+                zoom: 16,
+                duration: 1500,
+                essential: true
+              });
+              initialCenterDone.current = true;
+            }
+
+            setUserLocation(prev => {
+              if (!prev) return { lat: latitude, lng: longitude };
+              
+              const R = 6371e3;
+              const p1 = prev.lat * Math.PI/180;
+              const p2 = latitude * Math.PI/180;
+              const dp = (latitude-prev.lat) * Math.PI/180;
+              const dl = (longitude-prev.lng) * Math.PI/180;
+              const a = Math.sin(dp/2) * Math.sin(dp/2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl/2) * Math.sin(dl/2);
+              const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+              const d = R * c;
+              
+              if (d > 2) return { lat: latitude, lng: longitude };
+              return prev;
+            });
+          },
+          (error) => {
+            if (highAccuracy && error && error.code === 3) {
+              // High accuracy timeout indoors - fallback to network
+              if (watchId !== undefined) {
+                try { navigator.geolocation.clearWatch(watchId); } catch (e) {}
+              }
+              watchId = startWatching(false);
+              return;
+            }
+            if (error && error.code !== 1) {
+              setGeoError('Não foi possível obter sua localização com alta precisão.');
+              setTimeout(() => setGeoError(null), 5000);
+            }
+          },
+          { enableHighAccuracy: highAccuracy, timeout: 12000, maximumAge: 3000 }
+        );
+      } catch (_e) {
+        return undefined;
+      }
+    };
+
+    watchId = startWatching(true);
 
     return () => {
       try {
