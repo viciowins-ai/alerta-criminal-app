@@ -122,6 +122,8 @@ export function MapPage() {
   }, []);
   const [riskZones, setRiskZones] = useState<any[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<any | null>(null);
+  type GpsStatus = 'checking' | 'active_satellite' | 'coarse_network' | 'disabled';
+  const [gpsStatus, setGpsStatus] = useState<GpsStatus>('checking');
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
   const [isLocating, setIsLocating] = useState(false);
   const [isGpsDisabledModalOpen, setIsGpsDisabledModalOpen] = useState(false);
@@ -135,119 +137,202 @@ export function MapPage() {
   const mapRef = useRef<MapRef>(null);
   const initialCenterDone = useRef(false);
 
-  // Monitor device permission changes in real-time
+  const evaluatePosition = useCallback((coords: GeolocationCoordinates, openModalOnCoarse = false) => {
+    const { latitude, longitude, accuracy, altitude } = coords;
+    setUserLocation({ lat: latitude, lng: longitude });
+
+    // Satellites calculate 3D altitude. Wi-Fi / cell tower networks only provide 2D ground estimation (altitude is null or 0).
+    const isRealSatellite = altitude !== null && altitude !== undefined && altitude !== 0 && typeof accuracy === 'number' && accuracy <= 15;
+    const isCoarse = !isRealSatellite;
+
+    if (isCoarse) {
+      setGpsStatus('coarse_network');
+      setCoarseAccuracy(Math.round(accuracy || 35));
+      if (openModalOnCoarse) {
+        setIsCoarseLocationModalOpen(true);
+      }
+    } else {
+      setGpsStatus('active_satellite');
+      setCoarseAccuracy(null);
+      setIsCoarseLocationModalOpen(false);
+    }
+  }, []);
+
+  const triggerGPS = useCallback((openModalOnIssue = true) => {
+    setIsLocating(true);
+
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      setGpsStatus('disabled');
+      setUserLocation(null);
+      setIsLocating(false);
+      if (openModalOnIssue) setIsGpsDisabledModalOpen(true);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        evaluatePosition(position.coords, openModalOnIssue);
+        setIsLocating(false);
+        setIsGpsDisabledModalOpen(false);
+
+        if (mapRef.current) {
+          mapRef.current.flyTo({
+            center: [position.coords.longitude, position.coords.latitude],
+            zoom: 16.5,
+            pitch: 0,
+            bearing: 0,
+            duration: 1200,
+            essential: true
+          });
+        }
+
+        try {
+          sessionStorage.setItem('lastKnownLocation', JSON.stringify({ lat: position.coords.latitude, lng: position.coords.longitude }));
+        } catch (e) {}
+      },
+      (error) => {
+        setIsLocating(false);
+        setGpsStatus('disabled');
+        setCoarseAccuracy(null);
+        setUserLocation(null);
+        try { sessionStorage.removeItem('lastKnownLocation'); } catch (e) {}
+        if (openModalOnIssue) {
+          setIsGpsDisabledModalOpen(true);
+        }
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 8000,
+        maximumAge: 0
+      }
+    );
+  }, [evaluatePosition]);
+
+  // Monitor device permission & app focus/visibility changes in real-time
   useEffect(() => {
     if (typeof navigator !== 'undefined' && 'permissions' in navigator && navigator.permissions.query) {
       navigator.permissions.query({ name: 'geolocation' as PermissionName }).then((permissionStatus) => {
         if (permissionStatus.state === 'denied') {
-          setIsGpsDisabledModalOpen(true);
+          setGpsStatus('disabled');
           setCoarseAccuracy(null);
           setUserLocation(null);
           try { sessionStorage.removeItem('lastKnownLocation'); } catch (e) {}
         }
         permissionStatus.onchange = () => {
           if (permissionStatus.state === 'denied') {
-            setIsGpsDisabledModalOpen(true);
+            setGpsStatus('disabled');
             setCoarseAccuracy(null);
             setUserLocation(null);
             try { sessionStorage.removeItem('lastKnownLocation'); } catch (e) {}
           } else if (permissionStatus.state === 'granted') {
-            setIsGpsDisabledModalOpen(false);
+            triggerGPS(false);
           }
         };
       }).catch(() => {});
     }
-  }, []);
+
+    const handleVisibilityOrFocus = () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        // When user switches back from Android quick-settings, immediately re-verify GPS hardware state
+        triggerGPS(false);
+      }
+    };
+
+    window.addEventListener('focus', handleVisibilityOrFocus);
+    document.addEventListener('visibilitychange', handleVisibilityOrFocus);
+
+    // Initial check on mount
+    triggerGPS(false);
+
+    // If after 3.5s no position is returned and still checking, set to disabled
+    const fallbackTimer = setTimeout(() => {
+      setGpsStatus((current) => (current === 'checking' ? 'disabled' : current));
+    }, 3500);
+
+    return () => {
+      clearTimeout(fallbackTimer);
+      window.removeEventListener('focus', handleVisibilityOrFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityOrFocus);
+    };
+  }, [triggerGPS]);
 
   useEffect(() => {
-    if (!navigator.geolocation) {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      setGpsStatus('disabled');
       setIsGpsDisabledModalOpen(true);
       return;
     }
 
     let watchId: number | undefined;
 
-    const startWatching = (highAccuracy: boolean) => {
-      try {
-        return navigator.geolocation.watchPosition(
-          (position) => {
-            const { latitude, longitude, accuracy } = position.coords;
-            setIsGpsDisabledModalOpen(false);
+    try {
+      watchId = navigator.geolocation.watchPosition(
+        (position) => {
+          evaluatePosition(position.coords, false);
 
-            // If accuracy is above 35 meters, it is coming from Wi-Fi modem, ISP router or cell tower, NOT high-precision GPS satellites!
-            if (typeof accuracy === 'number' && accuracy > 35) {
-              setCoarseAccuracy(Math.round(accuracy));
-            } else {
-              setCoarseAccuracy(null);
-              setIsCoarseLocationModalOpen(false);
-            }
-            
-            // Only center on user if there's no shared report to center on
-            const hasSharedReport = new URLSearchParams(window.location.search).get('reportId');
-            if (!initialCenterDone.current && mapRef.current && !hasSharedReport) {
-              mapRef.current.flyTo({
-                center: [longitude, latitude],
-                zoom: 16.5,
-                pitch: 0,
-                bearing: 0,
-                duration: 1500,
-                essential: true
-              });
-              initialCenterDone.current = true;
-            }
-
-            try {
-              sessionStorage.setItem('lastKnownLocation', JSON.stringify({ lat: latitude, lng: longitude }));
-            } catch (e) {}
-
-            setUserLocation(prev => {
-              if (!prev) return { lat: latitude, lng: longitude };
-              
-              const R = 6371e3;
-              const p1 = prev.lat * Math.PI/180;
-              const p2 = latitude * Math.PI/180;
-              const dp = (latitude-prev.lat) * Math.PI/180;
-              const dl = (longitude-prev.lng) * Math.PI/180;
-              const a = Math.sin(dp/2) * Math.sin(dp/2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl/2) * Math.sin(dl/2);
-              const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-              const d = R * c;
-              
-              // Only update if moved > 2m to prevent stationary jitter
-              if (d > 2) return { lat: latitude, lng: longitude };
-              return prev;
+          const { latitude, longitude } = position.coords;
+          
+          // Only center on user if there's no shared report to center on
+          const hasSharedReport = new URLSearchParams(window.location.search).get('reportId');
+          if (!initialCenterDone.current && mapRef.current && !hasSharedReport) {
+            mapRef.current.flyTo({
+              center: [longitude, latitude],
+              zoom: 16.5,
+              pitch: 0,
+              bearing: 0,
+              duration: 1500,
+              essential: true
             });
-          },
-          (error) => {
-            if (error) {
-              if (error.code === 1 || error.code === 2) {
-                // 1: PERMISSION_DENIED, 2: POSITION_UNAVAILABLE (GPS switch is turned OFF)
-                setIsGpsDisabledModalOpen(true);
-                setCoarseAccuracy(null);
-                setUserLocation(null);
-                try { sessionStorage.removeItem('lastKnownLocation'); } catch (e) {}
-                return;
-              }
-              if (error.code === 3) {
-                // Timeout trying to acquire real GPS satellites
-                setIsGpsDisabledModalOpen(true);
-              }
-            }
-          },
-          { enableHighAccuracy: true, timeout: 12000, maximumAge: 3000 }
-        );
-      } catch (_e) {
-        return undefined;
-      }
-    };
+            initialCenterDone.current = true;
+          }
 
-    watchId = startWatching(true);
+          try {
+            sessionStorage.setItem('lastKnownLocation', JSON.stringify({ lat: latitude, lng: longitude }));
+          } catch (e) {}
+
+          setUserLocation(prev => {
+            if (!prev) return { lat: latitude, lng: longitude };
+            
+            const R = 6371e3;
+            const p1 = prev.lat * Math.PI/180;
+            const p2 = latitude * Math.PI/180;
+            const dp = (latitude-prev.lat) * Math.PI/180;
+            const dl = (longitude-prev.lng) * Math.PI/180;
+            const a = Math.sin(dp/2) * Math.sin(dp/2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl/2) * Math.sin(dl/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            const d = R * c;
+            
+            // Only update if moved > 2m to prevent stationary jitter
+            if (d > 2) return { lat: latitude, lng: longitude };
+            return prev;
+          });
+        },
+        (error) => {
+          if (error) {
+            if (error.code === 1 || error.code === 2) {
+              setGpsStatus('disabled');
+              setCoarseAccuracy(null);
+              setUserLocation(null);
+              try { sessionStorage.removeItem('lastKnownLocation'); } catch (e) {}
+              return;
+            }
+            if (error.code === 3) {
+              setGpsStatus('disabled');
+            }
+          }
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 3000 }
+      );
+    } catch (_e) {
+      setGpsStatus('disabled');
+    }
 
     return () => {
       try {
         if (watchId !== undefined) navigator.geolocation.clearWatch(watchId);
       } catch (e) {}
     };
-  }, []);
+  }, [evaluatePosition]);
 
   const [userGroupIds, setUserGroupIds] = useState<string[]>([]);
 
@@ -355,61 +440,6 @@ export function MapPage() {
 
     return { type: 'FeatureCollection', features };
   }, [riskZones, reports]);
-
-  const triggerGPS = useCallback(() => {
-    setIsLocating(true);
-
-    if (!navigator.geolocation) {
-      setIsGpsDisabledModalOpen(true);
-      setIsLocating(false);
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude, accuracy } = position.coords;
-        setUserLocation({ lat: latitude, lng: longitude });
-        setIsLocating(false);
-        setIsGpsDisabledModalOpen(false);
-
-        if (typeof accuracy === 'number' && accuracy > 35) {
-          setCoarseAccuracy(Math.round(accuracy));
-          setIsCoarseLocationModalOpen(true);
-        } else {
-          setCoarseAccuracy(null);
-          setIsCoarseLocationModalOpen(false);
-        }
-
-        if (mapRef.current) {
-          mapRef.current.flyTo({
-            center: [longitude, latitude],
-            zoom: 16.5,
-            pitch: 0,
-            bearing: 0,
-            duration: 1200,
-            essential: true
-          });
-        }
-
-        try {
-          sessionStorage.setItem('lastKnownLocation', JSON.stringify({ lat: latitude, lng: longitude }));
-        } catch (e) {}
-      },
-      (error) => {
-        setIsLocating(false);
-        // GPS is turned off on device or permission denied
-        setIsGpsDisabledModalOpen(true);
-        setCoarseAccuracy(null);
-        setUserLocation(null);
-        try { sessionStorage.removeItem('lastKnownLocation'); } catch (e) {}
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 8000,
-        maximumAge: 0
-      }
-    );
-  }, []);
 
   const onMapLoad = useCallback(() => {
     setIsMapLoaded(true);
@@ -756,8 +786,9 @@ export function MapPage() {
 
   return (
     <div className="relative w-full h-full bg-slate-900">
-      {/* Search Bar Overlay */}
-      <div className="absolute top-0 left-0 right-0 p-3 pt-[calc(0.75rem+env(safe-area-inset-top))] z-30 flex items-center gap-2">
+      {/* Top Header & GPS Status Container */}
+      <div className="absolute top-0 left-0 right-0 p-3 pt-[calc(0.75rem+env(safe-area-inset-top))] z-40 flex flex-col gap-2 pointer-events-none">
+        <div className="flex items-center gap-2 pointer-events-auto w-full">
         <div className="flex-1 relative">
           <div className="bg-slate-900/95 backdrop-blur-md rounded-2xl shadow-lg flex items-center px-3.5 h-11 border border-slate-700/50 transition-all focus-within:border-blue-500/50 focus-within:bg-slate-900">
             <Search size={18} className="text-blue-400 mr-2.5 shrink-0" />
@@ -967,6 +998,45 @@ export function MapPage() {
         </div>
       </div>
 
+        {/* GPS Banner when GPS is disabled on the device */}
+        {gpsStatus === 'disabled' && (
+          <div className="pointer-events-auto w-full animate-in fade-in slide-in-from-top-2 duration-300">
+            <button
+              onClick={() => setIsGpsDisabledModalOpen(true)}
+              className="w-full bg-slate-950/95 border-2 border-amber-500 text-amber-200 px-4 py-2.5 rounded-2xl shadow-2xl flex items-center justify-between text-xs backdrop-blur-md active:scale-98 transition-all"
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <MapPinOff size={18} className="text-amber-400 shrink-0 animate-bounce" />
+                <span className="font-bold text-left truncate">GPS desativado no celular. Toque para ativar.</span>
+              </div>
+              <span className="bg-amber-500 text-slate-950 font-black px-3 py-1 rounded-xl text-[11px] shrink-0 ml-2 shadow-sm">
+                Ativar
+              </span>
+            </button>
+          </div>
+        )}
+
+        {/* GPS Banner when Approximate / Modem location is detected */}
+        {gpsStatus === 'coarse_network' && (
+          <div className="pointer-events-auto w-full animate-in fade-in slide-in-from-top-2 duration-300">
+            <button
+              onClick={() => setIsCoarseLocationModalOpen(true)}
+              className="w-full bg-slate-950/95 border-2 border-amber-500 text-amber-200 px-4 py-2.5 rounded-2xl shadow-2xl flex items-center justify-between text-xs backdrop-blur-md active:scale-98 transition-all"
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <Radio size={18} className="text-amber-400 shrink-0 animate-pulse" />
+                <span className="font-bold text-left truncate">
+                  Usando localização do modem/rede (~{coarseAccuracy || 35}m). Toque para ativar GPS exato.
+                </span>
+              </div>
+              <span className="bg-amber-500 text-slate-950 font-black px-3 py-1 rounded-xl text-[11px] shrink-0 ml-2 shadow-sm">
+                Ajustar
+              </span>
+            </button>
+          </div>
+        )}
+      </div>
+
       {/* Error Toast */}
       {geoError && (
         <div className="absolute top-[calc(4.75rem+env(safe-area-inset-top))] left-3.5 right-3.5 z-50 bg-slate-900/95 border border-red-500/60 text-red-200 p-3.5 rounded-2xl shadow-2xl backdrop-blur-md animate-fade-in flex items-start gap-3">
@@ -1125,40 +1195,6 @@ export function MapPage() {
           <LocateFixed size={20} className={isLocating ? 'animate-spin text-blue-400' : ''} />
         </button>
       </div>
-
-      {/* Top Banner when GPS is disabled on the device */}
-      {!userLocation && (
-        <button
-          onClick={triggerGPS}
-          className="absolute top-[calc(4.75rem+env(safe-area-inset-top))] left-3.5 right-3.5 z-40 bg-slate-900/95 border border-amber-500/60 text-amber-200 px-4 py-2.5 rounded-2xl shadow-xl flex items-center justify-between text-xs backdrop-blur-md active:scale-98 transition-all animate-fade-in"
-        >
-          <div className="flex items-center gap-2.5">
-            <MapPinOff size={18} className="text-amber-400 shrink-0 animate-pulse" />
-            <span className="font-medium text-left">GPS desativado no celular. Toque para ativar.</span>
-          </div>
-          <span className="bg-amber-500/20 text-amber-300 font-bold px-2.5 py-1 rounded-lg text-[11px] shrink-0 border border-amber-500/40">
-            {isLocating ? 'Buscando...' : 'Ativar'}
-          </span>
-        </button>
-      )}
-
-      {/* Top Banner when Approximate / Modem location is detected */}
-      {userLocation && coarseAccuracy !== null && (
-        <button
-          onClick={() => setIsCoarseLocationModalOpen(true)}
-          className="absolute top-[calc(4.75rem+env(safe-area-inset-top))] left-3.5 right-3.5 z-40 bg-slate-900/95 border border-amber-500/60 text-amber-200 px-4 py-2.5 rounded-2xl shadow-xl flex items-center justify-between text-xs backdrop-blur-md active:scale-98 transition-all animate-fade-in"
-        >
-          <div className="flex items-center gap-2.5">
-            <Radio size={18} className="text-amber-400 shrink-0 animate-pulse" />
-            <span className="font-medium text-left">
-              Usando localização do modem/rede (~{coarseAccuracy}m). Toque para ativar GPS exato.
-            </span>
-          </div>
-          <span className="bg-amber-500/20 text-amber-300 font-bold px-2.5 py-1 rounded-lg text-[11px] shrink-0 border border-amber-500/40">
-            Ajustar
-          </span>
-        </button>
-      )}
 
       {/* Modal de Aviso de GPS Desativado */}
       {isGpsDisabledModalOpen && (
