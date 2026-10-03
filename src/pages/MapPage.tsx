@@ -123,6 +123,7 @@ export function MapPage() {
   const [riskZones, setRiskZones] = useState<any[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<any | null>(null);
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
   const [isSOSActive, setIsSOSActive] = useState(false);
   const [isPanicMode, setIsPanicMode] = useState(false);
   const [isGuardianMode, setIsGuardianMode] = useState(false);
@@ -130,6 +131,8 @@ export function MapPage() {
 
   const mapRef = useRef<MapRef>(null);
   const initialCenterDone = useRef(false);
+  const bestAccuracyRef = useRef<number>(Infinity);
+  const userInteractedWithMap = useRef(false);
 
   useEffect(() => {
     if (!navigator.geolocation) {
@@ -141,20 +144,29 @@ export function MapPage() {
     try {
       watchId = navigator.geolocation.watchPosition(
         (position) => {
-          const { latitude, longitude } = position.coords;
-          
-          // Only center on user if there's no shared report to center on
+          const { latitude, longitude, accuracy } = position.coords;
           const hasSharedReport = new URLSearchParams(window.location.search).get('reportId');
-          if (!initialCenterDone.current && mapRef.current && !hasSharedReport) {
+
+          // Se a precisão for substancialmente melhor (ex: GPS de satélite substituindo torre celular)
+          const isSignificantlyBetter = accuracy < bestAccuracyRef.current - 15;
+          const shouldCenter = (!initialCenterDone.current || isSignificantlyBetter) && !hasSharedReport && !userInteractedWithMap.current;
+
+          if (shouldCenter && mapRef.current) {
             mapRef.current.flyTo({
               center: [longitude, latitude],
-              zoom: 16,
+              zoom: 16.5,
               pitch: 0,
               bearing: 0,
-              duration: 2000,
+              duration: 1500,
               essential: true
             });
-            initialCenterDone.current = true;
+            if (accuracy <= 80) {
+              initialCenterDone.current = true;
+            }
+          }
+
+          if (accuracy < bestAccuracyRef.current) {
+            bestAccuracyRef.current = accuracy;
           }
 
           try {
@@ -173,7 +185,7 @@ export function MapPage() {
             const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
             const d = R * c;
             
-            if (d > 5) return { lat: latitude, lng: longitude };
+            if (d > 3) return { lat: latitude, lng: longitude };
             return prev;
           });
         },
@@ -183,13 +195,12 @@ export function MapPage() {
           else if (error && error.code === 2) errorMessage = 'Sinal de GPS indisponível no momento.';
           else if (error && error.code === 3) errorMessage = 'Tempo limite excedido ao buscar GPS.';
           
-          // Only show error toast if user actively triggered it or it's not a background permission denial
           if (error && error.code !== 1) {
             setGeoError(errorMessage);
             setTimeout(() => setGeoError(null), 6000);
           }
         },
-        { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
+        { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
       );
     } catch (_e) {
       // Silently handle synchronous geolocation in headless or restricted environment
@@ -310,19 +321,58 @@ export function MapPage() {
   }, [riskZones, reports]);
 
   const triggerGPS = () => {
-    if (userLocation && mapRef.current) {
-      mapRef.current.flyTo({
-        center: [userLocation.lng, userLocation.lat],
-        zoom: 16,
-        pitch: 0,
-        bearing: 0,
-        duration: 1500,
-        essential: true
-      });
-    } else {
-      setGeoError("Buscando localização... Certifique-se de que o GPS está ativado.");
-      setTimeout(() => setGeoError(null), 4000);
+    setIsLocating(true);
+    setGeoError(null);
+
+    if (!navigator.geolocation) {
+      setGeoError("Geolocalização não suportada pelo navegador.");
+      setIsLocating(false);
+      return;
     }
+
+    // Força obter a posição exata via satélite (sem cache de torre)
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude, accuracy } = position.coords;
+        bestAccuracyRef.current = accuracy;
+        userInteractedWithMap.current = false;
+        setUserLocation({ lat: latitude, lng: longitude });
+
+        try {
+          sessionStorage.setItem('lastKnownLocation', JSON.stringify({ lat: latitude, lng: longitude }));
+        } catch (e) {}
+
+        if (mapRef.current) {
+          mapRef.current.flyTo({
+            center: [longitude, latitude],
+            zoom: 17,
+            pitch: 0,
+            bearing: 0,
+            duration: 1200,
+            essential: true
+          });
+        }
+        setIsLocating(false);
+      },
+      (error) => {
+        console.warn("GPS direct error:", error);
+        if (userLocation && mapRef.current) {
+          mapRef.current.flyTo({
+            center: [userLocation.lng, userLocation.lat],
+            zoom: 16.5,
+            duration: 1000
+          });
+        }
+        if (error.code === 1) {
+          setGeoError("Permissão de localização negada. Ative o GPS no seu navegador/celular.");
+        } else {
+          setGeoError("Ative a 'Precisão de Localização do Google' nas configurações do celular para obter a rua exata.");
+        }
+        setTimeout(() => setGeoError(null), 6000);
+        setIsLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    );
   };
 
   const onMapLoad = useCallback(() => {
@@ -913,6 +963,7 @@ export function MapPage() {
       <Map
         ref={mapRef}
         reuseMaps
+        onMoveStart={() => { userInteractedWithMap.current = true; }}
         initialViewState={{
           longitude: userLocation?.lng || -46.6333,
           latitude: userLocation?.lat || -23.5505,
@@ -1025,11 +1076,16 @@ export function MapPage() {
         </button>
         <button 
           onClick={triggerGPS}
-          className="bg-slate-900/90 backdrop-blur-md text-blue-400 w-11 h-11 rounded-2xl shadow-lg border border-slate-700/60 hover:bg-slate-800 transition-all active:scale-95 flex items-center justify-center"
+          disabled={isLocating}
+          className={`bg-slate-900/90 backdrop-blur-md text-blue-400 w-11 h-11 rounded-2xl shadow-lg border border-slate-700/60 hover:bg-slate-800 transition-all active:scale-95 flex items-center justify-center cursor-pointer ${isLocating ? 'border-blue-500 text-blue-300' : ''}`}
           aria-label={t('map.buttons.myLocation', 'Minha Localização')}
           title={t('map.buttons.myLocation', 'Minha Localização')}
         >
-          <LocateFixed size={20} />
+          {isLocating ? (
+            <div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <LocateFixed size={20} />
+          )}
         </button>
       </div>
 

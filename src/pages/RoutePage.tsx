@@ -136,7 +136,7 @@ export function RoutePage() {
             setTimeout(() => setGeoError(null), 6000);
           }
         },
-        { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
       );
     } catch (_e) {
       // Silently handle synchronous geolocation in headless or restricted environment
