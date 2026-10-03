@@ -2,7 +2,7 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import Map, { Source, Layer, Marker, MapRef } from 'react-map-gl/mapbox';
 import { AttachmentGallery } from '../components/AttachmentGallery';
 import { AudioPlayer } from '../components/AudioPlayer';
-import { Search, Filter, ShieldAlert, Navigation, Building2, Landmark, Coffee, Train, LocateFixed, X, AlertCircle, ThumbsUp, Moon, ShieldCheck, Share2, MapPin, Play, Car, Bike, Globe, Siren, Eye, Flame, AlertTriangle, Check, Layers } from 'lucide-react';
+import { Search, Filter, ShieldAlert, Navigation, Building2, Landmark, Coffee, Train, LocateFixed, X, AlertCircle, ThumbsUp, Moon, ShieldCheck, Share2, MapPin, MapPinOff, Play, Car, Bike, Globe, Siren, Eye, Flame, AlertTriangle, Check, Layers } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { LanguageSelectorModal, SUPPORTED_LANGUAGES } from '../components/LanguageSelectorModal';
@@ -123,9 +123,8 @@ export function MapPage() {
   const [riskZones, setRiskZones] = useState<any[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<any | null>(null);
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
-  const [locationAccuracy, setLocationAccuracy] = useState<number | null>(null);
-  const [isLocatingHighPrecision, setIsLocatingHighPrecision] = useState(false);
-  const [gpsToast, setGpsToast] = useState<{ message: string; type: 'success' | 'info' | 'warn' } | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
+  const [isGpsDisabledModalOpen, setIsGpsDisabledModalOpen] = useState(false);
   const [isSOSActive, setIsSOSActive] = useState(false);
   const [isPanicMode, setIsPanicMode] = useState(false);
   const [isGuardianMode, setIsGuardianMode] = useState(false);
@@ -134,9 +133,31 @@ export function MapPage() {
   const mapRef = useRef<MapRef>(null);
   const initialCenterDone = useRef(false);
 
+  // Monitor device permission changes in real-time
+  useEffect(() => {
+    if (typeof navigator !== 'undefined' && 'permissions' in navigator && navigator.permissions.query) {
+      navigator.permissions.query({ name: 'geolocation' as PermissionName }).then((permissionStatus) => {
+        if (permissionStatus.state === 'denied') {
+          setIsGpsDisabledModalOpen(true);
+          setUserLocation(null);
+          try { sessionStorage.removeItem('lastKnownLocation'); } catch (e) {}
+        }
+        permissionStatus.onchange = () => {
+          if (permissionStatus.state === 'denied') {
+            setIsGpsDisabledModalOpen(true);
+            setUserLocation(null);
+            try { sessionStorage.removeItem('lastKnownLocation'); } catch (e) {}
+          } else if (permissionStatus.state === 'granted') {
+            setIsGpsDisabledModalOpen(false);
+          }
+        };
+      }).catch(() => {});
+    }
+  }, []);
+
   useEffect(() => {
     if (!navigator.geolocation) {
-      setGeoError("Geolocalização não é suportada pelo seu navegador.");
+      setIsGpsDisabledModalOpen(true);
       return;
     }
 
@@ -146,8 +167,8 @@ export function MapPage() {
       try {
         return navigator.geolocation.watchPosition(
           (position) => {
-            const { latitude, longitude, accuracy } = position.coords;
-            setLocationAccuracy(accuracy);
+            const { latitude, longitude } = position.coords;
+            setIsGpsDisabledModalOpen(false);
             
             // Only center on user if there's no shared report to center on
             const hasSharedReport = new URLSearchParams(window.location.search).get('reportId');
@@ -185,20 +206,25 @@ export function MapPage() {
             });
           },
           (error) => {
-            if (highAccuracy && error && error.code === 3) {
-              // High accuracy timed out indoors - gracefully fall back to network/cell tower
-              if (watchId !== undefined) {
-                try { navigator.geolocation.clearWatch(watchId); } catch (e) {}
+            if (error) {
+              if (error.code === 1 || error.code === 2) {
+                // 1: PERMISSION_DENIED, 2: POSITION_UNAVAILABLE (GPS switch is turned OFF)
+                setIsGpsDisabledModalOpen(true);
+                setUserLocation(null);
+                try { sessionStorage.removeItem('lastKnownLocation'); } catch (e) {}
+                return;
               }
-              watchId = startWatching(false);
-              return;
-            }
-            if (error && error.code !== 1) {
-              let errorMessage = 'Sinal de GPS fraco.';
-              if (error.code === 2) errorMessage = 'Sinal de GPS indisponível no momento.';
-              else if (error.code === 3) errorMessage = 'Tempo limite ao buscar sinal GPS.';
-              setGeoError(errorMessage);
-              setTimeout(() => setGeoError(null), 5000);
+              if (highAccuracy && error.code === 3) {
+                // High accuracy timed out indoors - gracefully fall back to network
+                if (watchId !== undefined) {
+                  try { navigator.geolocation.clearWatch(watchId); } catch (e) {}
+                }
+                watchId = startWatching(false);
+                return;
+              }
+              if (error.code === 3) {
+                setIsGpsDisabledModalOpen(true);
+              }
             }
           },
           { enableHighAccuracy: highAccuracy, timeout: 12000, maximumAge: 3000 }
@@ -325,28 +351,25 @@ export function MapPage() {
   }, [riskZones, reports]);
 
   const triggerGPS = useCallback(() => {
-    setIsLocatingHighPrecision(true);
-    setGpsToast({ message: 'Sintonizando sinal de satélite GPS...', type: 'info' });
+    setIsLocating(true);
 
     if (!navigator.geolocation) {
-      setGeoError("Geolocalização não é suportada pelo seu navegador.");
-      setIsLocatingHighPrecision(false);
-      setGpsToast(null);
+      setIsGpsDisabledModalOpen(true);
+      setIsLocating(false);
       return;
     }
 
-    // Actively query current high accuracy position with maximumAge: 0
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        const { latitude, longitude, accuracy } = position.coords;
+        const { latitude, longitude } = position.coords;
         setUserLocation({ lat: latitude, lng: longitude });
-        setLocationAccuracy(accuracy);
-        setIsLocatingHighPrecision(false);
+        setIsLocating(false);
+        setIsGpsDisabledModalOpen(false);
 
         if (mapRef.current) {
           mapRef.current.flyTo({
             center: [longitude, latitude],
-            zoom: 17,
+            zoom: 16.5,
             pitch: 0,
             bearing: 0,
             duration: 1200,
@@ -354,40 +377,24 @@ export function MapPage() {
           });
         }
 
-        const accRounded = Math.round(accuracy);
-        setGpsToast({
-          message: `GPS Fixado: Precisão de ±${accRounded}m`,
-          type: 'success'
-        });
-        setTimeout(() => setGpsToast(null), 3500);
-
         try {
           sessionStorage.setItem('lastKnownLocation', JSON.stringify({ lat: latitude, lng: longitude }));
         } catch (e) {}
       },
       (error) => {
-        setIsLocatingHighPrecision(false);
-        // Fallback to existing userLocation if available
-        if (userLocation && mapRef.current) {
-          mapRef.current.flyTo({
-            center: [userLocation.lng, userLocation.lat],
-            zoom: 16,
-            duration: 1200
-          });
-          setGpsToast({ message: 'Local aproximado centralizado.', type: 'warn' });
-          setTimeout(() => setGpsToast(null), 3000);
-        } else {
-          setGpsToast({ message: 'Não foi possível obter sinal de satélite. Verifique se o GPS está ativo.', type: 'warn' });
-          setTimeout(() => setGpsToast(null), 4000);
-        }
+        setIsLocating(false);
+        // GPS is turned off on device or permission denied
+        setIsGpsDisabledModalOpen(true);
+        setUserLocation(null);
+        try { sessionStorage.removeItem('lastKnownLocation'); } catch (e) {}
       },
       {
         enableHighAccuracy: true,
-        timeout: 10000,
+        timeout: 8000,
         maximumAge: 0
       }
     );
-  }, [userLocation]);
+  }, []);
 
   const onMapLoad = useCallback(() => {
     setIsMapLoaded(true);
@@ -990,14 +997,11 @@ export function MapPage() {
         style={{ width: '100%', height: '100%' }}
         onError={(e) => console.warn('Mapbox warning:', e.error?.message || 'Erro no mapa')}
       >
-        {/* Custom User Location Marker with High Accuracy Halo */}
+        {/* Custom User Location Marker */}
         {userLocation && (
           <Marker longitude={userLocation.lng} latitude={userLocation.lat} anchor="center">
             <div className="relative flex items-center justify-center">
               <div className="absolute w-12 h-12 bg-blue-500/30 rounded-full animate-ping" />
-              {locationAccuracy !== null && locationAccuracy <= 35 && (
-                <div className="absolute w-8 h-8 bg-blue-400/20 rounded-full border border-blue-400/40" />
-              )}
               <div className="relative w-4 h-4 bg-blue-500 border-[2.5px] border-white rounded-full shadow-[0_0_15px_rgba(59,130,246,0.9)]" />
             </div>
           </Marker>
@@ -1092,30 +1096,58 @@ export function MapPage() {
         </button>
         <button 
           onClick={triggerGPS}
-          disabled={isLocatingHighPrecision}
-          className={`bg-slate-900/90 backdrop-blur-md ${isLocatingHighPrecision ? 'text-emerald-400 border-emerald-500/50' : 'text-blue-400 border-slate-700/60'} w-11 h-11 rounded-2xl shadow-lg border hover:bg-slate-800 transition-all active:scale-95 flex items-center justify-center relative`}
-          aria-label={t('map.buttons.myLocation', 'Minha Localização (Alta Precisão)')}
-          title={t('map.buttons.myLocation', 'Minha Localização (Alta Precisão)')}
+          disabled={isLocating}
+          className="bg-slate-900/90 backdrop-blur-md text-blue-400 border border-slate-700/60 w-11 h-11 rounded-2xl shadow-lg hover:bg-slate-800 transition-all active:scale-95 flex items-center justify-center"
+          aria-label={t('map.buttons.myLocation', 'Minha Localização')}
+          title={t('map.buttons.myLocation', 'Minha Localização')}
         >
-          <LocateFixed size={20} className={isLocatingHighPrecision ? 'animate-spin text-emerald-400' : ''} />
-          {locationAccuracy !== null && locationAccuracy <= 20 && !isLocatingHighPrecision && (
-            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-slate-900" title={`Sinal GPS forte: ±${Math.round(locationAccuracy)}m`} />
-          )}
+          <LocateFixed size={20} className={isLocating ? 'animate-spin text-blue-400' : ''} />
         </button>
       </div>
 
-      {/* Floating High Precision GPS Status Toast */}
-      {gpsToast && (
-        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-40 animate-in fade-in slide-in-from-top-2 duration-200 pointer-events-none">
-          <div className={`px-4 py-1.5 rounded-full text-xs font-semibold shadow-xl border backdrop-blur-md flex items-center gap-2 ${
-            gpsToast.type === 'success' 
-              ? 'bg-slate-900/95 text-emerald-300 border-emerald-500/40' 
-              : gpsToast.type === 'warn'
-              ? 'bg-slate-900/95 text-amber-300 border-amber-500/40'
-              : 'bg-slate-900/95 text-blue-300 border-blue-500/40'
-          }`}>
-            <span className={`w-2 h-2 rounded-full ${gpsToast.type === 'success' ? 'bg-emerald-400 animate-ping' : 'bg-blue-400 animate-pulse'}`} />
-            <span>{gpsToast.message}</span>
+      {/* Top Banner when GPS is disabled on the device */}
+      {!userLocation && (
+        <button
+          onClick={triggerGPS}
+          className="absolute top-20 left-4 right-4 z-40 bg-amber-950/95 border border-amber-500/50 text-amber-200 px-4 py-2.5 rounded-2xl shadow-xl flex items-center justify-between text-xs backdrop-blur-md active:scale-98 transition-all animate-fade-in"
+        >
+          <div className="flex items-center gap-2.5">
+            <MapPinOff size={18} className="text-amber-400 shrink-0" />
+            <span className="font-medium text-left">GPS desativado no celular. Toque para ativar.</span>
+          </div>
+          <span className="bg-amber-500/20 text-amber-300 font-bold px-2.5 py-1 rounded-lg text-[11px] shrink-0 border border-amber-500/30">
+            {isLocating ? 'Buscando...' : 'Ativar'}
+          </span>
+        </button>
+      )}
+
+      {/* Modal de Aviso de GPS Desativado */}
+      {isGpsDisabledModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fade-in">
+          <div className="bg-slate-900 border border-amber-500/40 rounded-3xl p-6 max-w-sm w-full shadow-2xl text-center flex flex-col items-center">
+            <div className="w-14 h-14 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-center justify-center text-amber-400 mb-4 animate-bounce">
+              <MapPinOff size={28} />
+            </div>
+            <h3 className="text-lg font-bold text-white mb-2">GPS Desativado no Celular</h3>
+            <p className="text-sm text-slate-300 leading-relaxed mb-6">
+              O GPS do seu celular está desligado ou sem permissão. Para visualizar sua posição no mapa e utilizar funções de rota e segurança, ative a localização no menu do seu telefone.
+            </p>
+            <div className="flex flex-col gap-2.5 w-full">
+              <button
+                onClick={triggerGPS}
+                disabled={isLocating}
+                className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition-all shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 active:scale-95"
+              >
+                <LocateFixed size={18} className={isLocating ? 'animate-spin' : ''} />
+                <span>{isLocating ? 'Buscando GPS...' : 'Ativei o GPS, Tentar Novamente'}</span>
+              </button>
+              <button
+                onClick={() => setIsGpsDisabledModalOpen(false)}
+                className="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium rounded-xl transition-colors"
+              >
+                Continuar Navegando no Mapa
+              </button>
+            </div>
           </div>
         </div>
       )}
