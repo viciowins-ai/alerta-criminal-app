@@ -133,20 +133,12 @@ export function RoutePage() {
             });
           },
           (error) => {
-            if (highAccuracy && error && error.code === 3) {
-              // High accuracy timeout indoors - fallback to network
-              if (watchId !== undefined) {
-                try { navigator.geolocation.clearWatch(watchId); } catch (e) {}
-              }
-              watchId = startWatching(false);
-              return;
-            }
             if (error && error.code !== 1) {
-              setGeoError('Não foi possível obter sua localização com alta precisão.');
+              setGeoError('Sinal de GPS indisponível ou fraco. Certifique-se de que a Localização Exata está ativa.');
               setTimeout(() => setGeoError(null), 5000);
             }
           },
-          { enableHighAccuracy: highAccuracy, timeout: 12000, maximumAge: 3000 }
+          { enableHighAccuracy: true, timeout: 12000, maximumAge: 3000 }
         );
       } catch (_e) {
         return undefined;
