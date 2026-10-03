@@ -137,26 +137,15 @@ export function MapPage() {
   const mapRef = useRef<MapRef>(null);
   const initialCenterDone = useRef(false);
 
-  const evaluatePosition = useCallback((coords: GeolocationCoordinates, openModalOnCoarse = false) => {
-    const { latitude, longitude, accuracy, altitude } = coords;
+  const evaluatePosition = useCallback((coords: GeolocationCoordinates) => {
+    const { latitude, longitude } = coords;
     setUserLocation({ lat: latitude, lng: longitude });
 
-    // Satellites calculate 3D altitude. Wi-Fi / cell tower networks only provide 2D ground estimation (altitude is null or 0).
-    const isRealSatellite = altitude !== null && altitude !== undefined && altitude !== 0 && typeof accuracy === 'number' && accuracy <= 15;
-
-    if (!isRealSatellite) {
-      // The physical GPS switch on the phone is OFF (or precise satellite GPS is not locked)
-      setGpsStatus('disabled');
-      setCoarseAccuracy(Math.round(accuracy || 35));
-      if (openModalOnCoarse) {
-        setIsGpsDisabledModalOpen(true);
-      }
-    } else {
-      setGpsStatus('active_satellite');
-      setCoarseAccuracy(null);
-      setIsGpsDisabledModalOpen(false);
-      setIsCoarseLocationModalOpen(false);
-    }
+    // When valid coordinates are returned by the device, GPS is active!
+    setGpsStatus('active_satellite');
+    setCoarseAccuracy(null);
+    setIsGpsDisabledModalOpen(false);
+    setIsCoarseLocationModalOpen(false);
   }, []);
 
   const triggerGPS = useCallback((openModalOnIssue = true) => {
@@ -172,7 +161,7 @@ export function MapPage() {
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        evaluatePosition(position.coords, openModalOnIssue);
+        evaluatePosition(position.coords);
         setIsLocating(false);
         setIsGpsDisabledModalOpen(false);
 
@@ -203,7 +192,7 @@ export function MapPage() {
       },
       {
         enableHighAccuracy: true,
-        timeout: 8000,
+        timeout: 5000,
         maximumAge: 0
       }
     );
@@ -233,10 +222,7 @@ export function MapPage() {
     }
 
     const handleVisibilityOrFocus = () => {
-      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
-        // When user switches back from Android quick-settings, immediately re-verify GPS hardware state
-        triggerGPS(false);
-      }
+      triggerGPS(false);
     };
 
     window.addEventListener('focus', handleVisibilityOrFocus);
@@ -245,13 +231,15 @@ export function MapPage() {
     // Initial check on mount
     triggerGPS(false);
 
-    // If after 3.5s no position is returned and still checking, set to disabled
-    const fallbackTimer = setTimeout(() => {
-      setGpsStatus((current) => (current === 'checking' ? 'disabled' : current));
-    }, 3500);
+    // Fast check interval (every 2s) while GPS is disabled, to clear the notice immediately when activated
+    const autoClearInterval = setInterval(() => {
+      if (gpsStatus === 'disabled') {
+        triggerGPS(false);
+      }
+    }, 2000);
 
     return () => {
-      clearTimeout(fallbackTimer);
+      clearInterval(autoClearInterval);
       window.removeEventListener('focus', handleVisibilityOrFocus);
       document.removeEventListener('visibilitychange', handleVisibilityOrFocus);
     };
@@ -269,7 +257,7 @@ export function MapPage() {
     try {
       watchId = navigator.geolocation.watchPosition(
         (position) => {
-          evaluatePosition(position.coords, false);
+          evaluatePosition(position.coords);
 
           const { latitude, longitude } = position.coords;
           
