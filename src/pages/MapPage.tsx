@@ -174,8 +174,8 @@ export function MapPage() {
             const { latitude, longitude, accuracy } = position.coords;
             setIsGpsDisabledModalOpen(false);
 
-            // If accuracy is above 65 meters, it is coming from Wi-Fi modem, ISP router or cell tower, NOT GPS satellites!
-            if (typeof accuracy === 'number' && accuracy > 65) {
+            // If accuracy is above 35 meters, it is coming from Wi-Fi modem, ISP router or cell tower, NOT high-precision GPS satellites!
+            if (typeof accuracy === 'number' && accuracy > 35) {
               setCoarseAccuracy(Math.round(accuracy));
             } else {
               setCoarseAccuracy(null);
@@ -372,7 +372,7 @@ export function MapPage() {
         setIsLocating(false);
         setIsGpsDisabledModalOpen(false);
 
-        if (typeof accuracy === 'number' && accuracy > 65) {
+        if (typeof accuracy === 'number' && accuracy > 35) {
           setCoarseAccuracy(Math.round(accuracy));
           setIsCoarseLocationModalOpen(true);
         } else {
@@ -969,9 +969,15 @@ export function MapPage() {
 
       {/* Error Toast */}
       {geoError && (
-        <div className="absolute top-20 left-4 right-4 z-50 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded shadow-md animate-fade-in">
-          <p className="font-bold">{t('map.gpsError', 'Erro de GPS')}</p>
-          <p className="text-sm">{geoError}</p>
+        <div className="absolute top-[calc(4.75rem+env(safe-area-inset-top))] left-3.5 right-3.5 z-50 bg-slate-900/95 border border-red-500/60 text-red-200 p-3.5 rounded-2xl shadow-2xl backdrop-blur-md animate-fade-in flex items-start gap-3">
+          <AlertCircle size={18} className="text-red-400 shrink-0 mt-0.5" />
+          <div className="flex-1 min-w-0">
+            <p className="font-bold text-xs text-white">{t('map.gpsError', 'Aviso de GPS')}</p>
+            <p className="text-xs text-red-300 mt-0.5 leading-snug">{geoError}</p>
+          </div>
+          <button onClick={() => setGeoError(null)} className="text-slate-400 hover:text-white p-1">
+            <X size={15} />
+          </button>
         </div>
       )}
 
@@ -1124,13 +1130,13 @@ export function MapPage() {
       {!userLocation && (
         <button
           onClick={triggerGPS}
-          className="absolute top-20 left-4 right-4 z-40 bg-amber-950/95 border border-amber-500/50 text-amber-200 px-4 py-2.5 rounded-2xl shadow-xl flex items-center justify-between text-xs backdrop-blur-md active:scale-98 transition-all animate-fade-in"
+          className="absolute top-[calc(4.75rem+env(safe-area-inset-top))] left-3.5 right-3.5 z-40 bg-slate-900/95 border border-amber-500/60 text-amber-200 px-4 py-2.5 rounded-2xl shadow-xl flex items-center justify-between text-xs backdrop-blur-md active:scale-98 transition-all animate-fade-in"
         >
           <div className="flex items-center gap-2.5">
-            <MapPinOff size={18} className="text-amber-400 shrink-0" />
+            <MapPinOff size={18} className="text-amber-400 shrink-0 animate-pulse" />
             <span className="font-medium text-left">GPS desativado no celular. Toque para ativar.</span>
           </div>
-          <span className="bg-amber-500/20 text-amber-300 font-bold px-2.5 py-1 rounded-lg text-[11px] shrink-0 border border-amber-500/30">
+          <span className="bg-amber-500/20 text-amber-300 font-bold px-2.5 py-1 rounded-lg text-[11px] shrink-0 border border-amber-500/40">
             {isLocating ? 'Buscando...' : 'Ativar'}
           </span>
         </button>
@@ -1140,7 +1146,7 @@ export function MapPage() {
       {userLocation && coarseAccuracy !== null && (
         <button
           onClick={() => setIsCoarseLocationModalOpen(true)}
-          className="absolute top-20 left-4 right-4 z-40 bg-amber-950/95 border border-amber-500/60 text-amber-200 px-4 py-2.5 rounded-2xl shadow-xl flex items-center justify-between text-xs backdrop-blur-md active:scale-98 transition-all animate-fade-in"
+          className="absolute top-[calc(4.75rem+env(safe-area-inset-top))] left-3.5 right-3.5 z-40 bg-slate-900/95 border border-amber-500/60 text-amber-200 px-4 py-2.5 rounded-2xl shadow-xl flex items-center justify-between text-xs backdrop-blur-md active:scale-98 transition-all animate-fade-in"
         >
           <div className="flex items-center gap-2.5">
             <Radio size={18} className="text-amber-400 shrink-0 animate-pulse" />
@@ -1148,7 +1154,7 @@ export function MapPage() {
               Usando localização do modem/rede (~{coarseAccuracy}m). Toque para ativar GPS exato.
             </span>
           </div>
-          <span className="bg-amber-500/20 text-amber-300 font-bold px-2.5 py-1 rounded-lg text-[11px] shrink-0 border border-amber-500/30">
+          <span className="bg-amber-500/20 text-amber-300 font-bold px-2.5 py-1 rounded-lg text-[11px] shrink-0 border border-amber-500/40">
             Ajustar
           </span>
         </button>
