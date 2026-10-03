@@ -139,7 +139,23 @@ export function MapPage() {
 
   const evaluatePosition = useCallback((coords: GeolocationCoordinates) => {
     const { latitude, longitude } = coords;
-    setUserLocation({ lat: latitude, lng: longitude });
+    
+    setUserLocation(prev => {
+      if (!prev) return { lat: latitude, lng: longitude };
+
+      const R = 6371e3;
+      const p1 = prev.lat * Math.PI / 180;
+      const p2 = latitude * Math.PI / 180;
+      const dp = (latitude - prev.lat) * Math.PI / 180;
+      const dl = (longitude - prev.lng) * Math.PI / 180;
+      const a = Math.sin(dp / 2) * Math.sin(dp / 2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) * Math.sin(dl / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      const dist = R * c;
+
+      // Deadband filter: If stationary (< 3.5m variance), keep perfectly still!
+      if (dist < 3.5) return prev;
+      return { lat: latitude, lng: longitude };
+    });
 
     // When valid coordinates are returned by the device, GPS is active!
     setGpsStatus('active_satellite');
@@ -1060,9 +1076,11 @@ export function MapPage() {
         {/* Custom User Location Marker */}
         {userLocation && (
           <Marker longitude={userLocation.lng} latitude={userLocation.lat} anchor="center">
-            <div className="relative flex items-center justify-center">
-              <div className="absolute w-12 h-12 bg-blue-500/30 rounded-full animate-ping" />
-              <div className="relative w-4 h-4 bg-blue-500 border-[2.5px] border-white rounded-full shadow-[0_0_15px_rgba(59,130,246,0.9)]" />
+            <div className="relative flex items-center justify-center transition-all duration-700 ease-out pointer-events-none">
+              {/* Soft radar pulse halo (stable, no erratic flashing) */}
+              <div className="absolute w-10 h-10 bg-blue-500/25 rounded-full animate-pulse" />
+              {/* High-visibility blue location point */}
+              <div className="relative w-4 h-4 bg-blue-500 border-2 border-white rounded-full shadow-[0_0_12px_rgba(59,130,246,0.95)]" />
             </div>
           </Marker>
         )}
@@ -1127,41 +1145,41 @@ export function MapPage() {
       </Map>
 
       {/* Floating Action Buttons */}
-      <div className={`absolute right-3.5 flex flex-col gap-2.5 z-30 items-center transition-all duration-300 ${selectedLocation ? 'opacity-0 pointer-events-none translate-x-12 bottom-24' : 'opacity-100 bottom-[calc(5.75rem+env(safe-area-inset-bottom))] translate-x-0'}`}>
+      <div className={`absolute right-3.5 sm:right-4 flex flex-col gap-3 z-30 items-center transition-all duration-300 ${selectedLocation ? 'opacity-0 pointer-events-none translate-x-12 bottom-24' : 'opacity-100 bottom-[calc(5.75rem+env(safe-area-inset-bottom))] translate-x-0'}`}>
         <button 
           onClick={() => setIsGuardianMode(true)}
-          className="bg-blue-600 text-white w-11 h-11 rounded-2xl shadow-lg border border-blue-400/30 hover:bg-blue-500 transition-all active:scale-95 flex items-center justify-center"
+          className="bg-blue-600 text-white w-14 h-14 rounded-2xl shadow-xl border border-blue-400/30 hover:bg-blue-500 transition-all active:scale-90 flex items-center justify-center"
           aria-label={t('map.buttons.guardian', 'Meu Guardião')}
           title={t('map.buttons.guardian', 'Meu Guardião (Acompanhamento)')}
         >
-          <ShieldCheck size={20} />
+          <ShieldCheck size={26} />
         </button>
         <button 
           onClick={() => setIsPanicMode(true)}
-          className="bg-slate-900/90 backdrop-blur-md text-slate-300 w-11 h-11 rounded-2xl shadow-lg border border-slate-700/60 hover:bg-slate-800 hover:text-white transition-all active:scale-95 flex items-center justify-center"
+          className="bg-slate-900/95 backdrop-blur-md text-slate-300 w-14 h-14 rounded-2xl shadow-xl border border-slate-700/60 hover:bg-slate-800 hover:text-white transition-all active:scale-90 flex items-center justify-center"
           aria-label={t('map.buttons.panic', 'Modo Pânico (Tela Escura)')}
           title={t('map.buttons.panic', 'Modo Pânico (Tela Escura)')}
         >
-          <Moon size={20} />
+          <Moon size={24} />
         </button>
         <button 
           onClick={handleSOS}
           disabled={isSOSActive}
-          className={`bg-red-600 text-white w-11 h-11 rounded-2xl shadow-lg border border-red-400/40 hover:bg-red-500 transition-all active:scale-95 flex flex-col items-center justify-center ${isSOSActive ? 'opacity-50 cursor-not-allowed' : 'animate-pulse'}`}
+          className={`bg-red-600 text-white w-14 h-14 rounded-2xl shadow-xl border border-red-400/40 hover:bg-red-500 transition-all active:scale-90 flex flex-col items-center justify-center ${isSOSActive ? 'opacity-50 cursor-not-allowed' : 'animate-pulse'}`}
           aria-label={t('map.buttons.sos', 'SOS Emergência')}
           title={t('map.buttons.sos', 'SOS Emergência')}
         >
-          <ShieldAlert size={16} />
-          <span className="text-[8px] font-black leading-none mt-0.5">S.O.S</span>
+          <ShieldAlert size={22} />
+          <span className="text-[9px] font-black leading-none mt-0.5 tracking-wider">S.O.S</span>
         </button>
         <button 
           onClick={triggerGPS}
           disabled={isLocating}
-          className="bg-slate-900/90 backdrop-blur-md text-blue-400 border border-slate-700/60 w-11 h-11 rounded-2xl shadow-lg hover:bg-slate-800 transition-all active:scale-95 flex items-center justify-center"
+          className="bg-slate-900/95 backdrop-blur-md text-blue-400 border border-slate-700/60 w-14 h-14 rounded-2xl shadow-xl hover:bg-slate-800 transition-all active:scale-90 flex items-center justify-center"
           aria-label={t('map.buttons.myLocation', 'Minha Localização')}
           title={t('map.buttons.myLocation', 'Minha Localização')}
         >
-          <LocateFixed size={20} className={isLocating ? 'animate-spin text-blue-400' : ''} />
+          <LocateFixed size={26} className={isLocating ? 'animate-spin text-blue-400' : ''} />
         </button>
       </div>
 
