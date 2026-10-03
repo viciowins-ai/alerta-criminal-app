@@ -143,17 +143,18 @@ export function MapPage() {
 
     // Satellites calculate 3D altitude. Wi-Fi / cell tower networks only provide 2D ground estimation (altitude is null or 0).
     const isRealSatellite = altitude !== null && altitude !== undefined && altitude !== 0 && typeof accuracy === 'number' && accuracy <= 15;
-    const isCoarse = !isRealSatellite;
 
-    if (isCoarse) {
-      setGpsStatus('coarse_network');
+    if (!isRealSatellite) {
+      // The physical GPS switch on the phone is OFF (or precise satellite GPS is not locked)
+      setGpsStatus('disabled');
       setCoarseAccuracy(Math.round(accuracy || 35));
       if (openModalOnCoarse) {
-        setIsCoarseLocationModalOpen(true);
+        setIsGpsDisabledModalOpen(true);
       }
     } else {
       setGpsStatus('active_satellite');
       setCoarseAccuracy(null);
+      setIsGpsDisabledModalOpen(false);
       setIsCoarseLocationModalOpen(false);
     }
   }, []);
@@ -1015,26 +1016,6 @@ export function MapPage() {
             </button>
           </div>
         )}
-
-        {/* GPS Banner when Approximate / Modem location is detected */}
-        {gpsStatus === 'coarse_network' && (
-          <div className="pointer-events-auto w-full animate-in fade-in slide-in-from-top-2 duration-300">
-            <button
-              onClick={() => setIsCoarseLocationModalOpen(true)}
-              className="w-full bg-slate-950/95 border-2 border-amber-500 text-amber-200 px-4 py-2.5 rounded-2xl shadow-2xl flex items-center justify-between text-xs backdrop-blur-md active:scale-98 transition-all"
-            >
-              <div className="flex items-center gap-2.5 min-w-0">
-                <Radio size={18} className="text-amber-400 shrink-0 animate-pulse" />
-                <span className="font-bold text-left truncate">
-                  Usando localização do modem/rede (~{coarseAccuracy || 35}m). Toque para ativar GPS exato.
-                </span>
-              </div>
-              <span className="bg-amber-500 text-slate-950 font-black px-3 py-1 rounded-xl text-[11px] shrink-0 ml-2 shadow-sm">
-                Ajustar
-              </span>
-            </button>
-          </div>
-        )}
       </div>
 
       {/* Error Toast */}
@@ -1198,29 +1179,41 @@ export function MapPage() {
 
       {/* Modal de Aviso de GPS Desativado */}
       {isGpsDisabledModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fade-in">
-          <div className="bg-slate-900 border border-amber-500/40 rounded-3xl p-6 max-w-sm w-full shadow-2xl text-center flex flex-col items-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+          <div className="bg-slate-900 border border-amber-500/50 rounded-3xl p-6 max-w-sm w-full shadow-2xl text-center flex flex-col items-center">
             <div className="w-14 h-14 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-center justify-center text-amber-400 mb-4 animate-bounce">
               <MapPinOff size={28} />
             </div>
-            <h3 className="text-lg font-bold text-white mb-2">GPS Desativado no Celular</h3>
-            <p className="text-sm text-slate-300 leading-relaxed mb-6">
-              O GPS do seu celular está desligado ou sem permissão. Para visualizar sua posição no mapa e utilizar funções de rota e segurança, ative a localização no menu do seu telefone.
+            <h3 className="text-lg font-bold text-white mb-2">Ative o GPS no seu Celular</h3>
+            <p className="text-xs text-slate-300 leading-relaxed mb-4 text-center">
+              O ícone de <strong>Localização</strong> do seu aparelho está desligado. Para visualizar sua posição no mapa com precisão e utilizar funções de rota e emergência, ative o GPS no seu telefone:
             </p>
+
+            <div className="bg-slate-950/80 rounded-2xl p-3.5 border border-slate-800 space-y-2.5 mb-5 text-xs text-slate-300 text-left w-full">
+              <div className="flex items-start gap-2.5">
+                <span className="bg-amber-500/20 text-amber-300 font-bold px-1.5 py-0.5 rounded text-[10px] shrink-0 mt-0.5">Passo 1</span>
+                <span>Puxe a barra do topo do celular para baixo para abrir os atalhos rápidos.</span>
+              </div>
+              <div className="flex items-start gap-2.5">
+                <span className="bg-blue-600/30 text-blue-400 font-bold px-1.5 py-0.5 rounded text-[10px] shrink-0 mt-0.5">Passo 2</span>
+                <span>Toque no botão <strong>"Localização"</strong> para ligar (ele ficará azul/aceso).</span>
+              </div>
+            </div>
+
             <div className="flex flex-col gap-2.5 w-full">
               <button
-                onClick={triggerGPS}
+                onClick={() => triggerGPS(true)}
                 disabled={isLocating}
-                className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition-all shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 active:scale-95"
+                className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition-all shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 active:scale-95 text-xs"
               >
                 <LocateFixed size={18} className={isLocating ? 'animate-spin' : ''} />
-                <span>{isLocating ? 'Buscando GPS...' : 'Ativei o GPS, Tentar Novamente'}</span>
+                <span>{isLocating ? 'Buscando Satélites...' : 'Já ativei o GPS, Sincronizar'}</span>
               </button>
               <button
                 onClick={() => setIsGpsDisabledModalOpen(false)}
-                className="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium rounded-xl transition-colors"
+                className="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium rounded-xl transition-colors"
               >
-                Continuar Navegando no Mapa
+                Continuar navegando no mapa
               </button>
             </div>
           </div>
