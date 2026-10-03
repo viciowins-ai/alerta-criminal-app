@@ -206,7 +206,7 @@ export function MapPage() {
           sessionStorage.setItem('lastKnownLocation', JSON.stringify({ lat: position.coords.latitude, lng: position.coords.longitude }));
         } catch (e) {}
       },
-      (error) => {
+      (_error) => {
         setIsLocating(false);
         setGpsStatus('disabled');
         setCoarseAccuracy(null);
@@ -218,8 +218,8 @@ export function MapPage() {
       },
       {
         enableHighAccuracy: true,
-        timeout: 4000,
-        maximumAge: 3000
+        timeout: 3500,
+        maximumAge: 0
       }
     );
   }, [evaluatePosition, userLocation]);
@@ -263,17 +263,23 @@ export function MapPage() {
 
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          evaluatePosition(position.coords);
-        },
-        (error) => {
-          // If the user turns off GPS in phone quick settings:
-          if (error && (error.code === 1 || error.code === 2)) {
+          const isFresh = !position.timestamp || (Date.now() - position.timestamp < 4000);
+          if (isFresh) {
+            evaluatePosition(position.coords);
+          } else {
+            // Stale timestamp means the hardware has stopped providing fixes (GPS turned off)
             setGpsStatus('disabled');
             setUserLocation(null);
             try { sessionStorage.removeItem('lastKnownLocation'); } catch (e) {}
           }
         },
-        { enableHighAccuracy: true, timeout: 2500, maximumAge: 3000 }
+        (_error) => {
+          // ANY error (Code 1: Permission, Code 2: Unavailable, Code 3: Timeout) means GPS is OFF
+          setGpsStatus('disabled');
+          setUserLocation(null);
+          try { sessionStorage.removeItem('lastKnownLocation'); } catch (e) {}
+        },
+        { enableHighAccuracy: true, timeout: 2000, maximumAge: 0 }
       );
     }, 2500);
 
