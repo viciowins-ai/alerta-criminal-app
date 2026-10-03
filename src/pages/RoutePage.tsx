@@ -672,30 +672,32 @@ export function RoutePage() {
         )}
 
         {/* Custom GPS Button */}
-        <div className={`absolute right-4 flex flex-col gap-3 z-10 transition-all duration-300 ${routes.length > 0 ? 'bottom-[45vh]' : 'bottom-6'}`}>
+        <div className={`absolute right-4 flex flex-col gap-3.5 z-10 transition-all duration-300 ${routes.length > 0 ? 'bottom-[45vh]' : 'bottom-6'}`}>
           <button 
             onClick={() => setIsPanicMode(true)}
-            className="bg-slate-900 text-slate-400 p-3.5 rounded-2xl shadow-lg border border-slate-700/50 hover:bg-slate-800 hover:text-white transition-all active:scale-95 flex items-center justify-center"
+            className="bg-slate-900/95 text-slate-200 w-14 h-14 rounded-2xl shadow-xl shadow-black/50 border border-slate-700/80 hover:bg-slate-800 hover:text-white transition-all active:scale-90 flex items-center justify-center touch-manipulation select-none"
             aria-label="Modo Pânico (Tela Escura)"
             title="Modo Pânico (Tela Escura)"
           >
-            <Moon size={24} />
+            <Moon size={26} className="drop-shadow-sm" />
           </button>
           <button 
             onClick={handleSOS}
             disabled={isSOSActive}
-            className={`bg-red-600 text-white p-2 rounded-2xl shadow-lg border border-red-400/30 hover:bg-red-500 transition-all active:scale-95 flex flex-col items-center justify-center min-w-[52px] min-h-[52px] ${isSOSActive ? 'opacity-50 cursor-not-allowed' : 'animate-pulse'}`}
+            className={`bg-red-600 text-white w-14 h-14 rounded-2xl shadow-xl shadow-red-950/50 border border-red-400/50 hover:bg-red-500 transition-all active:scale-90 flex flex-col items-center justify-center touch-manipulation select-none ${isSOSActive ? 'opacity-50 cursor-not-allowed' : 'animate-pulse ring-2 ring-red-500/40'}`}
             aria-label="SOS Emergência"
+            title="SOS Emergência"
           >
-            <ShieldAlert size={16} />
-            <span className="text-[10px] font-black leading-none mt-1">S.O.S</span>
+            <ShieldAlert size={22} className="drop-shadow-sm" />
+            <span className="text-[10px] font-black tracking-wider leading-none mt-1">S.O.S</span>
           </button>
           <button 
             onClick={triggerGPS}
-            className="bg-slate-900 text-blue-400 p-3.5 rounded-2xl shadow-lg border border-slate-700/50 hover:bg-slate-800 transition-all active:scale-95 flex items-center justify-center"
+            className="bg-slate-900/95 text-blue-400 w-14 h-14 rounded-2xl shadow-xl shadow-black/50 border border-slate-700/80 hover:bg-slate-800 hover:text-blue-300 transition-all active:scale-90 flex items-center justify-center touch-manipulation select-none"
             aria-label="Minha Localização"
+            title="Minha Localização"
           >
-            <LocateFixed size={24} />
+            <LocateFixed size={28} className="drop-shadow-sm" />
           </button>
         </div>
       </div>

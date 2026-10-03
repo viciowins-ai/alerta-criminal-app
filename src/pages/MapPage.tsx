@@ -996,40 +996,40 @@ export function MapPage() {
       </Map>
 
       {/* Floating Action Buttons */}
-      <div className={`absolute right-3.5 flex flex-col gap-2.5 z-30 items-center transition-all duration-300 ${selectedLocation ? 'opacity-0 pointer-events-none translate-x-12 bottom-24' : 'opacity-100 bottom-[calc(5.75rem+env(safe-area-inset-bottom))] translate-x-0'}`}>
+      <div className={`absolute right-3.5 sm:right-4 flex flex-col gap-3.5 z-30 items-center transition-all duration-300 ${selectedLocation ? 'opacity-0 pointer-events-none translate-x-12 bottom-24' : 'opacity-100 bottom-[calc(5.75rem+env(safe-area-inset-bottom))] translate-x-0'}`}>
         <button 
           onClick={() => setIsGuardianMode(true)}
-          className="bg-blue-600 text-white w-11 h-11 rounded-2xl shadow-lg border border-blue-400/30 hover:bg-blue-500 transition-all active:scale-95 flex items-center justify-center"
+          className="bg-blue-600 text-white w-14 h-14 rounded-2xl shadow-xl shadow-blue-950/40 border border-blue-400/40 hover:bg-blue-500 transition-all active:scale-90 flex items-center justify-center touch-manipulation select-none"
           aria-label={t('map.buttons.guardian', 'Meu Guardião')}
           title={t('map.buttons.guardian', 'Meu Guardião (Acompanhamento)')}
         >
-          <ShieldCheck size={20} />
+          <ShieldCheck size={28} className="drop-shadow-sm" />
         </button>
         <button 
           onClick={() => setIsPanicMode(true)}
-          className="bg-slate-900/90 backdrop-blur-md text-slate-300 w-11 h-11 rounded-2xl shadow-lg border border-slate-700/60 hover:bg-slate-800 hover:text-white transition-all active:scale-95 flex items-center justify-center"
+          className="bg-slate-900/95 backdrop-blur-md text-slate-200 w-14 h-14 rounded-2xl shadow-xl shadow-black/50 border border-slate-700/80 hover:bg-slate-800 hover:text-white transition-all active:scale-90 flex items-center justify-center touch-manipulation select-none"
           aria-label={t('map.buttons.panic', 'Modo Pânico (Tela Escura)')}
           title={t('map.buttons.panic', 'Modo Pânico (Tela Escura)')}
         >
-          <Moon size={20} />
+          <Moon size={26} className="drop-shadow-sm" />
         </button>
         <button 
           onClick={handleSOS}
           disabled={isSOSActive}
-          className={`bg-red-600 text-white w-11 h-11 rounded-2xl shadow-lg border border-red-400/40 hover:bg-red-500 transition-all active:scale-95 flex flex-col items-center justify-center ${isSOSActive ? 'opacity-50 cursor-not-allowed' : 'animate-pulse'}`}
+          className={`bg-red-600 text-white w-14 h-14 rounded-2xl shadow-xl shadow-red-950/50 border border-red-400/50 hover:bg-red-500 transition-all active:scale-90 flex flex-col items-center justify-center touch-manipulation select-none ${isSOSActive ? 'opacity-50 cursor-not-allowed' : 'animate-pulse ring-2 ring-red-500/40'}`}
           aria-label={t('map.buttons.sos', 'SOS Emergência')}
           title={t('map.buttons.sos', 'SOS Emergência')}
         >
-          <ShieldAlert size={16} />
-          <span className="text-[8px] font-black leading-none mt-0.5">S.O.S</span>
+          <ShieldAlert size={22} className="drop-shadow-sm" />
+          <span className="text-[10px] font-black tracking-wider leading-none mt-1">S.O.S</span>
         </button>
         <button 
           onClick={triggerGPS}
-          className="bg-slate-900/90 backdrop-blur-md text-blue-400 w-11 h-11 rounded-2xl shadow-lg border border-slate-700/60 hover:bg-slate-800 transition-all active:scale-95 flex items-center justify-center"
+          className="bg-slate-900/95 backdrop-blur-md text-blue-400 w-14 h-14 rounded-2xl shadow-xl shadow-black/50 border border-slate-700/80 hover:bg-slate-800 hover:text-blue-300 transition-all active:scale-90 flex items-center justify-center touch-manipulation select-none"
           aria-label={t('map.buttons.myLocation', 'Minha Localização')}
           title={t('map.buttons.myLocation', 'Minha Localização')}
         >
-          <LocateFixed size={20} />
+          <LocateFixed size={28} className="drop-shadow-sm" />
         </button>
       </div>
 
