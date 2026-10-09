@@ -148,9 +148,6 @@ export function TutorialPage() {
                     <FlagIcon code="sa" size="xs" /> <span>العربية (Arabic)</span>
                   </div>
                 </div>
-                <p className="text-xs text-slate-400">
-                  💡 <strong>Bandeiras Vetoriais Nativas:</strong> Todas as bandeiras são vetoriais (SVG) e aparecem com perfeição tanto no Computador (PC/Windows) quanto no Celular (Android e iPhone).
-                </p>
               </div>
             </div>
 
