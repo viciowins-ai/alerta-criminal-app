@@ -103,6 +103,8 @@ export function MapPage() {
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [showHeatmap, setShowHeatmap] = useState(false);
+  const [highlightedReportIds, setHighlightedReportIds] = useState<string[]>([]);
+  const [showFilteredList, setShowFilteredList] = useState(false);
   const [rawReports, setRawReports] = useState<any[]>([]);
   const [activePatrols, setActivePatrols] = useState<any[]>([]);
 
@@ -341,6 +343,89 @@ export function MapPage() {
 
     return { type: 'FeatureCollection', features };
   }, [filteredReports, riskZones, activeFilter]);
+
+  // Função para enquadrar suavemente os alertas filtrados no mapa
+  const focusReportsOnMap = useCallback((targetReports: any[]) => {
+    if (!targetReports || targetReports.length === 0 || !mapRef.current) return;
+
+    if (targetReports.length === 1) {
+      const single = targetReports[0];
+      if (single.location?.lng != null && single.location?.lat != null) {
+        setSelectedLocation(single);
+        mapRef.current.flyTo({
+          center: [single.location.lng, single.location.lat],
+          zoom: 16.5,
+          duration: 1200,
+          essential: true
+        });
+      }
+      return;
+    }
+
+    let minLng = Infinity;
+    let maxLng = -Infinity;
+    let minLat = Infinity;
+    let maxLat = -Infinity;
+    let validCount = 0;
+
+    targetReports.forEach(r => {
+      if (r.location?.lng != null && r.location?.lat != null) {
+        minLng = Math.min(minLng, r.location.lng);
+        maxLng = Math.max(maxLng, r.location.lng);
+        minLat = Math.min(minLat, r.location.lat);
+        maxLat = Math.max(maxLat, r.location.lat);
+        validCount++;
+      }
+    });
+
+    if (validCount === 0 || !mapRef.current) return;
+
+    if (Math.abs(maxLng - minLng) < 0.0001 && Math.abs(maxLat - minLat) < 0.0001) {
+      mapRef.current.flyTo({
+        center: [minLng, minLat],
+        zoom: 16.5,
+        duration: 1200,
+        essential: true
+      });
+    } else {
+      mapRef.current.fitBounds(
+        [[minLng, minLat], [maxLng, maxLat]],
+        {
+          padding: { top: 140, bottom: 140, left: 70, right: 70 },
+          maxZoom: 16.5,
+          duration: 1300
+        }
+      );
+    }
+
+    setHighlightedReportIds(targetReports.map(r => r.id));
+    setShowFilteredList(true);
+    setTimeout(() => {
+      setHighlightedReportIds([]);
+    }, 6000);
+  }, []);
+
+  const handleFocusFilteredReports = useCallback(() => {
+    focusReportsOnMap(filteredReports);
+  }, [filteredReports, focusReportsOnMap]);
+
+  const handleSelectFilter = (filterType: string | null) => {
+    setActiveFilter(filterType);
+    setShowFilters(false);
+    if (filterType) {
+      const matching = reports.filter(r => normalizeType(r.type) === filterType);
+      if (matching.length > 0) {
+        setTimeout(() => {
+          focusReportsOnMap(matching);
+        }, 150);
+      } else {
+        setShowFilteredList(false);
+      }
+    } else {
+      setShowFilteredList(false);
+      setHighlightedReportIds([]);
+    }
+  };
 
   const triggerGPS = () => {
     if (userLocation && mapRef.current) {
@@ -651,6 +736,7 @@ export function MapPage() {
 
     return filteredReports.map((report) => {
       const isSelected = selectedLocation?.id === report.id;
+      const isHighlighted = highlightedReportIds.includes(report.id);
       const normType = normalizeType(report.type);
       const style = markerStyles[normType] || markerStyles['outro'];
       
@@ -661,12 +747,12 @@ export function MapPage() {
       const ageInHours = (now - reportTime) / (1000 * 60 * 60);
       
       let opacityClass = 'opacity-100';
-      let scaleClass = isSelected ? 'scale-125 z-40' : 'hover:scale-110 z-10';
+      let scaleClass = isSelected ? 'scale-125 z-40' : isHighlighted ? 'scale-125 z-30' : 'hover:scale-110 z-10';
 
       if (ageInHours > 24) {
         // Mais de 24 horas: decaimento temporal em escala de cinza (grayscale)
-        opacityClass = 'opacity-70 grayscale';
-        scaleClass = isSelected ? 'scale-115 z-40' : 'scale-90 hover:scale-105 z-0';
+        opacityClass = isHighlighted ? 'opacity-90' : 'opacity-70 grayscale';
+        scaleClass = isSelected ? 'scale-115 z-40' : isHighlighted ? 'scale-115 z-30' : 'scale-90 hover:scale-105 z-0';
       } else if (ageInHours > 2) {
         // Entre 2 e 24 horas: ocorrência do dia com cores vivas
         opacityClass = 'opacity-95';
@@ -687,7 +773,12 @@ export function MapPage() {
           <div 
             className={`flex flex-col items-center cursor-pointer transition-all duration-300 ${scaleClass} ${opacityClass}`}
           >
-            <div className={`relative w-8 h-8 rounded-full border-2 ${style.border} ${style.pinBg} ${style.shadow} flex items-center justify-center transition-all`}>
+            <div className={`relative w-8 h-8 rounded-full border-2 ${style.border} ${style.pinBg} ${style.shadow} flex items-center justify-center transition-all ${
+              isHighlighted ? 'ring-4 ring-blue-400 ring-offset-2 ring-offset-slate-900 shadow-[0_0_24px_rgba(59,130,246,0.9)] animate-bounce' : ''
+            }`}>
+              {isHighlighted && (
+                <span className="absolute -inset-3 rounded-full bg-blue-500/50 animate-ping pointer-events-none" />
+              )}
               {getMarkerIcon(normType)}
               {isGroup && (
                 <span className="absolute -top-1 -right-1 text-[8px] bg-slate-900 border border-slate-700 rounded-full px-0.5 leading-none">🔒</span>
@@ -696,17 +787,22 @@ export function MapPage() {
             {/* Pointer point at base */}
             <div className={`w-2 h-2 -mt-1 rotate-45 ${style.pointerBg} border-r-2 border-b-2 ${style.border}`} />
             
-            {/* Show badge ONLY when selected to avoid overlapping clutter on mobile */}
-            {isSelected && (
+            {/* Show badge when selected OR highlighted from focus button */}
+            {isSelected ? (
               <span className="mt-1 text-[10px] font-bold text-white drop-shadow-md bg-slate-950/95 px-2 py-0.5 rounded-md border border-slate-700 whitespace-nowrap animate-fade-in pointer-events-none">
                 {isGroup ? `🔒 ${getLabel(normType)}` : getLabel(normType)}
               </span>
-            )}
+            ) : isHighlighted ? (
+              <span className="mt-1 text-[10px] font-bold text-blue-200 drop-shadow-md bg-slate-950/95 px-2 py-0.5 rounded-full border border-blue-500/70 whitespace-nowrap animate-fade-in pointer-events-none flex items-center gap-1 shadow-xl">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+                {report.location?.address?.split(',')[0] || getLabel(normType)}
+              </span>
+            ) : null}
           </div>
         </Marker>
       );
     });
-  }, [filteredReports, selectedLocation]);
+  }, [filteredReports, selectedLocation, highlightedReportIds]);
 
   return (
     <div className="relative w-full h-full bg-slate-900">
@@ -835,7 +931,7 @@ export function MapPage() {
                     {/* Filter Items */}
                     <div className="p-1.5 space-y-0.5">
                       <button
-                        onClick={() => { setActiveFilter(null); setShowFilters(false); }}
+                        onClick={() => handleSelectFilter(null)}
                         className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all ${!activeFilter ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30' : 'text-slate-300 hover:bg-slate-800/80 border border-transparent'}`}
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
@@ -846,7 +942,7 @@ export function MapPage() {
                       </button>
 
                       <button
-                        onClick={() => { setActiveFilter('roubo'); setShowFilters(false); }}
+                        onClick={() => handleSelectFilter('roubo')}
                         className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all ${activeFilter === 'roubo' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'text-slate-300 hover:bg-slate-800/80 border border-transparent'}`}
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
@@ -857,7 +953,7 @@ export function MapPage() {
                       </button>
 
                       <button
-                        onClick={() => { setActiveFilter('suspeito'); setShowFilters(false); }}
+                        onClick={() => handleSelectFilter('suspeito')}
                         className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all ${activeFilter === 'suspeito' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'text-slate-300 hover:bg-slate-800/80 border border-transparent'}`}
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
@@ -868,7 +964,7 @@ export function MapPage() {
                       </button>
 
                       <button
-                        onClick={() => { setActiveFilter('zeladoria'); setShowFilters(false); }}
+                        onClick={() => handleSelectFilter('zeladoria')}
                         className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all ${activeFilter === 'zeladoria' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'text-slate-300 hover:bg-slate-800/80 border border-transparent'}`}
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
@@ -879,7 +975,7 @@ export function MapPage() {
                       </button>
 
                       <button
-                        onClick={() => { setActiveFilter('vandalismo'); setShowFilters(false); }}
+                        onClick={() => handleSelectFilter('vandalismo')}
                         className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all ${activeFilter === 'vandalismo' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' : 'text-slate-300 hover:bg-slate-800/80 border border-transparent'}`}
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
@@ -890,7 +986,7 @@ export function MapPage() {
                       </button>
 
                       <button
-                        onClick={() => { setActiveFilter('outro'); setShowFilters(false); }}
+                        onClick={() => handleSelectFilter('outro')}
                         className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all ${activeFilter === 'outro' ? 'bg-slate-500/20 text-slate-300 border border-slate-500/30' : 'text-slate-300 hover:bg-slate-800/80 border border-transparent'}`}
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
@@ -946,15 +1042,24 @@ export function MapPage() {
         </div>
       )}
 
-      {/* Floating Active Filter Status Badge */}
+      {/* Floating Active Filter Status Badge (Interativo com clique para focar) */}
       {activeFilter && (
-        <div className="absolute top-[calc(4.5rem+env(safe-area-inset-top))] left-1/2 -translate-x-1/2 z-20 animate-fade-in pointer-events-none">
-          <div className="bg-slate-950/90 backdrop-blur-md border border-slate-700/80 px-3.5 py-1 rounded-full shadow-xl flex items-center gap-2 text-xs">
-            <span className={`w-2 h-2 rounded-full animate-pulse ${
-              activeFilter === 'roubo' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]' :
-              activeFilter === 'suspeito' ? 'bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.8)]' :
-              activeFilter === 'zeladoria' ? 'bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.8)]' :
-              activeFilter === 'vandalismo' ? 'bg-yellow-400 shadow-[0_0_8px_rgba(234,179,8,0.8)]' : 'bg-slate-400'
+        <div className="absolute top-[calc(4.5rem+env(safe-area-inset-top))] left-1/2 -translate-x-1/2 z-20 animate-fade-in pointer-events-auto">
+          <button
+            onClick={handleFocusFilteredReports}
+            disabled={filteredReports.length === 0}
+            className={`group bg-slate-950/95 backdrop-blur-md border px-3.5 py-1.5 rounded-full shadow-2xl flex items-center gap-2 text-xs transition-all duration-200 select-none ${
+              filteredReports.length > 0 
+                ? 'cursor-pointer hover:scale-105 active:scale-95 hover:bg-slate-900 border-slate-700/80 hover:border-blue-500/70 shadow-blue-950/30' 
+                : 'opacity-75 cursor-default border-slate-800'
+            }`}
+            title={filteredReports.length > 0 ? t('map.tapToLocate', 'Toque para enquadrar no mapa') : undefined}
+          >
+            <span className={`w-2.5 h-2.5 rounded-full shrink-0 animate-pulse ${
+              activeFilter === 'roubo' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.9)]' :
+              activeFilter === 'suspeito' ? 'bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.9)]' :
+              activeFilter === 'zeladoria' ? 'bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.9)]' :
+              activeFilter === 'vandalismo' ? 'bg-yellow-400 shadow-[0_0_8px_rgba(234,179,8,0.9)]' : 'bg-slate-400'
             }`} />
             <span className="text-slate-200 font-medium whitespace-nowrap">
               {filteredReports.length === 0 
@@ -962,7 +1067,13 @@ export function MapPage() {
                 : `${filteredReports.length} ${filteredReports.length === 1 ? t('map.reportCountOne', 'alerta exibido') : t('map.reportCountMany', 'alertas exibidos')}`
               }
             </span>
-          </div>
+            {filteredReports.length > 0 && (
+              <span className="flex items-center gap-1 pl-1 text-[11px] text-blue-400 group-hover:text-blue-300 font-semibold border-l border-slate-700/70">
+                <MapPin size={12} className="shrink-0 transition-transform group-hover:-translate-y-0.5" />
+                <span className="hidden xs:inline sm:inline">{t('map.viewOnMap', 'Ver no mapa')}</span>
+              </span>
+            )}
+          </button>
         </div>
       )}
 
@@ -1157,6 +1268,57 @@ export function MapPage() {
         onDeactivate={() => setIsGuardianMode(false)}
         location={userLocation}
       />
+
+      {/* Quick switcher/list for filtered reports when focused */}
+      {showFilteredList && filteredReports.length > 1 && !selectedLocation && (
+        <div className="absolute bottom-[calc(5.75rem+env(safe-area-inset-bottom))] left-4 right-20 max-w-sm z-30 bg-slate-950/95 backdrop-blur-md border border-slate-700/80 rounded-2xl p-3 shadow-2xl animate-fade-in">
+          <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-800">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${
+                activeFilter === 'roubo' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]' :
+                activeFilter === 'suspeito' ? 'bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.8)]' :
+                activeFilter === 'zeladoria' ? 'bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.8)]' :
+                activeFilter === 'vandalismo' ? 'bg-yellow-400 shadow-[0_0_8px_rgba(234,179,8,0.8)]' : 'bg-blue-400'
+              }`} />
+              <span className="text-xs font-bold text-white truncate">
+                {filteredReports.length} {t('map.alertsFoundOnMap', 'alertas localizados no mapa')}
+              </span>
+            </div>
+            <button
+              onClick={() => setShowFilteredList(false)}
+              className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors shrink-0"
+              title="Fechar"
+            >
+              <X size={14} />
+            </button>
+          </div>
+
+          <div className="flex flex-col gap-1.5 max-h-40 overflow-y-auto pr-1">
+            {filteredReports.map((report, idx) => (
+              <button
+                key={report.id}
+                onClick={() => handleMarkerClick(report)}
+                className="w-full text-left p-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 hover:border-blue-500/50 transition-all flex items-center justify-between group cursor-pointer"
+              >
+                <div className="min-w-0 flex-1 pr-2">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700 shrink-0">
+                      #{idx + 1}
+                    </span>
+                    <p className="text-xs font-semibold text-slate-200 truncate group-hover:text-white">
+                      {report.location?.address || getLabel(report.type)}
+                    </p>
+                  </div>
+                </div>
+                <div className="shrink-0 flex items-center gap-1 text-[11px] font-semibold text-blue-400 group-hover:text-blue-300">
+                  <span>{t('map.view', 'Ver')}</span>
+                  <Navigation size={12} />
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Bottom Sheet Summary */}
       {selectedLocation && (

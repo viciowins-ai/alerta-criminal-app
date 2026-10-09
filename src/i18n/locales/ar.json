@@ -115,7 +115,10 @@
     "youAreHere": "أنت هنا",
     "noReportsInFilter": "لا توجد تنبيهات من هذا النوع في هذه المنطقة",
     "reportCountOne": "تنبيه معروض",
-    "reportCountMany": "تنبيهات معروضة"
+    "reportCountMany": "تنبيهات معروضة",
+    "viewOnMap": "عرض على الخريطة",
+    "alertsFoundOnMap": "تنبيهات محددة على الخريطة",
+    "tapToLocate": "انقر للتحديد على الخريطة"
   },
   "settings": {
     "title": "الإعدادات",

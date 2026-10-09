@@ -115,7 +115,10 @@
     "youAreHere": "Tu",
     "noReportsInFilter": "Nessun avviso di questo tipo in questa zona",
     "reportCountOne": "avviso visualizzato",
-    "reportCountMany": "avvisi visualizzati"
+    "reportCountMany": "avvisi visualizzati",
+    "viewOnMap": "Vedi sulla mappa",
+    "alertsFoundOnMap": "avvisi localizzati sulla mappa",
+    "tapToLocate": "Tocca per inquadrare sulla mappa"
   },
   "settings": {
     "title": "Impostazioni",

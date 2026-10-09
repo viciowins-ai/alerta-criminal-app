@@ -115,7 +115,10 @@
     "youAreHere": "You",
     "noReportsInFilter": "No alerts of this type in this area",
     "reportCountOne": "alert shown",
-    "reportCountMany": "alerts shown"
+    "reportCountMany": "alerts shown",
+    "viewOnMap": "View on map",
+    "alertsFoundOnMap": "alerts located on map",
+    "tapToLocate": "Tap to frame on map"
   },
   "settings": {
     "title": "Settings",
