@@ -293,27 +293,54 @@ export function MapPage() {
     return reports.filter(report => normalizeType(report.type) === activeFilter);
   }, [reports, activeFilter]);
 
-  // Use real data from Firestore for the heatmap
+  // Gera as features geoespaciais térmicas para o Mapa de Calor
   const heatmapData = React.useMemo(() => {
-    let features: any[] = [];
+    const features: any[] = [];
     
-    if (riskZones.length > 0) {
-      features = riskZones.map(zone => ({
-        type: 'Feature',
-        geometry: { type: 'Point', coordinates: [zone.location.lng, zone.location.lat] },
-        properties: { intensity: zone.intensity || 0.8 }
-      }));
-    } else {
-      // Fallback to reports data if no risk zones are defined
-      features = reports.map(report => ({
+    // 1. Incluir todas as ocorrências (respeitando qualquer filtro ativo)
+    filteredReports.forEach((report) => {
+      if (!report.location || typeof report.location.lng !== 'number' || typeof report.location.lat !== 'number') return;
+      
+      const normType = normalizeType(report.type);
+      // Peso térmico calibrado por gravidade de crime
+      let baseWeight = 1.0;
+      if (normType === 'roubo') baseWeight = 1.8;
+      else if (normType === 'suspeito') baseWeight = 1.3;
+      else if (normType === 'vandalismo') baseWeight = 1.1;
+      else if (normType === 'zeladoria') baseWeight = 0.9;
+      else baseWeight = 0.8;
+
+      // Confirmações da comunidade amplificam a mancha
+      const upvotesBonus = report.upvotes ? Math.min(report.upvotes, 10) * 0.15 : 0;
+      const weight = baseWeight + upvotesBonus;
+
+      features.push({
         type: 'Feature',
         geometry: { type: 'Point', coordinates: [report.location.lng, report.location.lat] },
-        properties: { intensity: report.upvotes ? 0.5 + (Math.min(report.upvotes, 10) / 20) : 0.5 }
-      }));
+        properties: { 
+          weight: Math.max(0.8, weight),
+          type: normType
+        }
+      });
+    });
+
+    // 2. Incluir zonas de risco complementares se não houver filtro restritivo de tipo
+    if (!activeFilter && riskZones && riskZones.length > 0) {
+      riskZones.forEach((zone) => {
+        if (!zone.location || typeof zone.location.lng !== 'number' || typeof zone.location.lat !== 'number') return;
+        features.push({
+          type: 'Feature',
+          geometry: { type: 'Point', coordinates: [zone.location.lng, zone.location.lat] },
+          properties: { 
+            weight: zone.intensity ? zone.intensity * 2.0 : 1.5,
+            type: 'zone'
+          }
+        });
+      });
     }
 
     return { type: 'FeatureCollection', features };
-  }, [riskZones, reports]);
+  }, [filteredReports, riskZones, activeFilter]);
 
   const triggerGPS = () => {
     if (userLocation && mapRef.current) {
@@ -751,13 +778,23 @@ export function MapPage() {
           <div className="relative">
             <button 
               onClick={() => setShowFilters(!showFilters)}
-              className={`bg-slate-900/95 backdrop-blur-md h-11 w-11 rounded-2xl shadow-lg transition-colors border flex items-center justify-center relative shrink-0 ${activeFilter ? 'text-blue-400 border-blue-500/50' : 'text-slate-400 border-slate-700/50 hover:bg-slate-800'}`}
+              className={`bg-slate-900/95 backdrop-blur-md h-11 w-11 rounded-2xl shadow-lg transition-all border flex items-center justify-center relative shrink-0 ${
+                activeFilter && showHeatmap
+                  ? 'text-orange-400 border-orange-500 shadow-[0_0_15px_rgba(249,115,22,0.4)]'
+                  : showHeatmap
+                  ? 'text-orange-400 border-orange-500/70 shadow-[0_0_12px_rgba(249,115,22,0.35)]'
+                  : activeFilter
+                  ? 'text-blue-400 border-blue-500/70 shadow-[0_0_12px_rgba(59,130,246,0.35)]'
+                  : 'text-slate-400 border-slate-700/50 hover:bg-slate-800'
+              }`}
               title={t('map.filters.title', 'Filtros')}
               aria-label={t('map.filters.title', 'Filtros')}
             >
               <Filter size={18} />
-              {activeFilter && (
-                <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-blue-500 ring-2 ring-slate-900 animate-pulse" />
+              {(activeFilter || showHeatmap) && (
+                <span className={`absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full ring-2 ring-slate-900 animate-pulse ${
+                  showHeatmap ? 'bg-orange-500' : 'bg-blue-500'
+                }`} />
               )}
             </button>
           
@@ -865,16 +902,23 @@ export function MapPage() {
                     </div>
 
                     {/* Heatmap Section */}
-                    <div className="p-1.5 bg-slate-950/30">
+                    <div className="p-1.5 bg-slate-950/40">
                       <button
                         onClick={() => { setShowHeatmap(!showHeatmap); setShowFilters(false); }}
-                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all ${showHeatmap ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' : 'text-slate-300 hover:bg-slate-800/80 border border-transparent'}`}
+                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all ${
+                          showHeatmap 
+                            ? 'bg-orange-500/20 text-orange-300 border border-orange-500/40 shadow-sm' 
+                            : 'text-slate-300 hover:bg-slate-800/80 border border-transparent'
+                        }`}
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
-                          <Flame size={16} className={showHeatmap ? "text-purple-400 shrink-0" : "text-slate-400 shrink-0"} />
-                          <span className="truncate font-semibold">{t('map.filters.heatmap', 'Mapa de Calor')}</span>
+                          <Flame size={16} className={showHeatmap ? "text-orange-400 shrink-0 animate-pulse" : "text-slate-400 shrink-0"} />
+                          <div className="flex flex-col text-left">
+                            <span className="truncate font-semibold">{t('map.filters.heatmap', 'Mapa de Calor')}</span>
+                            <span className="text-[10px] text-slate-400">Mancha térmica criminal</span>
+                          </div>
                         </div>
-                        <div className={`w-9 h-5 rounded-full transition-colors relative shrink-0 ${isRTL ? 'mr-2' : 'ml-2'} ${showHeatmap ? 'bg-purple-600' : 'bg-slate-700'}`}>
+                        <div className={`w-9 h-5 rounded-full transition-colors relative shrink-0 ${isRTL ? 'mr-2' : 'ml-2'} ${showHeatmap ? 'bg-orange-600' : 'bg-slate-700'}`}>
                           <div 
                             className={`w-3.5 h-3.5 bg-white rounded-full absolute top-[3px] transition-all duration-200 ${
                               showHeatmap 
@@ -922,6 +966,34 @@ export function MapPage() {
         </div>
       )}
 
+      {/* Floating Active Heatmap Status Badge */}
+      {showHeatmap && !activeFilter && (
+        <div className="absolute top-[calc(4.5rem+env(safe-area-inset-top))] left-1/2 -translate-x-1/2 z-20 animate-fade-in pointer-events-auto">
+          <div className="bg-slate-950/95 backdrop-blur-md border border-orange-500/50 px-3.5 py-1.5 rounded-full shadow-xl shadow-orange-950/30 flex items-center gap-2 text-xs">
+            <span className="w-2.5 h-2.5 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.9)] animate-pulse" />
+            <span className="text-white font-semibold flex items-center gap-1.5 whitespace-nowrap">
+              <Flame size={14} className="text-orange-400" />
+              Mapa de Calor Ativo
+            </span>
+            <div className="hidden sm:flex items-center gap-1 text-[10px] pl-1.5 border-l border-slate-700">
+              <span className="w-2 h-2 rounded-full bg-yellow-400 inline-block" />
+              <span className="text-slate-300">Atenção</span>
+              <span className="w-2 h-2 rounded-full bg-orange-500 inline-block ml-1" />
+              <span className="text-orange-300">Risco</span>
+              <span className="w-2 h-2 rounded-full bg-red-600 inline-block ml-1" />
+              <span className="text-red-400 font-bold">Alto Perigo</span>
+            </div>
+            <button 
+              onClick={() => setShowHeatmap(false)}
+              className="text-slate-400 hover:text-white ml-1 p-0.5 rounded hover:bg-slate-800 transition-colors"
+              title="Desativar Mapa de Calor"
+            >
+              <X size={12} />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Map */}
       <Map
         ref={mapRef}
@@ -950,31 +1022,56 @@ export function MapPage() {
         )}
 
         {isMapLoaded && showHeatmap && (
-          <>
-            <Source type="geojson" data={heatmapData as any}>
-              <Layer
-                id="heatmap-layer"
-                type="heatmap"
-                paint={{
-                  'heatmap-weight': ['get', 'intensity'],
-                  'heatmap-intensity': 1,
-                  'heatmap-color': [
-                    'interpolate',
-                    ['linear'],
-                    ['heatmap-density'],
-                    0, 'rgba(0,0,0,0)',
-                    0.2, 'rgba(220,38,38,0.2)', // red-600
-                    0.4, 'rgba(239,68,68,0.4)', // red-500
-                    0.6, 'rgba(248,113,113,0.6)', // red-400
-                    0.8, 'rgba(252,165,165,0.8)', // red-300
-                    1, 'rgba(254,226,226,1)'    // red-100
-                  ],
-                  'heatmap-radius': 45,
-                  'heatmap-opacity': 0.6
-                }}
-              />
-            </Source>
-          </>
+          <Source id="heatmap-source" type="geojson" data={heatmapData as any}>
+            <Layer
+              id="heatmap-layer"
+              type="heatmap"
+              paint={{
+                'heatmap-weight': [
+                  'interpolate',
+                  ['linear'],
+                  ['get', 'weight'],
+                  0, 0.4,
+                  1, 1.2,
+                  2, 2.2
+                ],
+                'heatmap-intensity': [
+                  'interpolate',
+                  ['linear'],
+                  ['zoom'],
+                  0, 1.3,
+                  9, 2.0,
+                  13, 3.2,
+                  15, 4.8,
+                  18, 6.5
+                ],
+                'heatmap-color': [
+                  'interpolate',
+                  ['linear'],
+                  ['heatmap-density'],
+                  0, 'rgba(0,0,0,0)',
+                  0.12, 'rgba(37,99,235,0.3)',
+                  0.25, 'rgba(234,179,8,0.7)',
+                  0.45, 'rgba(249,115,22,0.92)',
+                  0.70, 'rgba(239,68,68,0.98)',
+                  0.90, 'rgba(220,38,38,1)',
+                  1.0, 'rgba(153,27,27,1)'
+                ],
+                'heatmap-radius': [
+                  'interpolate',
+                  ['linear'],
+                  ['zoom'],
+                  0, 12,
+                  9, 26,
+                  12, 45,
+                  14, 65,
+                  16, 90,
+                  18, 120
+                ],
+                'heatmap-opacity': 0.88
+              }}
+            />
+          </Source>
         )}
 
         {/* Custom Glowing Markers */}
