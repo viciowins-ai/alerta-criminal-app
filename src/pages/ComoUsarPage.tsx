@@ -340,12 +340,18 @@ export function ComoUsarPage({ lang = "pt" }: { lang?: string }) {
             <p className="text-slate-400 leading-relaxed mb-4">
               {t("tutorial.sosDesc")}
             </p>
-            <ul className="list-disc list-inside space-y-2 text-slate-400 ml-4">
+            <ul className="list-disc list-inside space-y-2 text-slate-400 ml-4 mb-4">
               <li>{t("tutorial.sosL1")}</li>
               <li>{t("tutorial.sosL2")}</li>
               <li>{t("tutorial.sosL3")}</li>
               <li>{t("tutorial.sosL4")}</li>
             </ul>
+            {t("tutorial.sosNotice") && (
+              <div 
+                className="p-3.5 bg-slate-800/60 rounded-2xl border border-slate-700/60 text-xs sm:text-sm text-slate-300 leading-relaxed"
+                dangerouslySetInnerHTML={{ __html: t("tutorial.sosNotice") }}
+              />
+            )}
           </section>
 
           <section className="bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-800 shadow-xl">

@@ -245,12 +245,21 @@ export function TutorialPage() {
                   O botão de escudo vermelho no canto direito do mapa possui tamanho ampliado e anatômico para acesso imediato. Use-o <strong>apenas</strong> em caso de perigo real! Ao ser acionado:
                 </p>
                 <ul className="text-sm text-slate-400 space-y-2 list-disc pl-4">
-                  <li>Inicia automaticamente a <strong>gravação de áudio do ambiente por 10 segundos</strong> para capturar sons e pedidos de socorro.</li>
+                  <li>Inicia automaticamente a <strong>gravação de áudio do ambiente por 10 segundos</strong> com contagem regressiva visível na tela.</li>
                   <li>Gera uma página exclusiva de emergência com <strong>mapa ao vivo e player de áudio integrado</strong>.</li>
                   <li>Dispara mensagens imediatas com o link de localização e o áudio para os seus <strong>Contatos de Confiança</strong> via WhatsApp.</li>
                   <li>Permite compartilhar o próprio arquivo de áudio diretamente ou baixá-lo no celular para Boletim de Ocorrência.</li>
                   <li>Oferece um atalho de discagem rápida para ligação com a <strong>Polícia (190)</strong>.</li>
                 </ul>
+
+                <div className="mt-3.5 bg-red-950/30 p-3 rounded-xl border border-red-500/20 text-xs text-slate-300 space-y-1.5">
+                  <p className="font-bold text-red-400 flex items-center gap-1.5">
+                    <span>💡 Como o seu contato ouve o áudio:</span>
+                  </p>
+                  <p className="leading-relaxed">
+                    Ao tocar em <strong>WhatsApp</strong> ao lado do contato, o aplicativo envia uma mensagem formatada contendo o link exclusivo <code className="text-red-300 bg-red-950/60 px-1 py-0.5 rounded font-mono">https://alertacriminal.com.br/sos/...</code>. O seu contato clica e ouve o áudio de 10 segundos na hora pelo navegador do celular, sem precisar baixar o app nem criar conta.
+                  </p>
+                </div>
               </div>
             </div>
 

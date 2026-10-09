@@ -13,6 +13,7 @@
     "sosL2": "Generates a dedicated emergency link with a live map and integrated audio player.",
     "sosL3": "Sends an instant WhatsApp emergency alert to your pre-registered Trusted Contacts.",
     "sosL4": "Offers a quick shortcut to dial the Police (190 / 911).",
+    "sosNotice": "<strong>💡 Safety Tip:</strong> Your Trusted Contact does not need to have the app installed to listen to the audio or view the map. The WhatsApp link opens directly in any mobile browser with an instant audio player and emergency police buttons.",
     "guardianTitle": "🛡️ How to use My Guardian?",
     "guardianDesc": "Ideal for when you are walking alone, in a ride-share car, or feeling unsafe. When activated, Criminal Alert continuously monitors your location. If you do not confirm that you arrived safely at your destination after the stipulated time, the app sends an automatic alert to your trusted contacts.",
     "trackingTitle": "⚠️ How to keep tracking active?",

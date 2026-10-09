@@ -13,6 +13,7 @@
     "sosL2": "Genera un enlace exclusivo de emergencia con mapa en vivo y reproductor de audio integrado.",
     "sosL3": "Permite el envío inmediato por WhatsApp a tus Contactos de Confianza registrados.",
     "sosL4": "Ofrece un atajo para llamar rápidamente a la Policía (190 / 911).",
+    "sosNotice": "<strong>💡 Consejo de Seguridad:</strong> Tu Contacto de Confianza no necesita tener la aplicación instalada para escuchar el audio o ver el mapa. El enlace enviado por WhatsApp se abre directamente en el navegador de cualquier teléfono con reproductor de audio listo y botones de emergencia policial.",
     "guardianTitle": "🛡️ ¿Cómo usar Mi Guardián?",
     "guardianDesc": "Ideal para cuando caminas solo, en un coche de aplicación o te sientes inseguro. Al activarlo, Alerta Criminal monitorea continuamente tu ubicación. Si no confirmas que llegaste a salvo a tu destino después del tiempo estipulado, la aplicación envía una alerta automática a tus contactos de confianza.",
     "trackingTitle": "⚠️ ¿Cómo mantener activo el rastreo?",
