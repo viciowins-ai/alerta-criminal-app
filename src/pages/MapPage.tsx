@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { LanguageSelectorModal, SUPPORTED_LANGUAGES } from '../components/LanguageSelectorModal';
 import { FlagIcon } from '../components/FlagIcon';
 import { db } from '../firebase';
-import { collection, query, onSnapshot, limit, orderBy, doc, updateDoc, arrayUnion, increment, addDoc, serverTimestamp, getDoc, getDocs, writeBatch, where, deleteDoc } from 'firebase/firestore';
+import { collection, query, onSnapshot, limit, orderBy, doc, updateDoc, arrayUnion, increment, addDoc, setDoc, serverTimestamp, getDoc, getDocs, writeBatch, where, deleteDoc } from 'firebase/firestore';
 import { handleFirestoreError, OperationType } from '../utils/firestoreErrorHandler';
 import { useAuth } from '../contexts/AuthContext';
 import { SOSModal } from '../components/SOSModal';
@@ -92,7 +92,7 @@ export function MapPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
-  const { isRecording, startRecording } = useAudioRecorder();
+  const { isRecording, secondsLeft, startRecording, stopRecording } = useAudioRecorder();
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const [isLangModalOpen, setIsLangModalOpen] = useState(false);
   const [geoError, setGeoError] = useState<string | null>(null);
@@ -451,6 +451,10 @@ export function MapPage() {
     console.log('Setting isSOSActive to true');
     setIsSOSActive(true);
     try {
+      // Cria ID síncrono imediatamente para garantir que alertId nunca seja nulo no WhatsApp
+      const alertDocRef = doc(collection(db, 'emergencyAlerts'));
+      const alertId = alertDocRef.id;
+
       const alertData = {
         userId: user.uid,
         userName: user.displayName || 'Vítima',
@@ -462,30 +466,29 @@ export function MapPage() {
         createdAt: serverTimestamp()
       };
       
-      console.log('Calling addDoc for emergencyAlerts');
-      const docRef = await addDoc(collection(db, 'emergencyAlerts'), alertData);
-      console.log('addDoc successful, docRef:', docRef.id);
+      console.log('Salvando emergencyAlerts no Firestore, id:', alertId);
+      await setDoc(alertDocRef, alertData);
       
       console.log('Calling getDoc for user');
       const userDoc = await getDoc(doc(db, 'users', user.uid));
       console.log('getDoc successful');
       const trustedContacts = userDoc.data()?.trustedContacts || [];
       
-      console.log('Setting sosModalData');
+      console.log('Setting sosModalData com alertId:', alertId);
       setSosModalData({
         isOpen: true,
         contacts: trustedContacts,
         location: userLocation,
-        alertId: docRef.id,
+        alertId: alertId,
         audioData: null
       });
 
-      // Start audio recording asynchronously
+      // Start audio recording asynchronously (10 segundos)
       console.log('Starting audio recording');
       startRecording(10000).then(async (audioBase64) => {
         if (audioBase64) {
           console.log('Audio recording finished, updating doc');
-          await updateDoc(docRef, { audioData: audioBase64 });
+          await updateDoc(alertDocRef, { audioData: audioBase64 });
           setSosModalData(prev => ({ ...prev, audioData: audioBase64 }));
         }
       }).catch(e => console.log('Audio recording skipped/failed', e));
@@ -1177,8 +1180,16 @@ export function MapPage() {
         contacts={sosModalData.contacts}
         location={sosModalData.location}
         isRecordingAudio={isRecording}
+        secondsLeft={secondsLeft}
         audioData={sosModalData.audioData}
         alertId={sosModalData.alertId}
+        onStopRecording={async () => {
+          const audio = await stopRecording();
+          if (audio && sosModalData.alertId) {
+            await updateDoc(doc(db, 'emergencyAlerts', sosModalData.alertId), { audioData: audio });
+            setSosModalData(prev => ({ ...prev, audioData: audio }));
+          }
+        }}
         onVideoUpload={() => {
           alert('Vídeo anexado com sucesso! (Simulado - Requer Firebase Storage para envio real)');
         }}

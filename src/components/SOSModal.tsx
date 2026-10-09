@@ -12,12 +12,25 @@ interface SOSModalProps {
   contacts: Contact[];
   location: { lat: number; lng: number } | null;
   isRecordingAudio?: boolean;
+  secondsLeft?: number;
   audioData?: string | null;
   alertId?: string | null;
+  onStopRecording?: () => void;
   onVideoUpload?: (file: File) => void;
 }
 
-export function SOSModal({ isOpen, onClose, contacts, location, isRecordingAudio, audioData, alertId, onVideoUpload }: SOSModalProps) {
+export function SOSModal({ 
+  isOpen, 
+  onClose, 
+  contacts, 
+  location, 
+  isRecordingAudio, 
+  secondsLeft = 0,
+  audioData, 
+  alertId, 
+  onStopRecording,
+  onVideoUpload 
+}: SOSModalProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [videoAttached, setVideoAttached] = React.useState(false);
 
@@ -26,18 +39,26 @@ export function SOSModal({ isOpen, onClose, contacts, location, isRecordingAudio
   const handleWhatsApp = (phone: string) => {
     if (!location) return;
 
+    // Se ainda estiver gravando, para imediatamente para salvar o áudio até o momento
+    if (isRecordingAudio && onStopRecording) {
+      onStopRecording();
+    }
+
     // Track the SOS interaction
     import('../firebase').then(({ trackEvent }) => {
       trackEvent('sos_whatsapp_contact_clicked', { has_location: true });
     }).catch(console.error);
 
-    const baseUrl = window.location.origin;
+    const baseUrl = window.location.origin.includes('localhost') 
+      ? window.location.origin 
+      : 'https://alertacriminal.com.br';
+
     const audioText = alertId 
-      ? `\n\n🎙️ *ÁUDIO GRAVADO NO LOCAL (10s):*\nOuça o que está acontecendo e veja o mapa ao vivo:\n${baseUrl}/sos/${alertId}` 
+      ? `\n\n🎙️ *OUÇA O ÁUDIO DO LOCAL (10s) E VEJA O MAPA AO VIVO:*\n${baseUrl}/sos/${alertId}` 
       : '';
 
     const message = encodeURIComponent(
-      `🚨 *ALERTA DE EMERGÊNCIA (SOS) - ALERTA CRIMINAL* 🚨\n\nPreciso de ajuda urgente! Acionei o SOS de emergência.\n\n📍 *Minha localização atual:*\nhttps://maps.google.com/?q=${location.lat},${location.lng}${audioText}`
+      `🚨 *ALERTA DE EMERGÊNCIA (SOS) - ALERTA CRIMINAL* 🚨\n\nPreciso de socorro imediato! Acionei o botão de emergência.\n\n📍 *Minha localização atual:*\nhttps://maps.google.com/?q=${location.lat},${location.lng}${audioText}`
     );
     let cleanPhone = phone.replace(/\D/g, '');
     
@@ -129,7 +150,9 @@ export function SOSModal({ isOpen, onClose, contacts, location, isRecordingAudio
           {isRecordingAudio && (
             <div className="mt-4 flex items-center justify-center gap-2 text-red-400 bg-red-500/10 py-2 px-4 rounded-full border border-red-500/20 animate-pulse">
               <Mic size={16} />
-              <span className="text-xs font-bold uppercase tracking-wider">Gravando Áudio (10s)...</span>
+              <span className="text-xs font-bold uppercase tracking-wider">
+                Gravando Áudio {secondsLeft > 0 ? `(${secondsLeft}s restantes)...` : '(10s)...'}
+              </span>
             </div>
           )}
         </div>
