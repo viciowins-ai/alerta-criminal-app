@@ -91,7 +91,7 @@ export function TutorialPage() {
                 <ul className="text-sm text-slate-400 space-y-2">
                   <li><strong>Escudo Azul (Meu Guardião):</strong> Ativa o monitoramento contínuo de trajeto com aviso automático aos contatos caso você não confirme chegada.</li>
                   <li><strong>Lua (Modo Pânico):</strong> Ativa a tela preta anti-assalto simulando aparelho desligado, com acionamento secreto de SOS.</li>
-                  <li><strong>Escudo Vermelho (SOS):</strong> Dispara socorro emergencial com gravação secreta de áudio e link de rastreio GPS ao vivo para seus contatos.</li>
+                  <li><strong>Escudo Vermelho (SOS):</strong> Botão de toque ampliado. Dispara socorro com gravação de áudio ambiente (10s) e envio do link com áudio e mapa para seus contatos no WhatsApp.</li>
                   <li><strong>Alvo (Mira GPS):</strong> Centraliza o mapa na sua posição atual e recalibra a antena com máxima precisão.</li>
                 </ul>
               </div>
@@ -234,16 +234,22 @@ export function TutorialPage() {
               <div className="bg-red-500/20 p-2 rounded-lg shrink-0 mt-1">
                 <ShieldAlert size={20} className="text-red-500" />
               </div>
-              <div>
-                <h3 className="text-white font-semibold mb-1">Botão SOS (Emergência)</h3>
+              <div className="w-full">
+                <h3 className="text-white font-semibold mb-1 flex items-center justify-between flex-wrap gap-2">
+                  <span>Botão SOS (Emergência)</span>
+                  <span className="text-xs font-bold text-red-400 bg-red-500/10 px-2 py-0.5 rounded-full border border-red-500/20">
+                    Botão Ampliado • Toque Rápido
+                  </span>
+                </h3>
                 <p className="text-sm text-slate-400 leading-relaxed mb-3">
-                  O botão de escudo vermelho no canto direito do mapa. Use-o <strong>apenas</strong> em caso de perigo real!
+                  O botão de escudo vermelho no canto direito do mapa possui tamanho ampliado e anatômico para acesso imediato. Use-o <strong>apenas</strong> em caso de perigo real! Ao ser acionado:
                 </p>
                 <ul className="text-sm text-slate-400 space-y-2 list-disc pl-4">
-                  <li>Inicia automaticamente uma <strong>gravação de áudio de 10 segundos</strong> do ambiente em segundo plano para registro de provas.</li>
-                  <li>Gera um link exclusivo de rastreio da sua localização ao vivo.</li>
-                  <li>Dispara mensagens imediatas com seu link para os seus <strong>Contatos de Confiança</strong> via WhatsApp.</li>
-                  <li>Oferece um atalho de discagem rápida para ligação com a Polícia (190).</li>
+                  <li>Inicia automaticamente a <strong>gravação de áudio do ambiente por 10 segundos</strong> para capturar sons e pedidos de socorro.</li>
+                  <li>Gera uma página exclusiva de emergência com <strong>mapa ao vivo e player de áudio integrado</strong>.</li>
+                  <li>Dispara mensagens imediatas com o link de localização e o áudio para os seus <strong>Contatos de Confiança</strong> via WhatsApp.</li>
+                  <li>Permite compartilhar o próprio arquivo de áudio diretamente ou baixá-lo no celular para Boletim de Ocorrência.</li>
+                  <li>Oferece um atalho de discagem rápida para ligação com a <strong>Polícia (190)</strong>.</li>
                 </ul>
               </div>
             </div>
