@@ -56,7 +56,13 @@ export function RoutePage() {
   const [isSOSActive, setIsSOSActive] = useState(false);
   const [isPanicMode, setIsPanicMode] = useState(false);
   const navigate = useNavigate();
-  const [sosModalData, setSosModalData] = useState<{ isOpen: boolean; contacts: any[]; location: any | null }>({ isOpen: false, contacts: [], location: null });
+  const [sosModalData, setSosModalData] = useState<{
+    isOpen: boolean;
+    contacts: any[];
+    location: any | null;
+    alertId?: string | null;
+    audioData?: string | null;
+  }>({ isOpen: false, contacts: [], location: null, alertId: null, audioData: null });
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -215,6 +221,7 @@ export function RoutePage() {
     try {
       const alertData = {
         userId: user.uid,
+        userName: user.displayName || 'Vítima',
         location: {
           lat: userLocation.lat,
           lng: userLocation.lng
@@ -227,13 +234,6 @@ export function RoutePage() {
       const docRef = await addDoc(collection(db, 'emergencyAlerts'), alertData);
       console.log('addDoc successful, docRef:', docRef.id);
       
-      // Start audio recording asynchronously
-      console.log('Starting audio recording');
-      startRecording(10000).then(async (audioBase64) => {
-        console.log('Audio recording finished, updating doc');
-        await updateDoc(docRef, { audioData: audioBase64 });
-      }).catch(e => console.log('Audio recording skipped/failed', e));
-      
       console.log('Calling getDoc for user');
       const userDoc = await getDoc(doc(db, 'users', user.uid));
       console.log('getDoc successful');
@@ -243,8 +243,20 @@ export function RoutePage() {
       setSosModalData({
         isOpen: true,
         contacts: trustedContacts,
-        location: userLocation
+        location: userLocation,
+        alertId: docRef.id,
+        audioData: null
       });
+
+      // Start audio recording asynchronously
+      console.log('Starting audio recording');
+      startRecording(10000).then(async (audioBase64) => {
+        if (audioBase64) {
+          console.log('Audio recording finished, updating doc');
+          await updateDoc(docRef, { audioData: audioBase64 });
+          setSosModalData(prev => ({ ...prev, audioData: audioBase64 }));
+        }
+      }).catch(e => console.log('Audio recording skipped/failed', e));
       
     } catch (error) {
       console.error('Error in handleSOS:', error);
@@ -790,6 +802,8 @@ export function RoutePage() {
         contacts={sosModalData.contacts}
         location={sosModalData.location}
         isRecordingAudio={isRecording}
+        audioData={sosModalData.audioData}
+        alertId={sosModalData.alertId}
         onVideoUpload={() => {
           alert('Vídeo anexado com sucesso! (Simulado - Requer Firebase Storage para envio real)');
         }}

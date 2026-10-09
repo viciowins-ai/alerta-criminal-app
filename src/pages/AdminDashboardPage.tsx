@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { collection, query, where, getDocs, limit, orderBy, doc, getDoc, updateDoc, onSnapshot, deleteDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { db } from '../firebase';
-import { AlertTriangle, MapPin, Users, ShieldAlert, Activity, Car, Bike, Power, MessageSquare, ShieldBan, Send, CheckCircle2, Trash2 } from 'lucide-react';
+import { AlertTriangle, MapPin, Users, ShieldAlert, Activity, Car, Bike, Power, MessageSquare, ShieldBan, Send, CheckCircle2, Trash2, Download, Volume2, CheckCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { AttachmentGallery } from '../components/AttachmentGallery';
@@ -211,6 +211,33 @@ export function AdminDashboardPage() {
     }
   };
 
+  const handleDownloadAudio = (audioDataUrl: string, sosId: string, dateStr: string) => {
+    try {
+      const link = document.createElement('a');
+      link.href = audioDataUrl;
+      link.download = `evidencia-audio-sos-${dateStr}-${sosId.slice(0, 6)}.webm`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error('Erro ao baixar áudio:', err);
+      alert('Não foi possível fazer o download do áudio.');
+    }
+  };
+
+  const handleResolveSOS = async (sosId: string) => {
+    if (!window.confirm("Deseja marcar este chamado de SOS como Atendido / Concluído?")) return;
+    try {
+      await updateDoc(doc(db, 'emergencyAlerts', sosId), {
+        status: 'resolved',
+        resolvedAt: serverTimestamp()
+      });
+    } catch (err) {
+      console.error('Erro ao concluir SOS:', err);
+      alert('Erro ao atualizar chamado.');
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full bg-slate-950">
@@ -316,27 +343,74 @@ export function AdminDashboardPage() {
               </h3>
               {activeSOS.length > 0 ? (
                 <div className="space-y-3">
-                  {activeSOS.map(sos => (
-                    <div key={sos.id} className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-red-500/20 text-red-400 rounded-lg animate-pulse">
-                          <ShieldAlert size={20} />
+                  {activeSOS.map(sos => {
+                    const dateStr = sos.createdAt?.toDate ? format(sos.createdAt.toDate(), "yyyyMMdd-HHmm") : 'sos';
+                    return (
+                      <div key={sos.id} className="p-4 bg-red-500/10 border border-red-500/30 rounded-2xl flex flex-col gap-3">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2.5 bg-red-500/20 text-red-400 rounded-xl animate-pulse">
+                              <ShieldAlert size={22} />
+                            </div>
+                            <div>
+                              <p className="text-sm font-bold text-white flex items-center gap-2">
+                                Pedido de Socorro!
+                                <span className="text-[10px] bg-red-600/30 text-red-300 font-extrabold px-2 py-0.5 rounded-full border border-red-500/40">
+                                  URGENTE
+                                </span>
+                              </p>
+                              <p className="text-xs text-slate-400">
+                                {sos.createdAt?.toDate ? format(sos.createdAt.toDate(), "dd/MM/yyyy 'às' HH:mm:ss", { locale: ptBR }) : 'Horário não registrado'}
+                              </p>
+                              {sos.location && (
+                                <p className="text-[11px] text-slate-400 mt-0.5">
+                                  GPS: {sos.location.lat?.toFixed(5)}, {sos.location.lng?.toFixed(5)}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <button 
+                              onClick={() => navigate('/map')}
+                              className="text-xs font-bold text-white bg-red-600 px-3 py-1.5 rounded-lg shadow-lg hover:bg-red-500 transition-colors"
+                            >
+                              Ver no Mapa
+                            </button>
+                            <button
+                              onClick={() => handleResolveSOS(sos.id)}
+                              className="text-xs font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 px-2.5 py-1.5 rounded-lg border border-slate-700 transition-colors flex items-center gap-1"
+                              title="Marcar como atendido"
+                            >
+                              <CheckCircle size={14} className="text-emerald-400" />
+                              <span>Concluir</span>
+                            </button>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-sm font-bold text-white">Pedido de Socorro!</p>
-                          <p className="text-xs text-slate-400">
-                            {sos.createdAt?.toDate ? format(sos.createdAt.toDate(), "HH:mm", { locale: ptBR }) : ''}
-                          </p>
-                        </div>
+
+                        {/* Evidência de Áudio */}
+                        {sos.audioData ? (
+                          <div className="bg-slate-950/80 p-3 rounded-xl border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
+                            <div className="flex items-center gap-2.5 w-full sm:w-auto">
+                              <Volume2 size={18} className="text-red-400 shrink-0" />
+                              <audio controls src={sos.audioData} className="h-8 max-w-[240px] w-full" />
+                            </div>
+                            <button
+                              onClick={() => handleDownloadAudio(sos.audioData, sos.id, dateStr)}
+                              className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold shadow-md transition-all shrink-0"
+                              title="Exportar arquivo para anexar no Boletim de Ocorrência (B.O.) ou inquérito"
+                            >
+                              <Download size={14} />
+                              Baixar Áudio (.webm) para Perícia / B.O.
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="text-[11px] text-slate-500 italic px-1">
+                            Sem gravação de áudio anexada neste chamado (microfone não autorizado no dispositivo).
+                          </div>
+                        )}
                       </div>
-                      <button 
-                        onClick={() => navigate('/map')}
-                        className="text-xs font-bold text-white bg-red-600 px-3 py-1.5 rounded-lg shadow-lg hover:bg-red-500"
-                      >
-                        Ver no Mapa
-                      </button>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="text-center py-8">

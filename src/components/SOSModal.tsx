@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { ShieldAlert, X, Phone, MessageCircle, PhoneCall, Mic, Video, CheckCircle2 } from 'lucide-react';
+import { ShieldAlert, X, Phone, MessageCircle, PhoneCall, Mic, Video, CheckCircle2, Volume2, Share2, Download } from 'lucide-react';
 
 interface Contact {
   name: string;
@@ -12,10 +12,12 @@ interface SOSModalProps {
   contacts: Contact[];
   location: { lat: number; lng: number } | null;
   isRecordingAudio?: boolean;
+  audioData?: string | null;
+  alertId?: string | null;
   onVideoUpload?: (file: File) => void;
 }
 
-export function SOSModal({ isOpen, onClose, contacts, location, isRecordingAudio, onVideoUpload }: SOSModalProps) {
+export function SOSModal({ isOpen, onClose, contacts, location, isRecordingAudio, audioData, alertId, onVideoUpload }: SOSModalProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [videoAttached, setVideoAttached] = React.useState(false);
 
@@ -29,8 +31,13 @@ export function SOSModal({ isOpen, onClose, contacts, location, isRecordingAudio
       trackEvent('sos_whatsapp_contact_clicked', { has_location: true });
     }).catch(console.error);
 
+    const baseUrl = window.location.origin;
+    const audioText = alertId 
+      ? `\n\n🎙️ *ÁUDIO GRAVADO NO LOCAL (10s):*\nOuça o que está acontecendo e veja o mapa ao vivo:\n${baseUrl}/sos/${alertId}` 
+      : '';
+
     const message = encodeURIComponent(
-      `🚨 *ALERTA DE EMERGÊNCIA (SOS)* 🚨\n\nPreciso de ajuda! Esta é minha localização atual:\nhttps://maps.google.com/?q=${location.lat},${location.lng}`
+      `🚨 *ALERTA DE EMERGÊNCIA (SOS) - ALERTA CRIMINAL* 🚨\n\nPreciso de ajuda urgente! Acionei o SOS de emergência.\n\n📍 *Minha localização atual:*\nhttps://maps.google.com/?q=${location.lat},${location.lng}${audioText}`
     );
     let cleanPhone = phone.replace(/\D/g, '');
     
@@ -48,6 +55,47 @@ export function SOSModal({ isOpen, onClose, contacts, location, isRecordingAudio
     
     const waLink = `https://wa.me/${cleanPhone}?text=${message}`;
     window.open(waLink, '_blank');
+  };
+
+  const handleShareAudioDirectly = async () => {
+    if (!audioData) return;
+    try {
+      // Converte Base64 para File blob para compartilhar o arquivo de áudio real
+      const res = await fetch(audioData);
+      const blob = await res.blob();
+      const file = new File([blob], 'alerta-sos-audio-ambiente.webm', { type: 'audio/webm' });
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: '🚨 Alerta SOS - Áudio de Emergência',
+          text: `🚨 Áudio de emergência gravado no momento do SOS! Minha localização: https://maps.google.com/?q=${location?.lat},${location?.lng}`
+        });
+        return;
+      }
+    } catch (e) {
+      console.log('Compartilhamento direto cancelado ou não suportado', e);
+    }
+
+    // Fallback: abre o WhatsApp com o link do áudio
+    const baseUrl = window.location.origin;
+    const fallbackLink = alertId ? `${baseUrl}/sos/${alertId}` : `https://maps.google.com/?q=${location?.lat},${location?.lng}`;
+    const text = encodeURIComponent(`🚨 *ÁUDIO DE EMERGÊNCIA (SOS)* 🚨\n\nOuça o áudio gravado no local do chamado:\n${fallbackLink}`);
+    window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+  };
+
+  const handleDownloadLocalAudio = () => {
+    if (!audioData) return;
+    try {
+      const link = document.createElement('a');
+      link.href = audioData;
+      link.download = `meu-audio-sos-${Date.now()}.webm`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (e) {
+      console.error('Erro ao baixar:', e);
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -98,7 +146,7 @@ export function SOSModal({ isOpen, onClose, contacts, location, isRecordingAudio
             </a>
           </div>
 
-          <div className="mb-6">
+          <div className="mb-5">
             <input 
               type="file" 
               accept="video/*" 
@@ -129,6 +177,49 @@ export function SOSModal({ isOpen, onClose, contacts, location, isRecordingAudio
               )}
             </button>
           </div>
+
+          {/* Card de Áudio de Emergência Gravado */}
+          {audioData ? (
+            <div className="mb-5 bg-red-500/10 border border-red-500/30 rounded-2xl p-3.5 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Volume2 size={18} className="text-red-400" />
+                  <span className="text-xs font-bold text-white uppercase tracking-wider">
+                    Áudio de Emergência (10s)
+                  </span>
+                </div>
+                <span className="text-[10px] bg-red-600 text-white font-extrabold px-1.5 py-0.5 rounded">
+                  PRONTO
+                </span>
+              </div>
+
+              <audio controls src={audioData} className="w-full h-8" />
+
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                <button
+                  onClick={handleShareAudioDirectly}
+                  className="py-2 px-2.5 bg-red-600 hover:bg-red-500 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-md transition-all active:scale-95"
+                  title="Compartilhar arquivo de áudio diretamente"
+                >
+                  <Share2 size={14} />
+                  <span>Enviar Áudio</span>
+                </button>
+                <button
+                  onClick={handleDownloadLocalAudio}
+                  className="py-2 px-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 border border-slate-700 transition-all active:scale-95"
+                  title="Baixar arquivo no celular"
+                >
+                  <Download size={14} />
+                  <span>Baixar Áudio</span>
+                </button>
+              </div>
+            </div>
+          ) : isRecordingAudio ? (
+            <div className="mb-5 bg-red-500/10 border border-red-500/20 rounded-2xl p-3 flex items-center gap-2.5 text-red-300 animate-pulse text-xs">
+              <Mic size={18} className="text-red-400 shrink-0" />
+              <span>Gravando 10 segundos do áudio ambiente... Ele será enviado no WhatsApp aos contatos.</span>
+            </div>
+          ) : null}
 
           <div className="mb-4 flex items-center gap-2">
             <div className="h-px bg-slate-800 flex-1"></div>

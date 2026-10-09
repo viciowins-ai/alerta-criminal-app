@@ -105,6 +105,11 @@ const TrackingPage = lazy(() =>
     default: module.TrackingPage,
   })),
 );
+const SosAlertPage = lazy(() =>
+  import("./pages/SosAlertPage").then((module) => ({
+    default: module.SosAlertPage,
+  })),
+);
 const FeedbackPage = lazy(() =>
   import("./pages/FeedbackPage").then((module) => ({
     default: module.FeedbackPage,
@@ -192,6 +197,7 @@ export default function App() {
           <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/track/:sessionId" element={<TrackingPage />} />
+            <Route path="/sos/:alertId" element={<SosAlertPage />} />
             <Route path="/como-usar" element={<ComoUsarPage lang="pt" />} />
             <Route path="/en/how-to-use" element={<ComoUsarPage lang="en" />} />
             <Route path="/es/como-usar" element={<ComoUsarPage lang="es" />} />
