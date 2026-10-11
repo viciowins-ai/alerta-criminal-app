@@ -68,6 +68,9 @@
     "actionButtonsTitle": "Floating Action Buttons (Right Side):",
     "categoriesTitle": "Available Categories in the Filter Menu:",
     "heatmapLayerTitle": "Heatmap Layer (Crime Density Hotspots):",
+    "autoFramingTitle": "Automatic Framing",
+    "tapToLocateDesc": "Simply tap this pill at the top of the map to center and view all filtered incidents on the same screen.",
+    "heatmapGradientDesc": "Zones with higher crime frequency form continuous hotspots in vivid red and radiant orange.",
     "visualGuideTitle": "User Guide & Tutorial"
   },
   "nav": {

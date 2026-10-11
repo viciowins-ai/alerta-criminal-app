@@ -68,6 +68,9 @@
     "actionButtonsTitle": "Botones Flotantes de Acción (Derecha):",
     "categoriesTitle": "Categorías Disponibles en el Menú de Filtros:",
     "heatmapLayerTitle": "Capa del Mapa de Calor (Puntos Calientes de Delincuencia):",
+    "autoFramingTitle": "Encuadre Automático",
+    "tapToLocateDesc": "Simplemente toca esta píldora en la parte superior del mapa para centrar y ver todas las alertas filtradas en la misma pantalla.",
+    "heatmapGradientDesc": "Las zonas con mayor frecuencia de delitos forman manchas continuas en rojo vivo y naranja radiante.",
     "visualGuideTitle": "Guía de Uso y Tutorial"
   },
   "nav": {

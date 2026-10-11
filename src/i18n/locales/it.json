@@ -68,6 +68,9 @@
     "actionButtonsTitle": "Pulsanti di Azione Fluttuanti (Destra):",
     "categoriesTitle": "Categorie Disponibili nel Menu dei Filtri:",
     "heatmapLayerTitle": "Livello della Mappa Termica (Zone a Rischio):",
+    "autoFramingTitle": "Inquadratura Automatica",
+    "tapToLocateDesc": "Basta toccare questo pulsante in alto sulla mappa per centrare e visualizzare tutti gli avvisi filtrati sullo stesso schermo.",
+    "heatmapGradientDesc": "Le zone con maggiore frequenza di crimini formano macchie continue in rosso vivo e arancione radioso.",
     "visualGuideTitle": "Guida all'Uso e Tutorial"
   },
   "nav": {

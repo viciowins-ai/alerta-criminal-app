@@ -284,34 +284,34 @@ export function ComoUsarPage({ lang = "pt" }: { lang?: string }) {
               <div className="bg-slate-800/70 p-4 rounded-2xl border border-slate-700/80 flex flex-col gap-2.5">
                 <div className="flex items-center gap-2 text-white font-bold text-sm">
                   <span className="text-base">🎯</span>
-                  <span>Enquadramento Automático</span>
+                  <span>{t("tutorial.autoFramingTitle", "Enquadramento Automático")}</span>
                 </div>
                 <div className="inline-flex items-center gap-2 bg-slate-950/90 border border-blue-500/50 px-3 py-1.5 rounded-full w-fit shadow-md">
                   <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                  <span className="text-slate-200 font-medium text-[11px]">2 alertas exibidos</span>
+                  <span className="text-slate-200 font-medium text-[11px]">2 {t("map.reportCountMany", "alertas exibidos")}</span>
                   <span className="text-[10px] text-blue-400 font-bold border-l border-slate-700 pl-1.5 flex items-center gap-1">
-                    <span>📍 Ver no mapa</span>
+                    <span>📍 {t("map.viewOnMap", "Ver no mapa")}</span>
                   </span>
                 </div>
                 <p className="text-slate-400 text-[11px] leading-relaxed">
-                  Basta tocar nessa pílula no topo do mapa para centralizar e visualizar todas as ocorrências filtradas na mesma tela.
+                  {t("tutorial.tapToLocateDesc", "Basta tocar nessa pílula no topo do mapa para centralizar e visualizar todas as ocorrências filtradas na mesma tela.")}
                 </p>
               </div>
 
               <div className="bg-slate-800/70 p-4 rounded-2xl border border-slate-700/80 flex flex-col gap-2.5">
                 <div className="flex items-center gap-2 text-orange-400 font-bold text-sm">
                   <span className="text-base">🔥</span>
-                  <span>Mancha Térmica Criminal</span>
+                  <span>{t("tutorial.heatmapLayerTitle", "Mancha Térmica Criminal")}</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-[11px]">
-                  <span className="px-2 py-0.5 rounded-md bg-yellow-400/20 text-yellow-300 border border-yellow-400/30 font-semibold">Atenção</span>
+                  <span className="px-2 py-0.5 rounded-md bg-yellow-400/20 text-yellow-300 border border-yellow-400/30 font-semibold">{t("map.riskLevels.medium", "Atenção")}</span>
                   <span className="text-slate-500">→</span>
-                  <span className="px-2 py-0.5 rounded-md bg-orange-500/20 text-orange-300 border border-orange-500/30 font-semibold">Risco</span>
+                  <span className="px-2 py-0.5 rounded-md bg-orange-500/20 text-orange-300 border border-orange-500/30 font-semibold">{t("map.riskLevels.high", "Risco")}</span>
                   <span className="text-slate-500">→</span>
-                  <span className="px-2 py-0.5 rounded-md bg-red-600/20 text-red-400 border border-red-500/40 font-bold">Alto Perigo</span>
+                  <span className="px-2 py-0.5 rounded-md bg-red-600/20 text-red-400 border border-red-500/40 font-bold">{t("map.riskLevels.critical", "Alto Perigo")}</span>
                 </div>
                 <p className="text-slate-400 text-[11px] leading-relaxed">
-                  Zonas com maior frequência de crimes formam manchas contínuas em vermelho vivo e laranja radiante.
+                  {t("tutorial.heatmapGradientDesc", "Zonas com maior frequência de crimes formam manchas contínuas em vermelho vivo e laranja radiante.")}
                 </p>
               </div>
             </div>

@@ -68,6 +68,9 @@
     "actionButtonsTitle": "Botões Flutuantes de Ação (Direita):",
     "categoriesTitle": "Categorias Disponíveis no Menu de Filtros:",
     "heatmapLayerTitle": "Camada do Mapa de Calor (Mancha Térmica Criminal):",
+    "autoFramingTitle": "Enquadramento Automático",
+    "tapToLocateDesc": "Basta tocar nessa pílula no topo do mapa para centralizar e visualizar todas as ocorrências filtradas na mesma tela.",
+    "heatmapGradientDesc": "Zonas com maior frequência de crimes formam manchas contínuas em vermelho vivo e laranja radiante.",
     "visualGuideTitle": "Tutorial de Uso"
   },
   "nav": {
