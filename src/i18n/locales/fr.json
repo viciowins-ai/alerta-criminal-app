@@ -69,7 +69,7 @@
     "categoriesTitle": "Catégories disponibles dans le menu de filtres :",
     "heatmapLayerTitle": "Couche de Carte Thermique (Zones Criminelles) :",
     "autoFramingTitle": "Cadrage Automatique",
-    "tapToLocateDesc": "Appuyez simplement sur cette pilule en haut de la carte pour centrer et afficher tous les incidents filtrés sur le même écran.",
+    "tapToLocateDesc": "Appuyez simplement sur ce bouton en haut de la carte pour centrer et afficher tous les incidents filtrés sur le même écran.",
     "heatmapGradientDesc": "Les zones à plus forte fréquence criminelle forment des taches continues en rouge vif et orange éclatant.",
     "visualGuideTitle": "Guide d'utilisation et Tutoriel"
   },

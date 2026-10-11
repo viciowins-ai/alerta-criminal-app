@@ -294,7 +294,7 @@ export function ComoUsarPage({ lang = "pt" }: { lang?: string }) {
                   </span>
                 </div>
                 <p className="text-slate-400 text-[11px] leading-relaxed">
-                  {t("tutorial.tapToLocateDesc", "Basta tocar nessa pílula no topo do mapa para centralizar e visualizar todas as ocorrências filtradas na mesma tela.")}
+                  {t("tutorial.tapToLocateDesc", "Basta tocar nesse botão no topo do mapa para centralizar e visualizar todas as ocorrências filtradas na mesma tela.")}
                 </p>
               </div>
 

@@ -84,7 +84,7 @@ export function TutorialPage() {
                 <ul className="text-sm text-slate-400 space-y-2 mb-3">
                   <li><strong>Busca de Endereço (🔍):</strong> Digite qualquer rua, bairro ou ponto de interesse para navegar rapidamente pelo mapa com autocompletar inteligente.</li>
                   <li><strong>Seletor de Idiomas ([🇧🇷] PT):</strong> Toque no botão com a bandeira e sigla ao lado da busca para alternar o idioma do aplicativo instantaneamente com bandeiras em alta definição.</li>
-                  <li><strong>Filtro (Funil) &amp; Enquadramento:</strong> Filtre as ocorrências por tipo (Roubos, Suspeitos, Zeladoria, Vandalismo), ative o <strong>Mapa de Calor</strong> e toque na pílula flutuante (ex: <code className="bg-slate-900 px-1.5 py-0.5 rounded text-blue-300 text-xs font-mono font-bold">🔴 2 alertas exibidos • Ver no mapa 📍</code>) para centralizar e focar todos os alertas na tela instantaneamente com radar luminoso.</li>
+                  <li><strong>Filtro (Funil) &amp; Enquadramento:</strong> Filtre as ocorrências por tipo (Roubos, Suspeitos, Zeladoria, Vandalismo), ative o <strong>Mapa de Calor</strong> e toque no <strong>botão flutuante</strong> de alertas (ex: <code className="bg-slate-900 px-1.5 py-0.5 rounded text-blue-300 text-xs font-mono font-bold">🔴 2 alertas exibidos • Ver no mapa 📍</code>) para centralizar e focar todos os alertas na tela instantaneamente com radar luminoso.</li>
                 </ul>
 
                 <h4 className="text-xs font-bold text-slate-300 mb-2 uppercase">Botões Flutuantes de Ação (Direita):</h4>
@@ -178,10 +178,10 @@ export function TutorialPage() {
                     <div className="space-y-1">
                       <strong className="text-blue-400">Botão de Enquadramento Inteligente no Topo:</strong>
                       <p className="text-xs text-slate-400 leading-relaxed">
-                        Ao selecionar qualquer categoria, uma pílula interativa surge no topo da tela com o total de ocorrências encontradas (ex: <code className="bg-slate-900 px-1.5 py-0.5 rounded text-red-400 text-xs font-mono font-bold">🔴 2 alertas exibidos • Ver no mapa 📍</code>).
+                        Ao selecionar qualquer categoria, um <strong>botão flutuante</strong> surge no topo da tela com o total de ocorrências encontradas (ex: <code className="bg-slate-900 px-1.5 py-0.5 rounded text-red-400 text-xs font-mono font-bold">🔴 2 alertas exibidos • Ver no mapa 📍</code>).
                       </p>
                       <ul className="text-xs text-slate-300 space-y-1.5 list-disc pl-4 mt-1">
-                        <li><strong>Toque na pílula para enquadrar:</strong> O mapa calcula a abrangência de todos os alertas filtrados e ajusta a câmera suavemente, centralizando todos simultaneamente na tela com zoom perfeito.</li>
+                        <li><strong>Toque no botão para enquadrar:</strong> O mapa calcula a abrangência de todos os alertas filtrados e ajusta a câmera suavemente, centralizando todos simultaneamente na tela com zoom perfeito.</li>
                         <li><strong>Efeito Radar / Beacon Pulsante:</strong> Os marcadores dos alertas ganham um anel azul luminoso pulsante e uma etiqueta de endereço para rápida identificação visual.</li>
                         <li><strong>Seletor Rápido Inferior:</strong> Uma gaveta flutuante lista os alertas encontrados (#1, #2...) com atalho <em>"Ver"</em> para abrir a ocorrência completa sem complicação no celular.</li>
                       </ul>
