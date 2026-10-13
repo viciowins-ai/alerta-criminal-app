@@ -24,7 +24,11 @@ import {
   Globe,
   Filter,
   Flame,
-  Droplet
+  Droplet,
+  Video,
+  Camera,
+  Sparkles,
+  Eye
 } from 'lucide-react';
 import { FlagIcon } from '../components/FlagIcon';
 import { useTranslation } from 'react-i18next';
@@ -399,7 +403,9 @@ export function TutorialPage() {
                 </p>
                 <ul className="text-sm text-slate-400 space-y-2 list-disc pl-4 mb-3">
                   <li>Escolha o tipo: Roubo/Furto, Atividade Suspeita, Zeladoria/Risco ou Vandalismo.</li>
-                  <li>Adicione <strong>fotos e vídeos</strong> gravados na hora ou da sua galeria (com ferramenta automática para <strong>Censurar Rostos e Placas</strong>).</li>
+                  <li>
+                    Adicione fotos e vídeos: use <strong>"Tirar Foto"</strong> (abre a câmera fotográfica), <strong>"Gravar Vídeo"</strong> (abre a câmera para filmagem direta no local) ou anexe arquivos da sua galeria.
+                  </li>
                   <li>Defina a visibilidade: <strong>Alerta Público</strong> (para todos) ou restrito a um <strong>Grupo Privado</strong>.</li>
                   <li><strong>GPS Inteligente:</strong> Puxa automaticamente sua posição exata com cálculo de precisão.</li>
                 </ul>
@@ -423,10 +429,10 @@ export function TutorialPage() {
                   </span>
                 </h3>
                 <p className="text-sm text-slate-400 leading-relaxed mb-3">
-                  Ao anexar qualquer <strong>foto ou vídeo</strong> (da câmera ou da galeria) no momento de reportar uma ocorrência, o editor de privacidade abre automaticamente na sua tela antes do envio.
+                  Ao anexar qualquer <strong>foto ou vídeo</strong> (gravado na hora com a câmera ou escolhido da galeria) ao reportar uma ocorrência, o <strong>Editor de Privacidade</strong> abre automaticamente na sua tela antes do envio para proteção imediata da identidade.
                 </p>
 
-                <div className="p-3 bg-blue-950/40 border border-blue-500/30 rounded-xl text-xs text-blue-200 mb-3 space-y-1.5">
+                <div className="p-3 bg-blue-950/40 border border-blue-500/30 rounded-xl text-xs text-blue-200 mb-4 space-y-1.5">
                   <p className="font-bold text-blue-300 flex items-center gap-1.5">
                     🛡️ Por que usar o desfoque?
                   </p>
@@ -435,20 +441,62 @@ export function TutorialPage() {
                   </p>
                 </div>
 
-                <h4 className="text-xs font-bold text-slate-300 mb-2 uppercase">1. Em Fotografias (Pincel Manual):</h4>
-                <ul className="text-sm text-slate-400 space-y-1.5 list-disc pl-4 mb-3">
-                  <li><strong>Passe o dedo ou arraste o mouse:</strong> Deslize o dedo sobre os rostos ou placas. A área é desfocada instantaneamente em tempo real.</li>
-                  <li><strong>Tamanho do Desfoque:</strong> Ajuste o slider para aumentar o pincel (em primeiro plano) ou diminuí-lo (detalhes finos ao fundo).</li>
-                  <li><strong>Botão Desfazer (↩️):</strong> Desfaz o último traço caso tenha borrado algo por engano.</li>
-                </ul>
+                <div className="space-y-4">
+                  {/* Bloco 1: Fotos */}
+                  <div className="bg-slate-800/60 p-3.5 rounded-xl border border-slate-700/70">
+                    <h4 className="text-xs font-bold text-blue-400 mb-2 uppercase flex items-center gap-1.5">
+                      <Camera size={14} />
+                      <span>1. Em Fotografias (Pincel Manual com o Dedo):</span>
+                    </h4>
+                    <ul className="text-sm text-slate-300 space-y-1.5 list-disc pl-4">
+                      <li><strong>Passe o dedo ou arraste o mouse:</strong> Deslize sobre os rostos ou placas na tela. A área é censurada instantaneamente.</li>
+                      <li><strong>Tamanho do Desfoque:</strong> Ajuste o slider para aumentar a espessura do traço ou reduzi-la para detalhes menores.</li>
+                      <li><strong>Botão Desfazer (↩️):</strong> Desfaz o último traço caso tenha borrado uma área incorreta por engano.</li>
+                    </ul>
+                  </div>
 
-                <h4 className="text-xs font-bold text-slate-300 mb-2 uppercase">2. Em Vídeos (IA com Rastreamento Automático):</h4>
-                <ul className="text-sm text-slate-400 space-y-1.5 list-disc pl-4 mb-3">
-                  <li><strong>IA Rostos (Google MediaPipe):</strong> Analisa cada quadro do vídeo e desfoca automaticamente todos os rostos detectados em movimento ao longo de toda a gravação.</li>
-                  <li><strong>Tarja / Placa:</strong> Permite posicionar uma área de desfoque sobre placas de carros, números ou partes fixas.</li>
-                  <li><strong>Extrair Foto:</strong> Pause no momento exato do vídeo para gerar uma foto instantânea e usar o pincel de desfoque manual.</li>
-                  <li><strong>100% Gratuito e Local:</strong> O processamento ocorre no próprio aparelho do usuário, sem cobranças e sem enviar imagens não censuradas para a nuvem.</li>
-                </ul>
+                  {/* Bloco 2: Vídeos */}
+                  <div className="bg-slate-800/60 p-3.5 rounded-xl border border-slate-700/70">
+                    <h4 className="text-xs font-bold text-indigo-400 mb-2 uppercase flex items-center gap-1.5">
+                      <Video size={14} />
+                      <span>2. Em Vídeos (IA com Rastreamento em Tempo Real & Tarja):</span>
+                    </h4>
+                    <ul className="text-sm text-slate-300 space-y-2 list-disc pl-4">
+                      <li>
+                        <strong>Gravação Direta ou Anexo:</strong> Toque em <em>"Gravar Vídeo"</em> para acionar a filmadora nativa do celular no local ou <em>"Anexar Vídeo"</em> para escolher filmagens pré-existentes. O editor abre automaticamente.
+                      </li>
+                      <li>
+                        <strong>IA Rostos (Google MediaPipe):</strong> Rastreia e desfoca automaticamente todos os rostos detectados em movimento quadro a quadro. Possui <strong>margem ampliada de +35%</strong> para cobrir cabeça, orelhas e queixo mesmo em movimentos bruscos.
+                      </li>
+                      <li>
+                        <strong>Intensidades Rápidas:</strong> Escolha entre <strong>Médio (20px)</strong>, <strong>Forte (35px)</strong> ou <strong>Tarja Preta</strong> (censura sólida total).
+                      </li>
+                      <li>
+                        <strong>Área / Tarja Manual (Placas e Veículos):</strong> Na aba <em>"Área / Tarja"</em>, toque em qualquer ponto do vídeo para fixar uma máscara sobre placas de viaturas ou carros particulares, motos ou letreiros, escolhendo o tamanho desejado (Pequeno, Médio, Grande).
+                      </li>
+                      <li>
+                        <strong>Comparador "Antes e Depois" (👁️):</strong> Alterne instantaneamente entre o vídeo original e o censurado com um toque para certificar a proteção antes de salvar.
+                      </li>
+                      <li>
+                        <strong>Extrair Foto do Vídeo (📸):</strong> Pause no frame ideal e extraia uma fotografia estática de alta definição para aplicar o pincel manual com os dedos.
+                      </li>
+                      <li>
+                        <strong>Processamento 100% Local & LGPD (Sem Custos):</strong> Toda a codificação com áudio preservado é gerada no próprio dispositivo via Canvas + MediaRecorder. O vídeo original sem censura <strong>nunca é enviado para a nuvem</strong>, garantindo sigilo absoluto sem nenhum custo adicional.
+                      </li>
+                    </ul>
+                  </div>
+
+                  {/* Bloco 3: Player no Feed e Mapa */}
+                  <div className="bg-slate-800/60 p-3.5 rounded-xl border border-slate-700/70">
+                    <h4 className="text-xs font-bold text-emerald-400 mb-2 uppercase flex items-center gap-1.5">
+                      <Sparkles size={14} />
+                      <span>3. Visualização em Tela Cheia no Feed e Mapa:</span>
+                    </h4>
+                    <p className="text-sm text-slate-300 leading-relaxed">
+                      Ao tocar em qualquer vídeo ou foto anexada nas postagens do feed ou nas ocorrências do mapa, o aplicativo abre um <strong>reprodutor multimídia em tela cheia</strong> com controles de reprodução (Play/Pause), áudio sincronizado e botão de download seguro.
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -477,6 +525,7 @@ export function TutorialPage() {
                 </p>
                 <ul className="text-sm text-slate-400 space-y-2 list-disc pl-4 mb-3">
                   <li><strong>Abas de Navegação:</strong> Alterne facilmente entre <strong>🚨 Alertas Públicos</strong> e <strong>🔒 Redes Privadas</strong> dos seus grupos.</li>
+                  <li><strong>Reprodutor de Mídias em Tela Cheia:</strong> Toque nas fotos ou vídeos para assistir com áudio, controles e opção de download.</li>
                   <li><strong>Botão "Ver no mapa":</strong> Toque nele em qualquer publicação para ir diretamente até a coordenada exata da ocorrência.</li>
                   <li><strong>Selo "Verificado":</strong> Outros moradores podem confirmar alertas reais. Quando acumula confirmações, o reporte ganha o selo verde oficial de autenticidade contra trotes.</li>
                 </ul>

@@ -450,9 +450,71 @@ export function ComoUsarPage({ lang = "pt" }: { lang?: string }) {
               {t("tutorial.blurTitle")}
             </h2>
             <p
-              className="text-slate-400 leading-relaxed mb-4"
+              className="text-slate-400 leading-relaxed mb-6"
               dangerouslySetInnerHTML={{ __html: t("tutorial.blurDesc") }}
             />
+            {/* Visual demo cards matching ComoUsarPage design */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 mt-4 text-xs">
+              <div className="bg-slate-800/70 p-4 rounded-2xl border border-slate-700/80 flex flex-col gap-2">
+                <div className="flex items-center gap-2 text-blue-400 font-bold text-sm">
+                  <span>📸</span>
+                  <span>{t("tutorial.blurPhotoCardTitle")}</span>
+                </div>
+                <p className="text-slate-400 text-[11px] leading-relaxed">
+                  {t("tutorial.blurPhotoCardDesc")}
+                </p>
+              </div>
+
+              <div className="bg-slate-800/70 p-4 rounded-2xl border border-slate-700/80 flex flex-col gap-2">
+                <div className="flex items-center gap-2 text-indigo-400 font-bold text-sm">
+                  <span>🎥</span>
+                  <span>{t("tutorial.blurVideoAiCardTitle")}</span>
+                </div>
+                <p className="text-slate-400 text-[11px] leading-relaxed">
+                  {t("tutorial.blurVideoAiCardDesc")}
+                </p>
+              </div>
+
+              <div className="bg-slate-800/70 p-4 rounded-2xl border border-slate-700/80 flex flex-col gap-2">
+                <div className="flex items-center gap-2 text-amber-400 font-bold text-sm">
+                  <span>🛡️</span>
+                  <span>{t("tutorial.blurPlateCardTitle")}</span>
+                </div>
+                <p className="text-slate-400 text-[11px] leading-relaxed">
+                  {t("tutorial.blurPlateCardDesc")}
+                </p>
+              </div>
+
+              <div className="bg-slate-800/70 p-4 rounded-2xl border border-slate-700/80 flex flex-col gap-2">
+                <div className="flex items-center gap-2 text-cyan-400 font-bold text-sm">
+                  <span>👁️</span>
+                  <span>{t("tutorial.blurCompareCardTitle")}</span>
+                </div>
+                <p className="text-slate-400 text-[11px] leading-relaxed">
+                  {t("tutorial.blurCompareCardDesc")}
+                </p>
+              </div>
+
+              <div className="bg-slate-800/70 p-4 rounded-2xl border border-slate-700/80 flex flex-col gap-2">
+                <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
+                  <span>🔒</span>
+                  <span>{t("tutorial.blurLocalCardTitle")}</span>
+                </div>
+                <p className="text-slate-400 text-[11px] leading-relaxed">
+                  {t("tutorial.blurLocalCardDesc")}
+                </p>
+              </div>
+
+              <div className="bg-slate-800/70 p-4 rounded-2xl border border-slate-700/80 flex flex-col gap-2">
+                <div className="flex items-center gap-2 text-purple-400 font-bold text-sm">
+                  <span>▶️</span>
+                  <span>{t("tutorial.blurFeedCardTitle")}</span>
+                </div>
+                <p className="text-slate-400 text-[11px] leading-relaxed">
+                  {t("tutorial.blurFeedCardDesc")}
+                </p>
+              </div>
+            </div>
           </section>
 
           <section className="bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-800 shadow-xl">
