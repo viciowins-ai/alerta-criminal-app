@@ -99,6 +99,13 @@ export function MapPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [showSearchDropdown, setShowSearchDropdown] = useState(false);
+  const [selectedSearchPlace, setSelectedSearchPlace] = useState<{
+    center: [number, number];
+    text: string;
+    place_name: string;
+  } | null>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
@@ -485,16 +492,19 @@ export function MapPage() {
   const handleSearchInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearchQuery(value);
+    setSelectedSearchPlace(null);
 
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
 
-    if (value.length < 3) {
+    if (value.trim().length < 3) {
       setSearchResults([]);
+      setShowSearchDropdown(false);
       return;
     }
 
+    setShowSearchDropdown(true);
     setIsSearching(true);
     searchTimeoutRef.current = setTimeout(async () => {
       try {
@@ -572,12 +582,15 @@ export function MapPage() {
   };
 
   const handleSelectPlace = (place: any) => {
-    setSearchQuery(place.place_name);
+    setSelectedSearchPlace(place);
+    setSearchQuery(place.text || (place.place_name ? place.place_name.split(',')[0] : ''));
     setSearchResults([]);
+    setShowSearchDropdown(false);
+    searchInputRef.current?.blur();
     if (mapRef.current) {
       mapRef.current.flyTo({
         center: place.center,
-        zoom: 16,
+        zoom: 16.5,
         duration: 2000,
         essential: true
       });
@@ -871,44 +884,71 @@ export function MapPage() {
           <div className="bg-slate-900/95 backdrop-blur-md rounded-2xl shadow-lg flex items-center px-3.5 h-11 border border-slate-700/50 transition-all focus-within:border-blue-500/50 focus-within:bg-slate-900">
             <Search size={18} className="text-blue-400 mr-2.5 shrink-0" />
             <input 
+              ref={searchInputRef}
               type="text" 
               value={searchQuery}
               onChange={handleSearchInput}
+              onFocus={() => {
+                if (searchResults.length > 0 || (searchQuery.trim().length >= 3 && !selectedSearchPlace)) {
+                  setShowSearchDropdown(true);
+                }
+              }}
               onKeyDown={handleKeyDown}
               placeholder={t('map.searchPlaceholder', 'Buscar local ou endereço...')} 
               className="flex-1 outline-none bg-transparent text-xs sm:text-sm text-slate-100 placeholder-slate-400 font-medium truncate"
             />
             {searchQuery && (
-              <button onClick={() => { setSearchQuery(''); setSearchResults([]); }} className="text-slate-400 hover:text-white transition-colors p-1">
+              <button 
+                onClick={() => { 
+                  setSearchQuery(''); 
+                  setSearchResults([]); 
+                  setShowSearchDropdown(false);
+                  setSelectedSearchPlace(null);
+                }} 
+                className="text-slate-400 hover:text-white transition-colors p-1"
+                title="Limpar busca"
+              >
                 <X size={16} />
               </button>
             )}
           </div>
 
           {/* Autocomplete Dropdown */}
-          {(searchResults.length > 0 || (searchQuery.length > 3 && !isSearching && searchResults.length === 0)) && (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl overflow-hidden z-50 max-h-60 overflow-y-auto">
-              {searchResults.length > 0 ? (
-                searchResults.map((place) => (
-                  <button
-                    key={place.id}
-                    onClick={() => handleSelectPlace(place)}
-                    className="w-full text-left px-4 py-3 hover:bg-slate-800 border-b border-slate-800 last:border-0 flex items-start gap-3 transition-colors"
-                  >
-                    <MapPin size={18} className="text-blue-400 shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium text-white line-clamp-1">{place.text}</p>
-                      <p className="text-xs text-slate-400 line-clamp-1">{place.place_name}</p>
-                    </div>
-                  </button>
-                ))
-              ) : (
-                <div className="px-4 py-4 text-center">
-                  <p className="text-sm text-slate-300">{t('map.noLocationFound', 'Nenhum local encontrado.')}</p>
-                  <p className="text-xs text-slate-500 mt-1">{t('map.simplifySearch', 'Tente simplificar a busca (ex: apenas rua e cidade).')}</p>
-                </div>
-              )}
-            </div>
+          {showSearchDropdown && (
+            <>
+              {/* Invisible backdrop to dismiss dropdown on tap outside */}
+              <div 
+                className="fixed inset-0 z-40 bg-transparent" 
+                onClick={() => setShowSearchDropdown(false)} 
+              />
+              <div className="absolute top-full left-0 right-0 mt-2 bg-slate-900 border border-slate-700/80 rounded-xl shadow-2xl overflow-hidden z-50 max-h-60 overflow-y-auto">
+                {isSearching ? (
+                  <div className="px-4 py-3.5 flex items-center justify-center gap-2 text-slate-400">
+                    <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+                    <span className="text-xs">{t('map.searching', 'Buscando locais...')}</span>
+                  </div>
+                ) : searchResults.length > 0 ? (
+                  searchResults.map((place) => (
+                    <button
+                      key={place.id}
+                      onClick={() => handleSelectPlace(place)}
+                      className="w-full text-left px-4 py-3 hover:bg-slate-800 border-b border-slate-800 last:border-0 flex items-start gap-3 transition-colors cursor-pointer"
+                    >
+                      <MapPin size={18} className="text-blue-400 shrink-0 mt-0.5" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-white line-clamp-1">{place.text}</p>
+                        <p className="text-xs text-slate-400 line-clamp-1">{place.place_name}</p>
+                      </div>
+                    </button>
+                  ))
+                ) : (searchQuery.trim().length >= 3 && !selectedSearchPlace) ? (
+                  <div className="px-4 py-4 text-center">
+                    <p className="text-sm text-slate-300">{t('map.noLocationFound', 'Nenhum local encontrado.')}</p>
+                    <p className="text-xs text-slate-500 mt-1">{t('map.simplifySearch', 'Tente simplificar a busca (ex: apenas rua e cidade).')}</p>
+                  </div>
+                ) : null}
+              </div>
+            </>
           )}
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
@@ -1246,6 +1286,37 @@ export function MapPage() {
 
         {/* Custom Glowing Markers */}
         {markers}
+
+        {/* Selected Search Location Pin */}
+        {selectedSearchPlace && (
+          <Marker 
+            longitude={selectedSearchPlace.center[0]} 
+            latitude={selectedSearchPlace.center[1]} 
+            anchor="bottom"
+            style={{ zIndex: 60 }}
+          >
+            <div className="relative flex flex-col items-center group cursor-pointer animate-fade-in select-none">
+              <div className="w-10 h-10 bg-blue-600 border-2 border-white rounded-full shadow-[0_0_20px_rgba(37,99,235,0.9)] flex items-center justify-center text-white">
+                <MapPin size={22} className="fill-white" />
+              </div>
+              <div className="w-2.5 h-2.5 -mt-1 rotate-45 bg-blue-600 border-r-2 border-b-2 border-white" />
+              <div className="mt-1 bg-slate-950/95 text-white text-xs font-bold px-3 py-1 rounded-lg border border-blue-500/60 shadow-xl flex items-center gap-1.5 whitespace-nowrap">
+                <span className="w-2 h-2 rounded-full bg-blue-400 animate-ping" />
+                <span className="max-w-[200px] truncate">{selectedSearchPlace.text}</span>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedSearchPlace(null);
+                  }}
+                  className="ml-1 text-slate-400 hover:text-white p-0.5 rounded hover:bg-slate-800"
+                  title="Remover ponto"
+                >
+                  <X size={12} />
+                </button>
+              </div>
+            </div>
+          </Marker>
+        )}
         {/* Viatura / Tático Móvel Markers */}
         {activePatrols.map((patrol) => {
           if (!patrol.location || !patrol.location.lat || !patrol.location.lng) return null;
