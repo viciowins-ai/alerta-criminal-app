@@ -410,20 +410,20 @@ export function TutorialPage() {
               </div>
             </div>
 
-            {/* 12. Censurar Rostos e Placas (Desfoque de Fotos) */}
+            {/* 12. Censurar Rostos e Placas (Desfoque de Fotos e Vídeos com IA) */}
             <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
               <div className="bg-blue-500/20 p-2 rounded-lg shrink-0 mt-1">
                 <Droplet size={20} className="text-blue-400" />
               </div>
               <div className="w-full">
                 <h3 className="text-white font-semibold mb-1 flex items-center gap-2 flex-wrap">
-                  Censurar Rostos e Placas (Desfoque na Fotografia)
+                  Censurar Rostos e Placas (Fotos e Vídeos com IA)
                   <span className="text-xs font-normal text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/20">
                     Privacidade & LGPD
                   </span>
                 </h3>
                 <p className="text-sm text-slate-400 leading-relaxed mb-3">
-                  Ao anexar qualquer fotografia (da câmera ou da galeria) no momento de reportar uma ocorrência, o editor <strong>"Censurar Rostos"</strong> abre automaticamente na sua tela antes do envio.
+                  Ao anexar qualquer <strong>foto ou vídeo</strong> (da câmera ou da galeria) no momento de reportar uma ocorrência, o editor de privacidade abre automaticamente na sua tela antes do envio.
                 </p>
 
                 <div className="p-3 bg-blue-950/40 border border-blue-500/30 rounded-xl text-xs text-blue-200 mb-3 space-y-1.5">
@@ -435,13 +435,19 @@ export function TutorialPage() {
                   </p>
                 </div>
 
-                <h4 className="text-xs font-bold text-slate-300 mb-2 uppercase">Como Utilizar a Ferramenta de Desfoque:</h4>
-                <ul className="text-sm text-slate-400 space-y-2 list-disc pl-4 mb-3">
-                  <li><strong>Passe o dedo ou arraste o mouse:</strong> Basta deslizar o dedo (no celular) ou o cursor (no PC) sobre o rosto das pessoas ou sobre as placas de veículos. A área tocada é desfocada instantaneamente em tempo real.</li>
-                  <li><strong>Controle de Espessura ("Tamanho do Desfoque"):</strong> Use a barra deslizante na parte inferior da tela para aumentar o pincel (para rostos grandes em primeiro plano) ou diminuí-lo (para pessoas distantes no fundo).</li>
-                  <li><strong>Botão Desfazer (↩️):</strong> Se errar a pincelada ou borrar um detalhe importante por engano, toque no botão de seta curva no canto inferior esquerdo para desfazer o último traço.</li>
-                  <li><strong>Confirmar e Salvar (✔️):</strong> Toque no ícone de "check" azul no canto superior direito para aplicar o desfoque definitivo e anexar a foto com segurança ao seu relato.</li>
-                  <li><strong>Cancelar (✖️):</strong> Toque no "X" no canto superior esquerdo caso queira cancelar a censura e manter a imagem original.</li>
+                <h4 className="text-xs font-bold text-slate-300 mb-2 uppercase">1. Em Fotografias (Pincel Manual):</h4>
+                <ul className="text-sm text-slate-400 space-y-1.5 list-disc pl-4 mb-3">
+                  <li><strong>Passe o dedo ou arraste o mouse:</strong> Deslize o dedo sobre os rostos ou placas. A área é desfocada instantaneamente em tempo real.</li>
+                  <li><strong>Tamanho do Desfoque:</strong> Ajuste o slider para aumentar o pincel (em primeiro plano) ou diminuí-lo (detalhes finos ao fundo).</li>
+                  <li><strong>Botão Desfazer (↩️):</strong> Desfaz o último traço caso tenha borrado algo por engano.</li>
+                </ul>
+
+                <h4 className="text-xs font-bold text-slate-300 mb-2 uppercase">2. Em Vídeos (IA com Rastreamento Automático):</h4>
+                <ul className="text-sm text-slate-400 space-y-1.5 list-disc pl-4 mb-3">
+                  <li><strong>IA Rostos (Google MediaPipe):</strong> Analisa cada quadro do vídeo e desfoca automaticamente todos os rostos detectados em movimento ao longo de toda a gravação.</li>
+                  <li><strong>Tarja / Placa:</strong> Permite posicionar uma área de desfoque sobre placas de carros, números ou partes fixas.</li>
+                  <li><strong>Extrair Foto:</strong> Pause no momento exato do vídeo para gerar uma foto instantânea e usar o pincel de desfoque manual.</li>
+                  <li><strong>100% Gratuito e Local:</strong> O processamento ocorre no próprio aparelho do usuário, sem cobranças e sem enviar imagens não censuradas para a nuvem.</li>
                 </ul>
               </div>
             </div>

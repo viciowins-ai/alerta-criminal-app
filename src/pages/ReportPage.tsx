@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { TopBar } from '../components/TopBar';
 import { ImageBlurEditor } from '../components/ImageBlurEditor';
+import { VideoPrivacyEditor } from '../components/VideoPrivacyEditor';
 import { VoiceRecorder } from '../components/VoiceRecorder';
-import { MapPin, Camera, Video, CheckCircle2, Siren, Eye, Flame, MoreHorizontal, Send, X, LocateFixed, AlertTriangle, Mic } from 'lucide-react';
+import { MapPin, Camera, Video, CheckCircle2, Siren, Eye, Flame, MoreHorizontal, Send, X, LocateFixed, AlertTriangle, Mic, Shield } from 'lucide-react';
 import Map, { ViewStateChangeEvent, MapRef, Marker } from 'react-map-gl/mapbox';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -41,6 +42,7 @@ export function ReportPage() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [attachments, setAttachments] = useState<File[]>([]);
   const [editingImage, setEditingImage] = useState<File | null>(null);
+  const [editingVideo, setEditingVideo] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [audioData, setAudioData] = useState<{ url: string; duration: number } | null>(null);
   const [searchParams] = useSearchParams();
@@ -89,10 +91,17 @@ export function ReportPage() {
     if (e.target.files && e.target.files.length > 0) {
       const newFiles = Array.from(e.target.files);
       const firstImage = newFiles.find((f: File) => f.type.startsWith('image/'));
-      const otherFiles = firstImage ? newFiles.filter((f: File) => f !== firstImage) : newFiles;
-      
+      const firstVideo = newFiles.find((f: File) => f.type.startsWith('video/'));
+
       if (firstImage) {
         setEditingImage(firstImage);
+        const otherFiles = newFiles.filter((f: File) => f !== firstImage);
+        if (otherFiles.length > 0) {
+          setAttachments(prev => [...prev, ...otherFiles]);
+        }
+      } else if (firstVideo) {
+        setEditingVideo(firstVideo);
+        const otherFiles = newFiles.filter((f: File) => f !== firstVideo);
         if (otherFiles.length > 0) {
           setAttachments(prev => [...prev, ...otherFiles]);
         }
@@ -100,6 +109,7 @@ export function ReportPage() {
         setAttachments(prev => [...prev, ...newFiles]);
       }
     }
+    if (e.target) e.target.value = '';
   };
 
   const removeAttachment = (index: number) => {
@@ -655,20 +665,40 @@ export function ReportPage() {
           {attachments.length > 0 && (
             <div className="mt-4 flex gap-2 overflow-x-auto pb-2">
               {attachments.map((file, index) => (
-                <div key={index} className="relative w-20 h-20 shrink-0 rounded-lg overflow-hidden border border-slate-700">
+                <div key={index} className="relative w-20 h-20 shrink-0 rounded-lg overflow-hidden border border-slate-700 group">
                   {file.type.startsWith('image/') ? (
-                    <img src={URL.createObjectURL(file)} alt="attachment" className="w-full h-full object-cover" />
+                    <div 
+                      onClick={() => setEditingImage(file)}
+                      className="w-full h-full cursor-pointer relative"
+                      title="Toque para editar o desfoque da foto"
+                    >
+                      <img src={URL.createObjectURL(file)} alt="attachment" className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                        <span className="text-[9px] text-white font-bold bg-slate-900/80 px-1 py-0.5 rounded">Editar</span>
+                      </div>
+                    </div>
                   ) : (
-                    <div className="w-full h-full bg-slate-800 flex items-center justify-center">
-                      <Video size={24} className="text-slate-500" />
+                    <div 
+                      onClick={() => setEditingVideo(file)}
+                      className="w-full h-full bg-slate-800 flex flex-col items-center justify-center cursor-pointer hover:bg-slate-750 transition-colors p-1 text-center"
+                      title="Toque para abrir editor de privacidade / desfoque do vídeo"
+                    >
+                      <Video size={20} className="text-slate-400 group-hover:text-blue-400" />
+                      <span className="text-[8px] text-blue-400 font-bold mt-1 flex items-center gap-0.5 leading-none">
+                        <Shield size={9} /> Desfocar
+                      </span>
                     </div>
                   )}
                   <button 
                     type="button" 
-                    onClick={() => removeAttachment(index)}
-                    className="absolute top-1 right-1 bg-black/50 rounded-full p-1 hover:bg-red-500/80 transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeAttachment(index);
+                    }}
+                    className="absolute top-1 right-1 bg-black/60 rounded-full p-1 hover:bg-red-500/80 transition-colors z-10"
+                    title="Remover anexo"
                   >
-                    <X size={14} className="text-white" />
+                    <X size={12} className="text-white" />
                   </button>
                 </div>
               ))}
@@ -782,12 +812,29 @@ export function ReportPage() {
         <ImageBlurEditor 
           file={editingImage} 
           onSave={(blurredFile) => {
-            setAttachments(prev => [...prev, blurredFile]);
+            setAttachments(prev => [...prev.filter(f => f !== editingImage), blurredFile]);
             setEditingImage(null);
           }} 
           onCancel={() => {
             setEditingImage(null);
           }} 
+        />
+      )}
+
+      {editingVideo && (
+        <VideoPrivacyEditor 
+          file={editingVideo}
+          onSave={(processedFile) => {
+            setAttachments(prev => [...prev.filter(f => f !== editingVideo), processedFile]);
+            setEditingVideo(null);
+          }}
+          onExtractPhoto={(photoFile) => {
+            setEditingVideo(null);
+            setEditingImage(photoFile);
+          }}
+          onCancel={() => {
+            setEditingVideo(null);
+          }}
         />
       )}
     </div>
