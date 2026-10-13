@@ -182,19 +182,46 @@ export function RoutePage() {
     if (searchQuery.length > 2) {
       const delayDebounceFn = setTimeout(async () => {
         try {
-          if (!MAPBOX_TOKEN) {
-            console.error("Mapbox token is missing");
-            return;
+          let results: any[] = [];
+          if (MAPBOX_TOKEN) {
+            try {
+              const proximity = userLocation ? `&proximity=${userLocation.lng},${userLocation.lat}` : '';
+              const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchQuery)}.json?access_token=${MAPBOX_TOKEN}&country=br${proximity}`);
+              if (res.ok) {
+                const data = await res.json();
+                if (data.features && data.features.length > 0) {
+                  results = data.features;
+                }
+              }
+            } catch (mbErr) {
+              console.warn("Mapbox search error:", mbErr);
+            }
           }
-          const proximity = userLocation ? `&proximity=${userLocation.lng},${userLocation.lat}` : '';
-          const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchQuery)}.json?access_token=${MAPBOX_TOKEN}&country=br${proximity}`);
-          if (!res.ok) throw new Error('Failed to fetch from Mapbox');
-          const data = await res.json();
-          setSearchResults(data.features || []);
+
+          if (results.length === 0) {
+            try {
+              const osmRes = await fetch(
+                `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&countrycodes=br&limit=6&addressdetails=1`
+              );
+              if (osmRes.ok) {
+                const osmData = await osmRes.json();
+                results = osmData.map((item: any) => ({
+                  id: `osm-${item.place_id}`,
+                  text: item.name || (item.display_name ? item.display_name.split(',')[0] : searchQuery),
+                  place_name: item.display_name,
+                  center: [parseFloat(item.lon), parseFloat(item.lat)]
+                }));
+              }
+            } catch (osmErr) {
+              console.warn("Nominatim search error:", osmErr);
+            }
+          }
+
+          setSearchResults(results);
         } catch (e) {
           console.error("Search error:", e);
         }
-      }, 500);
+      }, 400);
       return () => clearTimeout(delayDebounceFn);
     } else {
       setSearchResults([]);

@@ -498,18 +498,53 @@ export function MapPage() {
     setIsSearching(true);
     searchTimeoutRef.current = setTimeout(async () => {
       try {
+        let results: any[] = [];
         const token = MAPBOX_TOKEN;
-        if (!token) return;
-        const proximity = userLocation ? `&proximity=${userLocation.lng},${userLocation.lat}` : '';
-        const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(value)}.json?access_token=${token}&country=br${proximity}`);
-        const data = await res.json();
-        setSearchResults(data.features || []);
+
+        // 1. Tenta Mapbox primeiro se houver token
+        if (token) {
+          try {
+            const proximity = userLocation ? `&proximity=${userLocation.lng},${userLocation.lat}` : '';
+            const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(value)}.json?access_token=${token}&country=br${proximity}`);
+            if (res.ok) {
+              const data = await res.json();
+              if (data.features && data.features.length > 0) {
+                results = data.features;
+              }
+            }
+          } catch (mbErr) {
+            console.warn("Mapbox geocoding error:", mbErr);
+          }
+        }
+
+        // 2. Se o Mapbox não retornou resultados ou não houver token, busca no OpenStreetMap (Nominatim)
+        // Isso garante que terminais de ônibus (ex: Terminal Vila Angélica), praças, postos de saúde e POIs locais apareçam
+        if (results.length === 0) {
+          try {
+            const osmRes = await fetch(
+              `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(value)}&countrycodes=br&limit=6&addressdetails=1`
+            );
+            if (osmRes.ok) {
+              const osmData = await osmRes.json();
+              results = osmData.map((item: any) => ({
+                id: `osm-${item.place_id}`,
+                text: item.name || (item.display_name ? item.display_name.split(',')[0] : value),
+                place_name: item.display_name,
+                center: [parseFloat(item.lon), parseFloat(item.lat)]
+              }));
+            }
+          } catch (osmErr) {
+            console.warn("Nominatim geocoding error:", osmErr);
+          }
+        }
+
+        setSearchResults(results);
       } catch (error) {
         console.error("Error searching places:", error);
       } finally {
         setIsSearching(false);
       }
-    }, 500);
+    }, 400);
   };
 
   const handleSelectPlace = (place: any) => {
