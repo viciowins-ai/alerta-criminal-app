@@ -628,25 +628,25 @@ export function ReportPage() {
             <input 
               type="file" 
               accept="image/*" 
+              capture="environment" 
               ref={fileInputRef} 
               onChange={handleFileChange} 
               className="hidden" 
-              multiple
             />
             <input 
               type="file" 
               accept="video/*" 
+              capture="environment" 
               ref={videoInputRef} 
               onChange={handleFileChange} 
               className="hidden" 
-              multiple
             />
             <button type="button" onClick={() => fileInputRef.current?.click()} className="flex-1 bg-slate-800/50 border border-dashed border-slate-600 rounded-2xl p-4 flex flex-col items-center justify-center gap-2 hover:bg-slate-700/80 hover:border-slate-500 transition-all group">
               <div className="p-3 bg-slate-900/50 rounded-full group-hover:bg-slate-800 transition-colors">
                 <Camera size={22} className="text-slate-400 group-hover:text-blue-400 transition-colors" />
               </div>
               <span className="text-xs font-semibold text-slate-400 group-hover:text-slate-300">
-                {t('report.takePhoto', 'Tirar Foto / Imagem')}
+                {t('report.takePhoto', 'Tirar Foto')}
               </span>
             </button>
             <button type="button" onClick={() => videoInputRef.current?.click()} className="flex-1 bg-slate-800/50 border border-dashed border-slate-600 rounded-2xl p-4 flex flex-col items-center justify-center gap-2 hover:bg-slate-700/80 hover:border-slate-500 transition-all group">
@@ -654,7 +654,7 @@ export function ReportPage() {
                 <Video size={22} className="text-slate-400 group-hover:text-blue-400 transition-colors" />
               </div>
               <span className="text-xs font-semibold text-slate-400 group-hover:text-slate-300">
-                {t('report.recordVideo', 'Gravar / Anexar Vídeo')}
+                {t('report.recordVideo', 'Gravar Vídeo')}
               </span>
             </button>
           </div>

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { X, Check, Shield, Sparkles, Play, Pause, Camera, RotateCcw, AlertTriangle, EyeOff, Loader2, Eye, Volume2, VolumeX, Maximize2 } from 'lucide-react';
+import { X, Check, Shield, Sparkles, Play, Pause, Camera, RotateCcw, AlertTriangle, EyeOff, Loader2, Eye, Volume2, VolumeX } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { FilesetResolver, FaceDetector } from '@mediapipe/tasks-vision';
 
@@ -24,18 +24,23 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
 
   // Active Privacy Mode
   const [activeTab, setActiveTab] = useState<'ai' | 'mask' | 'photo'>('ai');
-  const [showBlurPreview, setShowBlurPreview] = useState(true); // Toggle to compare blur on/off
+  const [showBlurPreview, setShowBlurPreview] = useState(true);
 
-  // AI State
+  // AI Face Detection State
   const [detector, setDetector] = useState<FaceDetector | null>(null);
   const [isAiLoading, setIsAiLoading] = useState(true);
   const [aiDetectedCount, setAiDetectedCount] = useState(0);
   const [aiError, setAiError] = useState<string | null>(null);
 
+  // Cached face boxes for smooth 60fps rendering
+  const activeFacesRef = useRef<{ x: number; y: number; w: number; h: number }[]>([]);
+  const lastDetectTimeRef = useRef<number>(0);
+  const isDetectingRef = useRef<boolean>(false);
+
   // Manual Mask State (percentages 0-1)
-  const [maskPos, setMaskPos] = useState({ x: 0.35, y: 0.25, w: 0.3, h: 0.25 });
-  const [maskShape, setMaskShape] = useState<'rect' | 'circle'>('circle');
-  const [blurIntensity, setBlurIntensity] = useState<'medium' | 'heavy' | 'black'>('heavy');
+  const [maskPos, setMaskPos] = useState({ x: 0.35, y: 0.2, w: 0.3, h: 0.3 });
+  const [maskShape, setMaskShape] = useState<'circle' | 'rect'>('circle');
+  const [blurIntensity, setBlurIntensity] = useState<'heavy' | 'medium' | 'black'>('heavy');
 
   // Video Export / Processing State
   const [isExporting, setIsExporting] = useState(false);
@@ -44,7 +49,12 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
   const [processedVideoUrl, setProcessedVideoUrl] = useState<string | null>(null);
   const [processedFile, setProcessedFile] = useState<File | null>(null);
 
-  // Load Video URL
+  // Audio Context Ref to avoid duplicate createMediaElementSource
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const audioSourceRef = useRef<MediaElementAudioSourceNode | null>(null);
+  const audioDestRef = useRef<MediaStreamAudioDestinationNode | null>(null);
+
+  // Load Video File URL
   useEffect(() => {
     const url = URL.createObjectURL(file);
     setVideoUrl(url);
@@ -54,7 +64,7 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
     };
   }, [file]);
 
-  // Load MediaPipe FaceDetector
+  // Initialize MediaPipe FaceDetector in IMAGE mode (reliable on all devices, no monotonic timestamp constraints)
   useEffect(() => {
     let isMounted = true;
     async function initDetector() {
@@ -72,16 +82,16 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
               modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite',
               delegate: 'GPU'
             },
-            runningMode: 'VIDEO'
+            runningMode: 'IMAGE'
           });
         } catch {
-          // Fallback to CPU delegate
+          // Fallback to CPU delegate if GPU is not available
           faceDetector = await FaceDetector.createFromOptions(vision, {
             baseOptions: {
               modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite',
               delegate: 'CPU'
             },
-            runningMode: 'VIDEO'
+            runningMode: 'IMAGE'
           });
         }
 
@@ -92,8 +102,9 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
       } catch (err: any) {
         console.warn('MediaPipe FaceDetector falhou ao inicializar:', err);
         if (isMounted) {
-          setAiError('Modo IA offline. Use a Tarja Manual ou Pincel para desfocar.');
+          setAiError('Modo automático offline. Use a Área de Desfoque tocando na tela.');
           setIsAiLoading(false);
+          setActiveTab('mask'); // Fallback directly to interactive mask
         }
       }
     }
@@ -104,73 +115,59 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
     };
   }, []);
 
-  // Pixelate / Blur helper on 2D context
-  const drawBlurEffect = useCallback(
+  // Gaussian Blur / Privacy Overlay Renderer
+  const applyBlurToRegion = useCallback(
     (
       ctx: CanvasRenderingContext2D,
+      video: HTMLVideoElement,
       x: number,
       y: number,
       w: number,
       h: number,
-      shape: 'rect' | 'circle' = 'rect',
-      intensity: 'medium' | 'heavy' | 'black' = 'heavy'
+      shape: 'circle' | 'rect',
+      intensity: 'heavy' | 'medium' | 'black'
     ) => {
-      const sx = Math.max(0, Math.floor(x));
-      const sy = Math.max(0, Math.floor(y));
-      const sw = Math.min(ctx.canvas.width - sx, Math.ceil(w));
-      const sh = Math.min(ctx.canvas.height - sy, Math.ceil(h));
-      if (sw <= 0 || sh <= 0) return;
-
-      if (intensity === 'black') {
-        ctx.save();
-        ctx.fillStyle = '#0f172a';
-        if (shape === 'circle') {
-          ctx.beginPath();
-          ctx.ellipse(sx + sw / 2, sy + sh / 2, sw / 2, sh / 2, 0, 0, Math.PI * 2);
-          ctx.fill();
-        } else {
-          ctx.fillRect(sx, sy, sw, sh);
-        }
-        ctx.restore();
-        return;
-      }
-
-      const pixelSize = intensity === 'heavy' ? 18 : 12;
-      const offscreen = document.createElement('canvas');
-      const nw = Math.max(1, Math.floor(sw / pixelSize));
-      const nh = Math.max(1, Math.floor(sh / pixelSize));
-      offscreen.width = nw;
-      offscreen.height = nh;
-      const offCtx = offscreen.getContext('2d');
-      if (!offCtx) return;
-
-      offCtx.drawImage(ctx.canvas, sx, sy, sw, sh, 0, 0, nw, nh);
+      const vw = ctx.canvas.width;
+      const vh = ctx.canvas.height;
+      if (w <= 0 || h <= 0) return;
 
       ctx.save();
+      ctx.beginPath();
       if (shape === 'circle') {
-        ctx.beginPath();
-        ctx.ellipse(sx + sw / 2, sy + sh / 2, sw / 2, sh / 2, 0, 0, Math.PI * 2);
-        ctx.clip();
-      }
-
-      ctx.imageSmoothingEnabled = false;
-      ctx.drawImage(offscreen, 0, 0, nw, nh, sx, sy, sw, sh);
-      ctx.imageSmoothingEnabled = true;
-
-      // Dark security border
-      ctx.strokeStyle = 'rgba(15, 23, 42, 0.6)';
-      ctx.lineWidth = 2;
-      if (shape === 'circle') {
-        ctx.stroke();
+        const rx = Math.max(10, w / 2);
+        const ry = Math.max(10, h / 2);
+        ctx.ellipse(x + rx, y + ry, rx, ry, 0, 0, Math.PI * 2);
       } else {
-        ctx.strokeRect(sx, sy, sw, sh);
+        ctx.rect(x, y, w, h);
       }
+      ctx.clip();
+
+      if (intensity === 'black') {
+        // Blackout censor bar
+        ctx.fillStyle = '#090d16';
+        ctx.fill();
+      } else {
+        // Real Gaussian Blur using native canvas filter
+        const blurRadius = intensity === 'heavy' ? '24px' : '14px';
+        ctx.filter = `blur(${blurRadius})`;
+        ctx.drawImage(video, 0, 0, vw, vh);
+
+        // Security tint to prevent any edge recovery
+        ctx.filter = 'none';
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.35)';
+        ctx.fill();
+      }
+
+      ctx.filter = 'none';
+      ctx.strokeStyle = shape === 'circle' ? 'rgba(59, 130, 246, 0.7)' : 'rgba(234, 179, 8, 0.7)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
       ctx.restore();
     },
     []
   );
 
-  // Live Canvas Render Loop: renders video frame + real-time blur directly on screen
+  // Live Canvas Render Loop
   const renderFrame = useCallback(() => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
@@ -192,50 +189,81 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
       return;
     }
 
-    // 1. Draw raw video frame
+    // 1. Draw base video frame
     ctx.drawImage(video, 0, 0, vw, vh);
 
-    // 2. If blur preview is enabled, apply privacy layers
-    if (showBlurPreview) {
-      if (activeTab === 'ai' && detector) {
-        try {
-          const timestampMs = Math.round(video.currentTime * 1000);
-          const detections = detector.detectForVideo(video, timestampMs);
-          if (detections && detections.detections.length > 0) {
-            setAiDetectedCount(detections.detections.length);
-            for (const det of detections.detections) {
-              const box = det.boundingBox;
-              if (box) {
-                // Expand box by 30% to fully cover hair, chin, and side angles
-                const padX = box.width * 0.3;
-                const padY = box.height * 0.3;
-                const x = box.originX - padX;
-                const y = box.originY - padY;
-                const w = box.width + padX * 2;
-                const h = box.height + padY * 2;
-                drawBlurEffect(ctx, x, y, w, h, 'circle', blurIntensity);
-              }
-            }
-          } else {
+    // 2. Perform AI Face Detection every ~80ms without stalling 60fps render
+    const now = performance.now();
+    if (
+      showBlurPreview &&
+      activeTab === 'ai' &&
+      detector &&
+      !isDetectingRef.current &&
+      now - lastDetectTimeRef.current > 80
+    ) {
+      isDetectingRef.current = true;
+      lastDetectTimeRef.current = now;
+      try {
+        const result = detector.detect(canvas);
+        if (result && result.detections && result.detections.length > 0) {
+          const newBoxes = result.detections.map((d) => {
+            const b = d.boundingBox;
+            if (!b) return { x: 0, y: 0, w: 0, h: 0 };
+            // Expand box by 40% to cover full hair and chin
+            const padX = b.width * 0.4;
+            const padY = b.height * 0.4;
+            return {
+              x: Math.max(0, b.originX - padX),
+              y: Math.max(0, b.originY - padY),
+              w: Math.min(vw, b.width + padX * 2),
+              h: Math.min(vh, b.height + padY * 2)
+            };
+          });
+          activeFacesRef.current = newBoxes;
+          setAiDetectedCount(newBoxes.length);
+        } else {
+          // If no face found in this frame, gently keep last position or reset
+          if (now - lastDetectTimeRef.current > 600) {
+            activeFacesRef.current = [];
             setAiDetectedCount(0);
           }
-        } catch {
-          // Skip frame detection errors silently
+        }
+      } catch (err) {
+        console.warn('Face detection error:', err);
+      } finally {
+        isDetectingRef.current = false;
+      }
+    }
+
+    // 3. Render Blur Overlays
+    if (showBlurPreview) {
+      if (activeTab === 'ai') {
+        if (activeFacesRef.current.length > 0) {
+          for (const box of activeFacesRef.current) {
+            applyBlurToRegion(ctx, video, box.x, box.y, box.w, box.h, 'circle', blurIntensity);
+          }
+        } else {
+          // If AI is active but hasn't locked a face yet, provide a gentle central focus blur zone
+          const defX = vw * 0.3;
+          const defY = vh * 0.15;
+          const defW = vw * 0.4;
+          const defH = vh * 0.45;
+          applyBlurToRegion(ctx, video, defX, defY, defW, defH, 'circle', blurIntensity);
         }
       } else if (activeTab === 'mask') {
-        // Manual mask position (percentages converted to canvas pixels)
+        // Manual Interactive Mask
         const mx = maskPos.x * vw;
         const my = maskPos.y * vh;
         const mw = maskPos.w * vw;
         const mh = maskPos.h * vh;
-        drawBlurEffect(ctx, mx, my, mw, mh, maskShape, blurIntensity);
+        applyBlurToRegion(ctx, video, mx, my, mw, mh, maskShape, blurIntensity);
       }
     }
 
     animFrameRef.current = requestAnimationFrame(renderFrame);
-  }, [detector, activeTab, showBlurPreview, maskPos, maskShape, blurIntensity, drawBlurEffect]);
+  }, [detector, activeTab, showBlurPreview, maskPos, maskShape, blurIntensity, applyBlurToRegion]);
 
-  // Start live canvas rendering loop
+  // Start live canvas rendering
   useEffect(() => {
     animFrameRef.current = requestAnimationFrame(renderFrame);
     return () => {
@@ -243,7 +271,7 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
     };
   }, [renderFrame]);
 
-  // Video Event Handlers
+  // Toggle Video Play / Pause
   const togglePlay = () => {
     const video = videoRef.current;
     if (!video) return;
@@ -291,7 +319,7 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
     );
   };
 
-  // Best supported video mime type
+  // Supported video mime type
   const getSupportedMimeType = () => {
     const types = [
       'video/mp4;codecs=avc1,mp4a.40.2',
@@ -308,7 +336,7 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
     return 'video/webm';
   };
 
-  // Real-time Export: Plays the video through the canvas and records with MediaRecorder
+  // Record canvas to new video file with audio
   const handleExportBlurredVideo = async () => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
@@ -316,28 +344,29 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
 
     setIsExporting(true);
     setExportProgress(0);
-    setExportStatusText('Preparando gravação do vídeo com desfoque aplicado...');
+    setExportStatusText('Processando desfoque do vídeo...');
 
-    // Pause video and rewind to 0
+    // Rewind video to start
     video.pause();
     setIsPlaying(false);
     video.currentTime = 0;
-
-    await new Promise((res) => setTimeout(res, 200));
+    await new Promise((res) => setTimeout(res, 250));
 
     const mimeType = getSupportedMimeType();
     const stream = canvas.captureStream(30);
 
-    // Audio stream injection
+    // Audio capture via WebAudio (safe single initialization)
     try {
-      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const source = audioCtx.createMediaElementSource(video);
-      const dest = audioCtx.createMediaStreamDestination();
-      source.connect(dest);
-      source.connect(audioCtx.destination);
-      const audioTrack = dest.stream.getAudioTracks()[0];
-      if (audioTrack) {
-        stream.addTrack(audioTrack);
+      if (!audioContextRef.current) {
+        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+        audioSourceRef.current = audioContextRef.current.createMediaElementSource(video);
+        audioDestRef.current = audioContextRef.current.createMediaStreamDestination();
+        audioSourceRef.current.connect(audioDestRef.current);
+        audioSourceRef.current.connect(audioContextRef.current.destination);
+      }
+      if (audioDestRef.current) {
+        const audioTrack = audioDestRef.current.stream.getAudioTracks()[0];
+        if (audioTrack) stream.addTrack(audioTrack);
       }
     } catch (e) {
       console.warn('Áudio capturado em modo padrão:', e);
@@ -366,12 +395,10 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
 
     recorder.start(100);
 
-    // Play video to capture all blurred frames in real-time
     try {
       await video.play();
       setIsPlaying(true);
     } catch {
-      // Autoplay with audio might fail, try muted
       video.muted = true;
       await video.play();
       setIsPlaying(true);
@@ -382,11 +409,13 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
       if (!video) return;
       const pct = Math.min(99, Math.round((video.currentTime / totalDur) * 100));
       setExportProgress(pct);
-      setExportStatusText(`Processando e salvando vídeo com desfoque: ${pct}%`);
+      setExportStatusText(`Gravando vídeo com desfoque: ${pct}%`);
 
-      if (video.ended || video.currentTime >= totalDur - 0.1) {
+      if (video.ended || video.currentTime >= totalDur - 0.15) {
         clearInterval(checkInterval);
-        recorder.stop();
+        try {
+          recorder.stop();
+        } catch {}
         video.pause();
         setIsPlaying(false);
       }
@@ -404,7 +433,7 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
     setProcessedVideoUrl(newUrl);
     setIsExporting(false);
     setExportProgress(100);
-    setExportStatusText('Vídeo com desfoque gerado com sucesso!');
+    setExportStatusText('Vídeo com desfoque pronto!');
   };
 
   const formatTime = (secs: number) => {
@@ -429,7 +458,7 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
               </span>
             </h2>
             <p className="text-[11px] text-slate-400">
-              O desfoque está ativo em tempo real na tela abaixo
+              Desfoque ativo em tempo real na tela abaixo
             </p>
           </div>
         </div>
@@ -445,7 +474,7 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
       {/* Main Video Viewport */}
       <div className="flex-1 w-full max-w-2xl flex flex-col items-center justify-center p-3 relative overflow-hidden">
         {processedVideoUrl ? (
-          /* Processed Final Video Preview */
+          /* Processed Video Result */
           <div className="relative w-full max-h-[50vh] flex flex-col items-center justify-center rounded-2xl overflow-hidden bg-black border border-emerald-500/60 shadow-2xl">
             <video
               src={processedVideoUrl}
@@ -456,13 +485,13 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
             />
             <div className="absolute top-2 left-2 bg-emerald-950/90 border border-emerald-500 text-emerald-300 text-[10px] font-bold px-2 py-1 rounded-md shadow-lg flex items-center gap-1">
               <Check size={12} />
-              Vídeo Tratado com Desfoque Pronto
+              Vídeo com Desfoque Pronto
             </div>
           </div>
         ) : (
-          /* Live Interactive Player with Real-time Blur Rendering */
+          /* Live Canvas Preview with Real-time Blur */
           <div className="relative w-full max-h-[50vh] flex items-center justify-center rounded-2xl overflow-hidden bg-black border border-slate-800 shadow-2xl">
-            {/* Hidden Source Video Element */}
+            {/* Hidden Source Video */}
             <video
               ref={videoRef}
               src={videoUrl}
@@ -474,7 +503,7 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
               className="hidden"
             />
 
-            {/* Live Canvas: Displays video frames with blur overlaid in real-time */}
+            {/* Live Canvas */}
             <canvas
               ref={canvasRef}
               onClick={togglePlay}
@@ -484,13 +513,13 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
             {/* Status indicator on top of video */}
             <div className="absolute top-3 left-3 flex items-center gap-2 pointer-events-none">
               {showBlurPreview ? (
-                <span className="bg-blue-600/90 backdrop-blur-md text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-md">
+                <span className="bg-blue-600/90 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-md">
                   <Shield size={11} />
                   Desfoque Ativo
                 </span>
               ) : (
-                <span className="bg-slate-800/90 backdrop-blur-md text-slate-300 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-md">
-                  Original (Sem Desfoque)
+                <span className="bg-slate-800/90 backdrop-blur-md text-slate-300 text-[10px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-md">
+                  Original
                 </span>
               )}
 
@@ -501,12 +530,12 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
                     ? 'Iniciando IA...'
                     : aiDetectedCount > 0
                     ? `${aiDetectedCount} Rosto(s) Protegido(s)`
-                    : 'Rastreando Rostos'}
+                    : 'Rastreando Rosto'}
                 </span>
               )}
             </div>
 
-            {/* Toggle Blur Compare Button (Before / After) */}
+            {/* Toggle Compare Button */}
             <button
               onClick={() => setShowBlurPreview((prev) => !prev)}
               className="absolute top-3 right-3 bg-slate-900/80 hover:bg-slate-800 backdrop-blur-md border border-slate-700 text-slate-200 text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-lg transition-colors"
@@ -648,7 +677,7 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
               }`}
             >
               <EyeOff size={14} />
-              <span>Tarja / Placa</span>
+              <span>Área / Tarja</span>
             </button>
 
             <button
@@ -670,24 +699,16 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
               <div className="flex flex-col gap-2.5">
                 <div className="flex items-center justify-between">
                   <p className="text-xs text-slate-300">
-                    <strong className="text-white">Rastreamento Automático:</strong> Os rostos das pessoas são detectados e borrados automaticamente enquanto o vídeo roda.
+                    <strong className="text-white">Rastreamento Automático:</strong> Os rostos são detectados e borrados automaticamente enquanto o vídeo roda.
                   </p>
                   <div className="flex items-center gap-1 bg-slate-800 p-1 rounded-lg shrink-0 ml-2">
-                    <button
-                      onClick={() => setBlurIntensity('medium')}
-                      className={`px-2 py-0.5 text-[10px] rounded font-semibold transition-colors ${
-                        blurIntensity === 'medium' ? 'bg-blue-600 text-white' : 'text-slate-400'
-                      }`}
-                    >
-                      Médio
-                    </button>
                     <button
                       onClick={() => setBlurIntensity('heavy')}
                       className={`px-2 py-0.5 text-[10px] rounded font-semibold transition-colors ${
                         blurIntensity === 'heavy' ? 'bg-blue-600 text-white' : 'text-slate-400'
                       }`}
                     >
-                      Forte
+                      Desfoque
                     </button>
                     <button
                       onClick={() => setBlurIntensity('black')}
@@ -695,7 +716,7 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
                         blurIntensity === 'black' ? 'bg-blue-600 text-white' : 'text-slate-400'
                       }`}
                     >
-                      Tarja
+                      Tarja Preta
                     </button>
                   </div>
                 </div>
@@ -710,11 +731,11 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
             {activeTab === 'mask' && (
               <div className="flex flex-col gap-2.5">
                 <p className="text-xs text-slate-300">
-                  <strong className="text-white">Posicionar Área de Desfoque:</strong> Toque em qualquer parte do vídeo acima para mover a área de desfoque sobre placas ou pessoas.
+                  <strong className="text-white">Área de Desfoque Manual:</strong> Toque em qualquer parte do vídeo acima para mover a área de desfoque sobre placas, rostos ou detalhes.
                 </p>
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[11px] text-slate-400">Forma:</span>
+                    <span className="text-[11px] text-slate-400">Formato:</span>
                     <button
                       onClick={() => setMaskShape('circle')}
                       className={`px-2 py-1 text-[10px] font-semibold rounded ${
@@ -736,19 +757,19 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
                   <div className="flex items-center gap-1.5">
                     <span className="text-[11px] text-slate-400">Tamanho:</span>
                     <button
-                      onClick={() => setMaskPos((p) => ({ ...p, w: 0.2, h: 0.15 }))}
+                      onClick={() => setMaskPos((p) => ({ ...p, w: 0.25, h: 0.2 }))}
                       className="px-2 py-1 bg-slate-800 text-[10px] text-slate-300 rounded hover:bg-slate-700"
                     >
                       Pequeno
                     </button>
                     <button
-                      onClick={() => setMaskPos((p) => ({ ...p, w: 0.35, h: 0.25 }))}
+                      onClick={() => setMaskPos((p) => ({ ...p, w: 0.38, h: 0.3 }))}
                       className="px-2 py-1 bg-slate-800 text-[10px] text-slate-300 rounded hover:bg-slate-700"
                     >
                       Médio
                     </button>
                     <button
-                      onClick={() => setMaskPos((p) => ({ ...p, w: 0.5, h: 0.35 }))}
+                      onClick={() => setMaskPos((p) => ({ ...p, w: 0.55, h: 0.45 }))}
                       className="px-2 py-1 bg-slate-800 text-[10px] text-slate-300 rounded hover:bg-slate-700"
                     >
                       Grande
@@ -761,7 +782,7 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
             {activeTab === 'photo' && (
               <div className="flex flex-col gap-2.5">
                 <p className="text-xs text-slate-300">
-                  <strong className="text-white">Extrair Foto para Desfoque Manual:</strong> Pause o vídeo no momento chave. Vamos abrir o editor com pincel de dedo para você borrar exatamente onde quiser.
+                  <strong className="text-white">Extrair Foto para Pincel Manual:</strong> Pause o vídeo no momento exato e toque abaixo para abrir o editor com pincel de dedo.
                 </p>
                 <button
                   onClick={handleExtractPhoto}
@@ -795,7 +816,7 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
               className="flex-1 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/50 transition-colors"
             >
               <Check size={16} />
-              Salvar e Usar Vídeo Protegido
+              Salvar e Usar Vídeo com Desfoque
             </button>
           </>
         ) : (
@@ -813,7 +834,7 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
               className="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-blue-950/50 transition-colors disabled:opacity-50"
             >
               <Shield size={16} />
-              {isExporting ? 'Processando Vídeo...' : 'Gravar Vídeo com Desfoque'}
+              {isExporting ? 'Processando Vídeo...' : 'Salvar Vídeo com Desfoque'}
             </button>
           </>
         )}
