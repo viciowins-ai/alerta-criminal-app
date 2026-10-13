@@ -459,14 +459,14 @@ export function TutorialPage() {
                   <div className="bg-slate-800/60 p-3.5 rounded-xl border border-slate-700/70">
                     <h4 className="text-xs font-bold text-indigo-400 mb-2 uppercase flex items-center gap-1.5">
                       <Video size={14} />
-                      <span>2. Em Vídeos (IA com Rastreamento em Tempo Real & Tarja):</span>
+                      <span>2. Em Vídeos (Desfoque Automático em Tempo Real & Tarja):</span>
                     </h4>
                     <ul className="text-sm text-slate-300 space-y-2 list-disc pl-4">
                       <li>
                         <strong>Gravação Direta ou Anexo:</strong> Toque em <em>"Gravar Vídeo"</em> para acionar a filmadora nativa do celular no local ou <em>"Anexar Vídeo"</em> para escolher filmagens pré-existentes. O editor abre automaticamente.
                       </li>
                       <li>
-                        <strong>IA Rostos (Google MediaPipe):</strong> Rastreia e desfoca automaticamente todos os rostos detectados em movimento quadro a quadro. Possui <strong>margem ampliada de +35%</strong> para cobrir cabeça, orelhas e queixo mesmo em movimentos bruscos.
+                        <strong>Rastreamento Facial Automático:</strong> Detecta e desfoca automaticamente todos os rostos em movimento quadro a quadro ao longo da gravação. Possui <strong>margem ampliada de +35%</strong> para cobrir cabeça, orelhas e queixo mesmo em movimentos bruscos.
                       </li>
                       <li>
                         <strong>Intensidades Rápidas:</strong> Escolha entre <strong>Médio (20px)</strong>, <strong>Forte (35px)</strong> ou <strong>Tarja Preta</strong> (censura sólida total).
@@ -481,7 +481,7 @@ export function TutorialPage() {
                         <strong>Extrair Foto do Vídeo (📸):</strong> Pause no frame ideal e extraia uma fotografia estática de alta definição para aplicar o pincel manual com os dedos.
                       </li>
                       <li>
-                        <strong>Processamento 100% Local & LGPD (Sem Custos):</strong> Toda a codificação com áudio preservado é gerada no próprio dispositivo via Canvas + MediaRecorder. O vídeo original sem censura <strong>nunca é enviado para a nuvem</strong>, garantindo sigilo absoluto sem nenhum custo adicional.
+                        <strong>Processamento 100% Seguro no Aparelho & LGPD (Sem Custos):</strong> Todo o processamento do vídeo com áudio protegido ocorre diretamente no seu próprio celular ou computador. O vídeo original sem censura <strong>nunca é enviado para servidores nem para a nuvem</strong>, garantindo sigilo absoluto e sem nenhum custo adicional.
                       </li>
                     </ul>
                   </div>
