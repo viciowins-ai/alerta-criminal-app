@@ -819,37 +819,69 @@ export function FeedPage() {
                   )}
                 </div>
 
-                {/* Report Actions */}
-                <div className="flex items-center justify-between pt-3 border-t border-slate-700 relative z-10">
+                {/* Report Actions with Enhanced Usability & Touch Target Isolation */}
+                <div className="grid grid-cols-4 gap-2 pt-3 border-t border-slate-700/80 relative z-10">
+                  {/* 1. Confirmações */}
                   <button 
-                    onClick={() => handleUpvoteReport(item.id, item.upvotes || 0)}
-                    className={`flex items-center gap-1.5 transition-colors ${
-                      item.upvotedBy?.includes(user?.uid) ? 'text-blue-400' : 'text-slate-400 hover:text-blue-400'
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleUpvoteReport(item.id, item.upvotes || 0);
+                    }}
+                    className={`flex items-center justify-center gap-1.5 py-2 px-1.5 rounded-xl transition-all font-medium min-h-[44px] active:scale-95 touch-manipulation cursor-pointer border ${
+                      item.upvotedBy?.includes(user?.uid) 
+                        ? 'bg-blue-600/20 text-blue-400 border-blue-500/40 shadow-sm' 
+                        : 'bg-slate-800/80 hover:bg-slate-700/90 text-slate-300 border-slate-700/70'
                     }`}
+                    title={t('feed.confirmations', '{{count}} confirmações', { count: item.upvotes || 0 })}
                   >
-                    <ShieldCheck size={18} className={item.upvotedBy?.includes(user?.uid) ? 'fill-current' : ''} />
-                    <span className="text-xs font-medium">{t('feed.confirmations', '{{count}} confirmações', { count: item.upvotes || 0 })}</span>
+                    <ShieldCheck size={18} className={`shrink-0 ${item.upvotedBy?.includes(user?.uid) ? 'fill-current text-blue-400' : 'text-blue-400'}`} />
+                    <span className="text-xs font-bold">{item.upvotes || 0}</span>
+                    <span className="hidden md:inline text-[11px] text-slate-400">confirmar</span>
                   </button>
+
+                  {/* 2. Ver no Mapa */}
                   <button 
-                    onClick={() => navigate(`/?reportId=${item.id}`)}
-                    className="flex items-center gap-1.5 text-slate-400 hover:text-white transition-colors"
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/?reportId=${item.id}`);
+                    }}
+                    className="flex items-center justify-center gap-1.5 py-2 px-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700/90 active:scale-95 transition-all text-slate-300 border border-slate-700/70 min-h-[44px] touch-manipulation cursor-pointer shadow-sm"
+                    title={t('feed.viewOnMap', 'Ver no Mapa')}
                   >
-                    <MapPin size={18} />
-                    <span className="text-xs font-medium">{t('feed.viewOnMap', 'Ver no Mapa')}</span>
+                    <MapPin size={17} className="text-red-400 shrink-0" />
+                    <span className="text-xs font-semibold text-slate-200">Mapa</span>
                   </button>
+
+                  {/* 3. Comentar */}
                   <button 
-                    onClick={() => handleComment(item, 'report')}
-                    className="flex items-center gap-1.5 text-slate-400 hover:text-blue-400 transition-colors"
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleComment(item, 'report');
+                    }}
+                    className="flex items-center justify-center gap-1.5 py-2 px-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700/90 hover:text-amber-300 active:scale-95 transition-all text-slate-300 border border-slate-700/70 min-h-[44px] touch-manipulation cursor-pointer shadow-sm group"
+                    title="Ver e adicionar comentários"
                   >
-                    <MessageSquare size={18} />
-                    <span className="text-xs font-medium">{item.commentsCount || 0}</span>
+                    <MessageSquare size={17} className="text-amber-400 shrink-0 group-hover:scale-110 transition-transform" />
+                    <span className="text-xs font-bold text-slate-200">{item.commentsCount || 0}</span>
+                    <span className="hidden md:inline text-[11px] text-slate-400">comentários</span>
                   </button>
+
+                  {/* 4. Compartilhar */}
                   <button 
-                    onClick={() => handleShare(item)}
-                    className="flex items-center gap-1.5 text-slate-400 hover:text-green-400 transition-colors"
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleShare(item);
+                    }}
+                    className="flex items-center justify-center gap-1.5 py-2 px-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700/90 hover:text-emerald-300 active:scale-95 transition-all text-slate-300 border border-slate-700/70 min-h-[44px] touch-manipulation cursor-pointer shadow-sm group"
+                    title={t('common.share', 'Compartilhar')}
                   >
-                    <Share2 size={18} />
-                    <span className="text-xs font-medium">{t('common.share', 'Compartilhar')}</span>
+                    <Share2 size={17} className="text-emerald-400 shrink-0 group-hover:scale-110 transition-transform" />
+                    <span className="text-xs font-semibold text-slate-200 truncate hidden xs:inline sm:inline">Compartilhar</span>
+                    <span className="text-xs font-semibold text-slate-200 xs:hidden sm:hidden">Enviar</span>
                   </button>
                 </div>
               </div>
@@ -935,30 +967,53 @@ export function FeedPage() {
                 )}
               </div>
 
-              {/* Actions */}
-              <div className="flex items-center justify-between pt-3 border-t border-slate-700">
+              {/* Post Actions with Enhanced Usability & Touch Target Isolation */}
+              <div className="grid grid-cols-3 gap-2 pt-3 border-t border-slate-700/80">
+                {/* 1. Curtir */}
                 <button 
-                  onClick={() => handleLike(item.id)}
-                  className={`flex items-center gap-1.5 transition-colors ${
-                    isLiked ? 'text-red-500' : 'text-slate-400 hover:text-red-400'
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleLike(item.id);
+                  }}
+                  className={`flex items-center justify-center gap-2 py-2 px-2 rounded-xl transition-all font-medium min-h-[44px] active:scale-95 touch-manipulation cursor-pointer border ${
+                    isLiked 
+                      ? 'bg-red-500/20 text-red-400 border-red-500/40 shadow-sm' 
+                      : 'bg-slate-800/80 hover:bg-slate-700/90 text-slate-300 border-slate-700/70'
                   }`}
+                  title="Curtir publicação"
                 >
-                  <Heart size={18} className={isLiked ? 'fill-current' : ''} />
-                  <span className="text-xs font-medium">{item.likesCount}</span>
+                  <Heart size={18} className={`shrink-0 ${isLiked ? 'fill-current text-red-500' : 'text-red-400'}`} />
+                  <span className="text-xs font-bold">{item.likesCount || 0}</span>
                 </button>
+
+                {/* 2. Comentar */}
                 <button 
-                  onClick={() => handleComment(item, 'post')}
-                  className="flex items-center gap-1.5 text-slate-400 hover:text-blue-400 transition-colors"
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleComment(item, 'post');
+                  }}
+                  className="flex items-center justify-center gap-2 py-2 px-2 rounded-xl bg-slate-800/80 hover:bg-slate-700/90 hover:text-amber-300 active:scale-95 transition-all text-slate-300 border border-slate-700/70 min-h-[44px] touch-manipulation cursor-pointer shadow-sm group"
+                  title="Ver e adicionar comentários"
                 >
-                  <MessageSquare size={18} />
-                  <span className="text-xs font-medium">{item.commentsCount || 0}</span>
+                  <MessageSquare size={18} className="text-amber-400 shrink-0 group-hover:scale-110 transition-transform" />
+                  <span className="text-xs font-bold text-slate-200">{item.commentsCount || 0}</span>
+                  <span className="text-xs font-semibold text-slate-300 hidden xs:inline">Comentar</span>
                 </button>
+
+                {/* 3. Compartilhar */}
                 <button 
-                  onClick={() => handleShare(item)}
-                  className="flex items-center gap-1.5 text-slate-400 hover:text-green-400 transition-colors"
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleShare(item);
+                  }}
+                  className="flex items-center justify-center gap-2 py-2 px-2 rounded-xl bg-slate-800/80 hover:bg-slate-700/90 hover:text-emerald-300 active:scale-95 transition-all text-slate-300 border border-slate-700/70 min-h-[44px] touch-manipulation cursor-pointer shadow-sm group"
+                  title={t('common.share', 'Compartilhar')}
                 >
-                  <Share2 size={18} />
-                  <span className="text-xs font-medium">{t('common.share', 'Compartilhar')}</span>
+                  <Share2 size={18} className="text-emerald-400 shrink-0 group-hover:scale-110 transition-transform" />
+                  <span className="text-xs font-semibold text-slate-200">{t('common.share', 'Compartilhar')}</span>
                 </button>
               </div>
             </div>
