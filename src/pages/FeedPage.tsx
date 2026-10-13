@@ -505,7 +505,7 @@ export function FeedPage() {
 
   return (
     <div className="flex flex-col h-full bg-slate-900">
-      <TopBar title={t('feed.title', 'Rede Comunitária')} />
+      <TopBar title={t('feed.title', 'Rede Comunitária')} showBack={false} />
       
       {/* Filters / Tabs (Apenas Alertas Públicos e Redes Privadas) */}
       <div className="px-4 pt-3 pb-1">
@@ -813,7 +813,9 @@ export function FeedPage() {
                     </div>
                   )}
                   {item.attachments && item.attachments.length > 0 && (
-                    <AttachmentGallery attachments={item.attachments} />
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <AttachmentGallery attachments={item.attachments} />
+                    </div>
                   )}
                 </div>
 
@@ -927,7 +929,9 @@ export function FeedPage() {
                   </div>
                 )}
                 {item.attachments && item.attachments.length > 0 && (
-                  <AttachmentGallery attachments={item.attachments} />
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <AttachmentGallery attachments={item.attachments} />
+                  </div>
                 )}
               </div>
 
