@@ -1,4 +1,5 @@
-import React, { useRef, useState, useCallback, MouseEvent } from 'react';
+import React, { useRef, useState, useCallback, MouseEvent, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Play, X, Download } from 'lucide-react';
 
 export function AttachmentGallery({ attachments }: { attachments: any[] }) {
@@ -8,8 +9,18 @@ export function AttachmentGallery({ attachments }: { attachments: any[] }) {
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
 
-  // In-app media preview state (replaces window.open)
+  // In-app media preview state
   const [selectedMedia, setSelectedMedia] = useState<{ url: string; type: string } | null>(null);
+
+  // Close on Escape key
+  useEffect(() => {
+    if (!selectedMedia) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setSelectedMedia(null);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedMedia]);
 
   const onMouseDown = useCallback((e: MouseEvent) => {
     if (!scrollRef.current) return;
@@ -86,34 +97,36 @@ export function AttachmentGallery({ attachments }: { attachments: any[] }) {
         })}
       </div>
 
-      {/* In-App Media Viewer Lightbox */}
-      {selectedMedia && (
+      {/* Fullscreen Media Lightbox via Portal to escape card overflow & stacking context */}
+      {selectedMedia && typeof document !== 'undefined' && createPortal(
         <div 
-          className="fixed inset-0 z-[120] bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-4 animate-in fade-in duration-200"
+          className="fixed inset-0 z-[9999] bg-black/95 backdrop-blur-md flex flex-col items-center justify-center p-4 animate-in fade-in duration-200"
           onClick={() => setSelectedMedia(null)}
         >
-          <div className="absolute top-4 right-4 flex items-center gap-2 z-10" onClick={(e) => e.stopPropagation()}>
+          {/* Top action buttons */}
+          <div className="absolute top-4 right-4 flex items-center gap-2 z-[10000]" onClick={(e) => e.stopPropagation()}>
             <a
               href={selectedMedia.url}
               download
               target="_blank"
               rel="noreferrer"
-              className="p-2.5 bg-slate-800/80 hover:bg-slate-700 text-slate-200 rounded-full transition-colors flex items-center justify-center"
+              className="p-2.5 bg-slate-800/90 hover:bg-slate-700 text-slate-200 rounded-full transition-colors flex items-center justify-center shadow-xl border border-slate-700/80"
               title="Baixar mídia"
             >
               <Download size={18} />
             </a>
             <button
               onClick={() => setSelectedMedia(null)}
-              className="p-2.5 bg-slate-800/80 hover:bg-slate-700 text-slate-200 rounded-full transition-colors"
-              title="Fechar"
+              className="p-2.5 bg-slate-800/90 hover:bg-slate-700 text-slate-200 rounded-full transition-colors shadow-xl border border-slate-700/80"
+              title="Fechar visualização"
             >
               <X size={20} />
             </button>
           </div>
 
+          {/* Media Container */}
           <div 
-            className="relative max-w-4xl max-h-[85vh] w-full flex items-center justify-center"
+            className="relative max-w-4xl max-h-[85vh] w-full flex items-center justify-center p-2"
             onClick={(e) => e.stopPropagation()}
           >
             {selectedMedia.type.startsWith('video/') ? (
@@ -122,17 +135,18 @@ export function AttachmentGallery({ attachments }: { attachments: any[] }) {
                 controls
                 autoPlay
                 playsInline
-                className="max-w-full max-h-[85vh] rounded-2xl shadow-2xl border border-slate-800 bg-black"
+                className="max-w-full max-h-[80vh] rounded-2xl shadow-2xl border border-slate-800 bg-black"
               />
             ) : (
               <img
                 src={selectedMedia.url}
-                alt="Visualização"
-                className="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl border border-slate-800"
+                alt="Visualização do anexo"
+                className="max-w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl border border-slate-800"
               />
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
