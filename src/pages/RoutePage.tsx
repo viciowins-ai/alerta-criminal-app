@@ -182,46 +182,71 @@ export function RoutePage() {
     if (searchQuery.length > 2) {
       const delayDebounceFn = setTimeout(async () => {
         try {
-          let results: any[] = [];
+          const normalizedTerms = searchQuery.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").split(/\s+/).filter(Boolean);
+          const proximity = userLocation ? `&proximity=${userLocation.lng},${userLocation.lat}` : '';
+          const viewbox = userLocation ? `&viewbox=${userLocation.lng - 0.5},${userLocation.lat + 0.5},${userLocation.lng + 0.5},${userLocation.lat - 0.5}&bounded=0` : '';
+
+          const promises: Promise<any[]>[] = [];
+
+          // 1. Busca Nominatim (OpenStreetMap)
+          promises.push(
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&countrycodes=br&limit=6&addressdetails=1${viewbox}`)
+              .then(r => r.ok ? r.json() : [])
+              .then(data => Array.isArray(data) ? data.map((item: any) => ({
+                id: `osm-${item.place_id}`,
+                text: item.name || (item.display_name ? item.display_name.split(',')[0] : searchQuery),
+                place_name: item.display_name,
+                center: [parseFloat(item.lon), parseFloat(item.lat)],
+                relevance: 1.0,
+                source: 'osm'
+              })) : [])
+              .catch(() => [])
+          );
+
+          // 2. Busca Mapbox se houver token
           if (MAPBOX_TOKEN) {
-            try {
-              const proximity = userLocation ? `&proximity=${userLocation.lng},${userLocation.lat}` : '';
-              const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchQuery)}.json?access_token=${MAPBOX_TOKEN}&country=br${proximity}`);
-              if (res.ok) {
-                const data = await res.json();
-                if (data.features && data.features.length > 0) {
-                  results = data.features;
-                }
-              }
-            } catch (mbErr) {
-              console.warn("Mapbox search error:", mbErr);
-            }
+            promises.push(
+              fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchQuery)}.json?access_token=${MAPBOX_TOKEN}&country=br${proximity}`)
+                .then(r => r.ok ? r.json() : { features: [] })
+                .then(data => (data.features || []).map((feat: any) => ({
+                  id: feat.id,
+                  text: feat.text,
+                  place_name: feat.place_name,
+                  center: feat.center,
+                  relevance: feat.relevance || 0.8,
+                  source: 'mapbox'
+                })))
+                .catch(() => [])
+            );
           }
 
-          if (results.length === 0) {
-            try {
-              const osmRes = await fetch(
-                `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&countrycodes=br&limit=6&addressdetails=1`
-              );
-              if (osmRes.ok) {
-                const osmData = await osmRes.json();
-                results = osmData.map((item: any) => ({
-                  id: `osm-${item.place_id}`,
-                  text: item.name || (item.display_name ? item.display_name.split(',')[0] : searchQuery),
-                  place_name: item.display_name,
-                  center: [parseFloat(item.lon), parseFloat(item.lat)]
-                }));
-              }
-            } catch (osmErr) {
-              console.warn("Nominatim search error:", osmErr);
-            }
+          const settled = await Promise.all(promises);
+          const allResults: any[] = settled.flat();
+
+          allResults.sort((a, b) => {
+            const aText = `${a.text} ${a.place_name}`.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            const bText = `${b.text} ${b.place_name}`.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            const aMatches = normalizedTerms.filter(t => aText.includes(t)).length;
+            const bMatches = normalizedTerms.filter(t => bText.includes(t)).length;
+            if (aMatches !== bMatches) return bMatches - aMatches;
+            return (b.relevance || 0.8) - (a.relevance || 0.8);
+          });
+
+          const uniqueResults: any[] = [];
+          for (const item of allResults) {
+            const isDup = uniqueResults.some(u => {
+              const dLng = Math.abs(u.center[0] - item.center[0]);
+              const dLat = Math.abs(u.center[1] - item.center[1]);
+              return dLng < 0.002 && dLat < 0.002;
+            });
+            if (!isDup) uniqueResults.push(item);
           }
 
-          setSearchResults(results);
+          setSearchResults(uniqueResults.slice(0, 8));
         } catch (e) {
           console.error("Search error:", e);
         }
-      }, 400);
+      }, 350);
       return () => clearTimeout(delayDebounceFn);
     } else {
       setSearchResults([]);
