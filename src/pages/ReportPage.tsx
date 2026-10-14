@@ -3,7 +3,7 @@ import { TopBar } from '../components/TopBar';
 import { ImageBlurEditor } from '../components/ImageBlurEditor';
 import { VideoPrivacyEditor } from '../components/VideoPrivacyEditor';
 import { VoiceRecorder } from '../components/VoiceRecorder';
-import { MapPin, Camera, Video, CheckCircle2, Siren, Eye, Flame, MoreHorizontal, Send, X, LocateFixed, AlertTriangle, Mic, Shield } from 'lucide-react';
+import { MapPin, Camera, Video, CheckCircle2, Siren, Eye, Flame, MoreHorizontal, Send, X, LocateFixed, AlertTriangle, Mic, Shield, Lock } from 'lucide-react';
 import Map, { ViewStateChangeEvent, MapRef, Marker } from 'react-map-gl/mapbox';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -537,6 +537,83 @@ export function ReportPage() {
           <p className="text-sm text-slate-300 truncate">{address}</p>
         </div>
 
+        {/* Destino & Visibilidade do Alerta (Sempre em destaque para evitar vazamento acidental) */}
+        {userGroups.length > 0 && (
+          <div className="bg-slate-800/90 p-4 rounded-2xl border border-indigo-500/30 shadow-lg space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <Shield size={16} className="text-indigo-400" />
+                {t('report.visibilityTitle', 'Onde deseja publicar este alerta?')}
+              </h3>
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                visibility === 'group'
+                  ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40'
+                  : 'bg-blue-500/20 text-blue-300 border-blue-500/40'
+              }`}>
+                {visibility === 'group' ? '🔒 Privado (Grupo)' : '🚨 Público (Geral)'}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setVisibility('public')}
+                className={`py-3 px-3 rounded-xl text-xs font-bold transition-all flex flex-col items-center justify-center gap-1 border cursor-pointer ${
+                  visibility === 'public'
+                    ? 'bg-blue-600 text-white border-blue-400 shadow-md shadow-blue-600/30'
+                    : 'bg-slate-900 text-slate-400 border-slate-700 hover:text-white'
+                }`}
+              >
+                <div className="flex items-center gap-1.5 text-xs">
+                  <span>🚨</span>
+                  <span>{t('report.publicAll', 'Público Geral')}</span>
+                </div>
+                <span className="text-[9px] opacity-80 text-center">Toda a cidade vê</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setVisibility('group')}
+                className={`py-3 px-3 rounded-xl text-xs font-bold transition-all flex flex-col items-center justify-center gap-1 border cursor-pointer ${
+                  visibility === 'group'
+                    ? 'bg-indigo-600 text-white border-indigo-400 shadow-md shadow-indigo-600/30'
+                    : 'bg-slate-900 text-slate-400 border-slate-700 hover:text-white'
+                }`}
+              >
+                <div className="flex items-center gap-1.5 text-xs">
+                  <Lock size={13} />
+                  <span>{t('report.privateNetwork', 'Rede Privada')}</span>
+                </div>
+                <span className="text-[9px] opacity-80 text-center">Apenas membros</span>
+              </button>
+            </div>
+            
+            {visibility === 'group' ? (
+              <div className="pt-2 border-t border-slate-700/60 animate-in fade-in space-y-1.5">
+                <label className="block text-xs text-indigo-300 font-semibold">
+                  {t('report.selectGroup', 'Grupo Privado de destino:')}
+                </label>
+                <select 
+                  value={selectedGroupId}
+                  onChange={(e) => setSelectedGroupId(e.target.value)}
+                  className="w-full bg-slate-900 border border-indigo-500/40 text-white text-xs font-bold rounded-xl p-3 focus:outline-none focus:border-indigo-400 cursor-pointer"
+                >
+                  {userGroups.map(g => (
+                    <option key={g.id} value={g.id}>{g.name}</option>
+                  ))}
+                </select>
+                <p className="text-[10px] text-slate-400 leading-tight">
+                  🔒 Este alerta ficará visível <strong>exclusivamente</strong> para os membros deste grupo privado. Não aparecerá no feed público geral nem no mapa aberto.
+                </p>
+              </div>
+            ) : (
+              <p className="text-[10px] text-slate-400 leading-tight">
+                ℹ️ Alerta comunitário geral: ficará visível para toda a cidade no mapa interativo e no feed aberto.
+              </p>
+            )}
+          </div>
+        )}
+
         {/* Incident Type */}
         <div>
           <h3 className="text-sm font-semibold text-white mb-3">
@@ -716,49 +793,6 @@ export function ReportPage() {
         </div>
 
         
-        {/* Visibility */}
-        {userGroups.length > 0 && (
-          <div className="bg-slate-800 p-4 rounded-xl border border-slate-700">
-            <h3 className="text-sm font-semibold text-white mb-3">
-              {t('report.visibilityTitle', 'Visibilidade do Alerta')}
-            </h3>
-            <div className="flex gap-2 mb-3">
-              <button
-                type="button"
-                onClick={() => setVisibility('public')}
-                className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${visibility === 'public' ? 'bg-blue-600 text-white' : 'bg-slate-900 text-slate-400 border border-slate-700'}`}
-              >
-                {t('report.publicAll', 'Público (Todos)')}
-              </button>
-              <button
-                type="button"
-                onClick={() => setVisibility('group')}
-                className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${visibility === 'group' ? 'bg-indigo-600 text-white' : 'bg-slate-900 text-slate-400 border border-slate-700'}`}
-              >
-                {t('report.privateNetwork', 'Rede Privada')}
-              </button>
-            </div>
-            
-            {visibility === 'group' && (
-              <div className="mt-3">
-                <p className="text-xs text-slate-400 mb-2">
-                  {t('report.selectGroup', 'Selecione o grupo privado que receberá este alerta:')}
-                </p>
-                <select 
-                  value={selectedGroupId}
-                  onChange={(e) => setSelectedGroupId(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 text-white text-sm rounded-lg p-3 focus:outline-none focus:border-indigo-500"
-                >
-                  {userGroups.map(g => (
-                    <option key={g.id} value={g.id}>{g.name}</option>
-                  ))}
-                </select>
-              </div>
-            )}
-          </div>
-        )}
-
-
         {/* Submit Button */}
         <div className="mt-auto pt-6 flex flex-col gap-4">
           <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 flex items-center justify-between cursor-pointer" onClick={() => setIsAnonymous(!isAnonymous)}>
@@ -785,7 +819,9 @@ export function ReportPage() {
             className={`group relative w-full py-4 rounded-2xl font-bold text-white transition-all duration-300 overflow-hidden ${
               !selectedType || isSubmitting
                 ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
-                : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:scale-[0.98] shadow-[0_0_20px_rgba(79,70,229,0.4)] border border-blue-400/30'
+                : visibility === 'group'
+                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 active:scale-[0.98] shadow-[0_0_20px_rgba(99,102,241,0.4)] border border-indigo-400/40'
+                  : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:scale-[0.98] shadow-[0_0_20px_rgba(79,70,229,0.4)] border border-blue-400/30'
             }`}
           >
             {selectedType && !isSubmitting && (
@@ -807,9 +843,13 @@ export function ReportPage() {
                   )}
                 </>
               ) : (
-                <div className="flex items-center gap-2">
-                  <Send size={20} />
-                  {t('report.submitBtn', 'Enviar Alerta de Segurança')}
+                <div className="flex items-center justify-center gap-2 text-center">
+                  {visibility === 'group' ? <Lock size={18} /> : <Send size={20} />}
+                  <span className="truncate">
+                    {visibility === 'group'
+                      ? `Publicar no Grupo: ${userGroups.find(g => g.id === selectedGroupId)?.name || 'Rede Privada'}`
+                      : t('report.submitBtn', 'Enviar Alerta Público Geral')}
+                  </span>
                 </div>
               )}
             </span>

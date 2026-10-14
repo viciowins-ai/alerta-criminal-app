@@ -27,12 +27,23 @@ export function FeedPage() {
   const [newPostContent, setNewPostContent] = useState('');
   const [userProfile, setUserProfile] = useState<any>(null);
   const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
-  const [editingReport, setEditingReport] = useState<any>(null);
+  const [editingItem, setEditingItem] = useState<any>(null);
   const [editType, setEditType] = useState<string>('');
   const [editDescription, setEditDescription] = useState<string>('');
+  const [editVisibility, setEditVisibility] = useState<'public' | 'group'>('public');
+  const [editGroupId, setEditGroupId] = useState<string>('');
   const [feedFilter, setFeedFilter] = useState<'reports' | 'private'>('reports');
   const [activeCommentItem, setActiveCommentItem] = useState<{id: string, type: 'post' | 'report', authorName: string} | null>(null);
   const [initialLoading, setInitialLoading] = useState(true);
+
+  const openEditModal = (item: any) => {
+    setEditingItem(item);
+    setEditType(item.type || 'outro');
+    setEditDescription(item.description || item.content || '');
+    const isPrivate = item.visibility === 'group' || item.visibility === 'private' || Boolean(item.groupId);
+    setEditVisibility(isPrivate ? 'group' : 'public');
+    setEditGroupId(item.groupId || (userGroups.length > 0 ? userGroups[0].id : ''));
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => setInitialLoading(false), 3000);
@@ -345,16 +356,34 @@ export function FeedPage() {
     }
   };
 
-  const handleUpdateReport = async () => {
-    if (!editingReport || !user) return;
+  const handleUpdateItem = async () => {
+    if (!editingItem || !user) return;
     try {
-      await updateDoc(doc(db, 'reports', editingReport.id), {
-        type: editType,
-        description: editDescription
-      });
-      setEditingReport(null);
+      const isReport = editingItem.feedType === 'report';
+      const isGroup = editVisibility === 'group';
+      const targetGroup = userGroups.find(g => g.id === editGroupId) || userGroups[0];
+
+      const updates: any = {
+        visibility: editVisibility,
+        groupId: isGroup && targetGroup ? targetGroup.id : null,
+        groupName: isGroup && targetGroup ? targetGroup.name : null
+      };
+
+      if (isReport) {
+        updates.type = editType;
+        updates.description = editDescription.trim();
+        await updateDoc(doc(db, 'reports', editingItem.id), updates);
+      } else {
+        updates.content = editDescription.trim();
+        if (isGroup && targetGroup) {
+          updates.location = targetGroup.name;
+          updates.type = 'Aviso da Rede';
+        }
+        await updateDoc(doc(db, 'posts', editingItem.id), updates);
+      }
+      setEditingItem(null);
     } catch (error) {
-      handleFirestoreError(error, OperationType.UPDATE, 'reports');
+      handleFirestoreError(error, OperationType.UPDATE, `${editingItem.feedType}s/${editingItem.id}`);
     }
   };
 
@@ -747,9 +776,13 @@ export function FeedPage() {
                             <span className="w-1 h-1 bg-white rounded-full"></span> {t('time.now', 'AGORA').toUpperCase()}
                           </span>
                         )}
-                        {isPrivateItem && (
+                        {isPrivateItem ? (
                           <span className="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
                             <Lock size={10} /> {item.groupName || t('feed.privateNetworks', 'Rede Privada')}
+                          </span>
+                        ) : (
+                          <span className="bg-blue-500/10 text-blue-300 border border-blue-500/20 text-[10px] font-medium px-2 py-0.5 rounded-full flex items-center gap-1">
+                            <span className="text-[10px]">🚨</span> {t('feed.publicAlertBadge', 'Alerta Público')}
                           </span>
                         )}
                       </h4>
@@ -762,11 +795,7 @@ export function FeedPage() {
                   {(user?.uid === item.authorId || user?.email === 'viciowins@gmail.com') && (
                     <div className="flex items-center gap-1 shrink-0">
                       <button 
-                        onClick={() => {
-                          setEditingReport(item);
-                          setEditType(item.type || 'outro');
-                          setEditDescription(item.description || '');
-                        }}
+                        onClick={() => openEditModal(item)}
                         className="text-slate-400 hover:text-white p-1"
                       >
                         <span className="text-xs bg-slate-700/50 px-2 py-1 rounded hover:bg-slate-700 transition-colors">
@@ -909,9 +938,13 @@ export function FeedPage() {
                     <h4 className="text-sm font-bold text-white flex items-center gap-1.5 flex-wrap">
                       {item.authorName || t('common.user', 'Usuário')}
                       {item.verified && <ShieldCheck size={14} className="text-blue-400" />}
-                      {isPrivateItem && (
+                      {isPrivateItem ? (
                         <span className="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
                           <Lock size={10} /> {item.groupName || t('feed.privateNetworks', 'Rede Privada')}
+                        </span>
+                      ) : (
+                        <span className="bg-blue-500/10 text-blue-300 border border-blue-500/20 text-[10px] font-medium px-2 py-0.5 rounded-full flex items-center gap-1">
+                          <span className="text-[10px]">🌐</span> {t('feed.publicPostBadge', 'Publicação Pública')}
                         </span>
                       )}
                     </h4>
@@ -922,14 +955,24 @@ export function FeedPage() {
                   </div>
                 </div>
                 {(user?.uid === item.authorId || user?.email === 'viciowins@gmail.com') ? (
-                  <button 
-                    className="text-slate-500 hover:text-red-400 p-1 shrink-0" 
-                    onClick={() => handleDeleteItem(item.id, 'post')}
-                  >
-                    <span className="text-xs bg-slate-700/50 px-2 py-1 rounded hover:bg-red-500/20 transition-colors">
-                      {t('common.delete', 'Excluir')}
-                    </span>
-                  </button>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button 
+                      onClick={() => openEditModal(item)}
+                      className="text-slate-400 hover:text-white p-1"
+                    >
+                      <span className="text-xs bg-slate-700/50 px-2 py-1 rounded hover:bg-slate-700 transition-colors">
+                        {t('feed.edit', 'Corrigir')}
+                      </span>
+                    </button>
+                    <button 
+                      className="text-slate-400 hover:text-red-400 p-1" 
+                      onClick={() => handleDeleteItem(item.id, 'post')}
+                    >
+                      <span className="text-xs bg-slate-700/50 px-2 py-1 rounded hover:bg-red-500/20 transition-colors">
+                        {t('common.delete', 'Excluir')}
+                      </span>
+                    </button>
+                  </div>
                 ) : (
                   <button className="text-slate-500 hover:text-slate-300 shrink-0">
                     <MoreHorizontal size={20} />
@@ -1021,50 +1064,142 @@ export function FeedPage() {
         })}
       </div>
       
-      {/* Edit Report Modal */}
-      {editingReport && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md p-6 overflow-hidden">
-            <h3 className="text-lg font-bold text-white mb-4">{t('feed.editReportTitle', 'Corrigir Ocorrência')}</h3>
+      {/* Edit Item Modal (Reports and Posts) */}
+      {editingItem && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-700 rounded-3xl w-full max-w-md p-6 overflow-hidden shadow-2xl">
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-800">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <span>{editingItem.feedType === 'report' ? '🚨' : '💬'}</span>
+                {editingItem.feedType === 'report' 
+                  ? t('feed.editReportTitle', 'Corrigir Ocorrência') 
+                  : t('feed.editPostTitle', 'Editar Publicação')}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setEditingItem(null)}
+                className="text-slate-400 hover:text-white p-1"
+              >
+                ✕
+              </button>
+            </div>
             
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm text-slate-400 mb-2">{t('report.typeLabel', 'Tipo de Ocorrência')}</label>
-                <select 
-                  value={editType} 
-                  onChange={(e) => setEditType(e.target.value)}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white outline-none"
-                >
-                  <option value="roubo">{t('report.types.roubo', 'Roubo/Furto')}</option>
-                  <option value="suspeito">{t('report.types.suspeito', 'Atividade Suspeita')}</option>
-                  <option value="zeladoria">{t('report.types.zeladoria', 'Zeladoria / Risco')}</option>
-                  <option value="vandalismo">{t('report.types.vandalismo', 'Vandalismo')}</option>
-                  <option value="outro">{t('report.types.outro', 'Outro')}</option>
-                </select>
-              </div>
+              {/* Report Type Selector (only for reports) */}
+              {editingItem.feedType === 'report' && (
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">{t('report.typeLabel', 'Tipo de Ocorrência')}</label>
+                  <select 
+                    value={editType} 
+                    onChange={(e) => setEditType(e.target.value)}
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none focus:border-blue-500"
+                  >
+                    <option value="roubo">{t('report.types.roubo', 'Roubo/Furto')}</option>
+                    <option value="suspeito">{t('report.types.suspeito', 'Atividade Suspeita')}</option>
+                    <option value="zeladoria">{t('report.types.zeladoria', 'Zeladoria / Risco')}</option>
+                    <option value="vandalismo">{t('report.types.vandalismo', 'Vandalismo')}</option>
+                    <option value="outro">{t('report.types.outro', 'Outro')}</option>
+                  </select>
+                </div>
+              )}
 
+              {/* Description / Content Input */}
               <div>
-                <label className="block text-sm text-slate-400 mb-2">{t('report.descriptionLabel', 'Descrição')}</label>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  {editingItem.feedType === 'report' ? t('report.descriptionLabel', 'Descrição') : t('feed.contentLabel', 'Conteúdo da Mensagem')}
+                </label>
                 <textarea 
                   value={editDescription}
                   onChange={(e) => setEditDescription(e.target.value)}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white outline-none resize-none h-24"
-                  placeholder={t('report.descriptionPlaceholder', 'Descreva o que aconteceu...')}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none resize-none h-24 focus:border-blue-500"
+                  placeholder={editingItem.feedType === 'report' ? t('report.descriptionPlaceholder', 'Descreva o que aconteceu...') : 'Escreva sua mensagem...'}
                 />
               </div>
 
+              {/* Destination & Privacy Toggle */}
+              <div className="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700 space-y-2.5">
+                <label className="block text-xs font-bold text-slate-200">
+                  {t('feed.privacyDestination', 'Destino & Privacidade da Publicação')}
+                </label>
+                
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setEditVisibility('public')}
+                    className={`flex-1 py-2 px-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer border ${
+                      editVisibility === 'public'
+                        ? 'bg-blue-600 text-white border-blue-400 shadow-sm'
+                        : 'bg-slate-900 text-slate-400 border-slate-700 hover:text-white'
+                    }`}
+                  >
+                    <span>🚨</span>
+                    <span>{t('report.publicAll', 'Público (Todos)')}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setEditVisibility('group')}
+                    className={`flex-1 py-2 px-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer border ${
+                      editVisibility === 'group'
+                        ? 'bg-indigo-600 text-white border-indigo-400 shadow-sm'
+                        : 'bg-slate-900 text-slate-400 border-slate-700 hover:text-white'
+                    }`}
+                  >
+                    <Lock size={12} />
+                    <span>{t('report.privateNetwork', 'Rede Privada')}</span>
+                  </button>
+                </div>
+
+                {editVisibility === 'group' && (
+                  <div className="pt-2 border-t border-slate-700/60 animate-in fade-in space-y-1.5">
+                    {userGroups.length > 0 ? (
+                      <>
+                        <label className="block text-[11px] text-indigo-300 font-semibold">
+                          Selecione o Grupo Privado de destino:
+                        </label>
+                        <select
+                          value={editGroupId}
+                          onChange={(e) => setEditGroupId(e.target.value)}
+                          className="w-full bg-slate-900 border border-indigo-500/40 rounded-xl px-3 py-2 text-xs font-semibold text-white outline-none focus:border-indigo-400 cursor-pointer"
+                        >
+                          {userGroups.map(g => (
+                            <option key={g.id} value={g.id}>{g.name}</option>
+                          ))}
+                        </select>
+                        <p className="text-[10px] text-slate-400 leading-tight">
+                          🔒 O alerta sumirá do feed público geral e ficará visível <strong>apenas</strong> para membros deste grupo.
+                        </p>
+                      </>
+                    ) : (
+                      <p className="text-[11px] text-amber-400 leading-tight">
+                        Você ainda não faz parte de redes privadas para isolar este alerta.
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {editVisibility === 'public' && (
+                  <p className="text-[10px] text-slate-400 leading-tight">
+                    ℹ️ Visível para toda a cidade no mapa de ocorrências e feed público geral.
+                  </p>
+                )}
+              </div>
+
+              {/* Action Buttons */}
               <div className="flex gap-3 pt-2">
                 <button 
-                  onClick={() => setEditingReport(null)}
-                  className="flex-1 py-3 rounded-xl border border-slate-700 text-slate-300 font-bold"
+                  type="button"
+                  onClick={() => setEditingItem(null)}
+                  className="flex-1 py-3 rounded-xl border border-slate-700 text-slate-300 hover:bg-slate-800 text-xs font-bold transition-colors cursor-pointer"
                 >
                   {t('common.cancel', 'Cancelar')}
                 </button>
                 <button 
-                  onClick={handleUpdateReport}
-                  className="flex-1 py-3 rounded-xl bg-blue-600 text-white font-bold"
+                  type="button"
+                  onClick={handleUpdateItem}
+                  className="flex-1 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-colors shadow-lg shadow-blue-600/30 cursor-pointer"
                 >
-                  {t('common.saveChanges', 'Salvar')}
+                  {t('common.saveChanges', 'Salvar Alterações')}
                 </button>
               </div>
             </div>

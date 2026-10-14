@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Shield, Plus, Users, Search, ArrowRight, UserPlus, LogOut, Copy, Check, Lock, ChevronDown, ChevronUp, MapPin, AlertTriangle, Eye, Siren, Flame, MoreHorizontal, Clock, Crown, ShieldCheck, Trash2, Mic } from 'lucide-react';
+import { Shield, Plus, Users, Search, ArrowRight, UserPlus, LogOut, Copy, Check, Lock, ChevronDown, ChevronUp, MapPin, AlertTriangle, Eye, Siren, Flame, MoreHorizontal, Clock, Crown, ShieldCheck, Trash2, Mic, UserMinus, RefreshCw } from 'lucide-react';
 import { TopBar } from '../components/TopBar';
 import { AttachmentGallery } from '../components/AttachmentGallery';
 import { AudioPlayer } from '../components/AudioPlayer';
@@ -321,6 +321,38 @@ export function GroupsPage() {
     }
   };
 
+  const handleRemoveMember = async (groupId: string, memberUid: string, memberName: string) => {
+    if (!user) return;
+    if (confirm(`Tem certeza de que deseja remover "${memberName}" deste grupo privado? Ele não terá mais acesso às ocorrências e mensagens deste grupo.`)) {
+      try {
+        await updateDoc(doc(db, 'groups', groupId), {
+          members: arrayRemove(memberUid)
+        });
+        fetchGroups();
+      } catch (err) {
+        console.error("Erro ao remover membro do grupo:", err);
+        alert("Erro ao remover o membro do grupo.");
+      }
+    }
+  };
+
+  const handleRegenerateInviteCode = async (groupId: string, groupName: string) => {
+    if (!user) return;
+    if (confirm(`Deseja gerar um novo código de convite para "${groupName}"? O código anterior deixará de funcionar imediatamente.`)) {
+      try {
+        const newCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+        await updateDoc(doc(db, 'groups', groupId), {
+          inviteCode: newCode
+        });
+        fetchGroups();
+        alert(`Novo código gerado com sucesso: ${newCode}`);
+      } catch (err) {
+        console.error("Erro ao redefinir código:", err);
+        alert("Não foi possível gerar novo código.");
+      }
+    }
+  };
+
   const copyToClipboard = (code: string) => {
     navigator.clipboard.writeText(code);
     setCopiedCode(code);
@@ -510,7 +542,7 @@ export function GroupsPage() {
                                   </p>
                                 </div>
                               </div>
-                              <div>
+                              <div className="flex items-center gap-2">
                                 {isGroupCreator ? (
                                   <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full flex items-center gap-1">
                                     <Crown size={10} /> Criador
@@ -519,6 +551,17 @@ export function GroupsPage() {
                                   <span className="text-[10px] text-slate-400 bg-slate-700/50 px-2 py-0.5 rounded-full flex items-center gap-1">
                                     <Shield size={10} className="text-slate-400" /> Membro
                                   </span>
+                                )}
+                                {(group.createdBy === user?.uid && !isMe) && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveMember(group.id, uid, memberName)}
+                                    title={`Remover ${memberName} deste grupo`}
+                                    className="text-red-400 hover:text-red-300 hover:bg-red-500/20 text-[10px] font-bold px-2 py-1 rounded border border-red-500/30 transition-colors flex items-center gap-1 cursor-pointer"
+                                  >
+                                    <UserMinus size={11} />
+                                    Remover
+                                  </button>
                                 )}
                               </div>
                             </div>
@@ -530,27 +573,41 @@ export function GroupsPage() {
                   
                   <div className="mt-3 pt-3 border-t border-slate-700 flex flex-col gap-3">
                     {/* Invite Code */}
-                    <div className="flex items-center justify-between bg-slate-900/60 p-2.5 rounded-lg border border-slate-700/60">
+                    <div className="flex items-center justify-between bg-slate-900/60 p-2.5 rounded-lg border border-slate-700/60 flex-wrap gap-2">
                       <div>
                         <p className="text-[11px] text-slate-400">Código de Convite da Rede:</p>
                         <p className="text-white font-mono font-bold tracking-widest text-base">{group.inviteCode}</p>
                       </div>
-                      <button 
-                        onClick={() => copyToClipboard(group.inviteCode)}
-                        className="bg-slate-700 hover:bg-slate-600 text-white p-2 rounded-lg transition-colors flex items-center gap-1.5 text-xs font-medium cursor-pointer"
-                      >
-                        {copiedCode === group.inviteCode ? (
-                          <>
-                            <Check size={14} className="text-green-400" />
-                            <span className="text-green-400">Copiado</span>
-                          </>
-                        ) : (
-                          <>
-                            <Copy size={14} />
-                            <span>Copiar</span>
-                          </>
+                      <div className="flex items-center gap-2">
+                        <button 
+                          type="button"
+                          onClick={() => copyToClipboard(group.inviteCode)}
+                          className="bg-slate-700 hover:bg-slate-600 text-white p-2 rounded-lg transition-colors flex items-center gap-1.5 text-xs font-medium cursor-pointer"
+                        >
+                          {copiedCode === group.inviteCode ? (
+                            <>
+                              <Check size={14} className="text-green-400" />
+                              <span className="text-green-400">Copiado</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy size={14} />
+                              <span>Copiar</span>
+                            </>
+                          )}
+                        </button>
+                        {group.createdBy === user?.uid && (
+                          <button
+                            type="button"
+                            onClick={() => handleRegenerateInviteCode(group.id, group.name)}
+                            title="Gerar novo código e cancelar o anterior"
+                            className="bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 p-2 rounded-lg transition-colors flex items-center gap-1.5 text-xs font-medium cursor-pointer"
+                          >
+                            <RefreshCw size={13} />
+                            Novo Código
+                          </button>
                         )}
-                      </button>
+                      </div>
                     </div>
                     
                     {/* Collapsible Group Occurrences */}

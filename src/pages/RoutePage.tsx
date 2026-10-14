@@ -77,11 +77,38 @@ export function RoutePage() {
   const initialCenterDone = useRef(false);
   const skipSearchRef = useRef(false);
 
-  // Fetch active reports and risk zones
+  const [userGroupIds, setUserGroupIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!user) {
+      setUserGroupIds([]);
+      return;
+    }
+    const qGroups = query(collection(db, 'groups'), where('members', 'array-contains', user.uid));
+    const unsubscribeGroups = onSnapshot(qGroups, (snap) => {
+      setUserGroupIds(snap.docs.map(d => d.id));
+    }, (e) => console.error("Error loading user groups in RoutePage", e));
+    return () => unsubscribeGroups();
+  }, [user]);
+
+  // Fetch active reports and risk zones with strict private group filtering
   useEffect(() => {
     const q = query(collection(db, 'reports'), where('status', 'in', ['pending', 'verified']));
     const unsubscribeReports = onSnapshot(q, (snapshot) => {
-      const reps = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      let reps = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as any }));
+      // Trava de privacidade: isolar estritamente ocorrências de redes privadas
+      reps = reps.filter(r => {
+        const isPrivate = 
+          r.visibility === 'group' || 
+          r.visibility === 'private' || 
+          r.visibility === 'privado' || 
+          Boolean(r.groupId) || 
+          Boolean(r.groupName);
+        if (isPrivate) {
+          return Boolean(user && ((r.authorId === user.uid) || (r.groupId && userGroupIds.includes(r.groupId))));
+        }
+        return !r.visibility || r.visibility === 'public';
+      });
       setReports(reps);
     });
 
@@ -95,7 +122,7 @@ export function RoutePage() {
       unsubscribeReports();
       unsubscribeZones();
     };
-  }, []);
+  }, [user, userGroupIds]);
 
   // Geolocation
   useEffect(() => {
