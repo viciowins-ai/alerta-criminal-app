@@ -31,9 +31,9 @@ export function Layout() {
   }, []);
 
   return (
-    <div className="flex flex-col h-[100dvh] max-w-md mx-auto bg-slate-900 shadow-2xl overflow-hidden relative select-none">
+    <div className="flex flex-col h-[100dvh] max-w-md mx-auto bg-slate-900 shadow-2xl overflow-hidden relative">
       {isOffline && (
-        <div className="bg-amber-600 text-white text-xs font-medium py-1.5 px-4 flex items-center justify-center gap-2 z-[70] shrink-0">
+        <div className="bg-amber-600 text-white text-xs font-medium py-1.5 px-4 flex items-center justify-center gap-2 z-[70] shrink-0 select-none">
           <WifiOff size={14} />
           <span>{t('common.offlineNotice', 'Você está offline. O app continua funcionando com dados salvos.')}</span>
         </div>
@@ -43,7 +43,7 @@ export function Layout() {
       </main>
       
       {!hideBottomNav && (
-        <nav className="absolute bottom-0 left-0 right-0 bg-slate-950/90 backdrop-blur-lg border-t border-slate-800/80 flex justify-around items-center h-20 px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] z-40">
+        <nav className="absolute bottom-0 left-0 right-0 bg-slate-950/90 backdrop-blur-lg border-t border-slate-800/80 flex justify-around items-center h-20 px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] z-40 select-none">
           <NavItem to="/" icon={<Map size={22} />} label={t('nav.map', 'Mapa')} />
           <NavItem to="/route" icon={<Navigation size={22} />} label={t('nav.routes', 'Rotas')} />
           

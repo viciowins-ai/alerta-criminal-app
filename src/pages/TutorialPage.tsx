@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { TopBar } from '../components/TopBar';
 import { 
@@ -28,7 +28,10 @@ import {
   Video,
   Camera,
   Sparkles,
-  Eye
+  Eye,
+  Copy,
+  Check,
+  ExternalLink
 } from 'lucide-react';
 import { FlagIcon } from '../components/FlagIcon';
 import { useTranslation } from 'react-i18next';
@@ -36,6 +39,29 @@ import { useTranslation } from 'react-i18next';
 export function TutorialPage() {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === 'ar';
+  const [copiedLink, setCopiedLink] = useState(false);
+
+  const handleCopyLink = async (text: string) => {
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-9999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2500);
+    } catch (err) {
+      console.error('Failed to copy link:', err);
+    }
+  };
 
   return (
     <div className={`flex flex-col h-full bg-slate-900 ${isRTL ? 'text-right' : 'text-left'}`} dir={isRTL ? 'rtl' : 'ltr'}>
@@ -192,7 +218,7 @@ export function TutorialPage() {
                     <div className="space-y-1 flex-1 min-w-0">
                       <strong className="text-blue-400 block">Botão de Enquadramento Inteligente no Topo:</strong>
                       <p className="text-xs text-slate-400 leading-relaxed">
-                        Ao selecionar qualquer categoria, um <strong>botão flutuante</strong> surge no topo da tela com o total de ocorrências encontradas (ex: <code className="bg-slate-900 px-1.5 py-0.5 rounded text-red-400 text-xs font-mono font-bold break-all inline-block max-w-full">🔴 2 alertas exibidos • Ver no mapa 📍</code>).
+                        Ao selecionar qualquer categoria, um <strong>botão flutuante</strong> surge no topo da tela com o total de ocorrências encontradas (ex: <code className="bg-slate-900 px-2 py-0.5 rounded text-red-400 text-xs font-mono font-bold select-text inline-flex items-center gap-1 border border-red-500/30">🔴 2 alertas exibidos • Ver no mapa 📍</code>).
                       </p>
                       <ul className="text-xs text-slate-300 space-y-1.5 list-disc pl-4 mt-1">
                         <li><strong>Toque no botão para enquadrar:</strong> O mapa calcula a abrangência de todos os alertas filtrados e ajusta a câmera suavemente, centralizando todos simultaneamente na tela com zoom perfeito.</li>
@@ -281,12 +307,16 @@ export function TutorialPage() {
                   <li>Oferece um atalho de discagem rápida para ligação com a <strong>Polícia (190)</strong>.</li>
                 </ul>
 
-                <div className="mt-3.5 bg-red-950/30 p-3.5 rounded-xl border border-red-500/20 text-xs text-slate-300 space-y-1.5 break-words overflow-hidden">
+                <div className="mt-3.5 bg-red-950/30 p-3.5 rounded-xl border border-red-500/20 text-xs text-slate-300 space-y-1.5 select-text">
                   <p className="font-bold text-red-400 flex items-center gap-1.5">
                     <span>💡 Como o seu contato ouve o áudio:</span>
                   </p>
                   <p className="leading-relaxed text-slate-300">
-                    Ao tocar em <strong>WhatsApp</strong> ao lado do contato, o aplicativo envia uma mensagem formatada contendo o link exclusivo <code className="text-red-300 bg-red-950/60 px-1.5 py-0.5 rounded font-mono text-[11px] break-all inline-block max-w-full">https://alertacriminal.com.br/sos/...</code>. O seu contato clica e ouve o áudio de 10 segundos na hora pelo navegador do celular, sem precisar baixar o app nem criar conta.
+                    Ao tocar em <strong>WhatsApp</strong> ao lado do contato, o aplicativo envia uma mensagem formatada contendo o link exclusivo{' '}
+                    <code className="text-red-300 bg-red-950/80 px-2 py-0.5 rounded font-mono text-[11px] font-semibold break-words select-text border border-red-500/30 inline-block">
+                      https://alertacriminal.com.br/sos/...
+                    </code>
+                    . O seu contato clica e ouve o áudio de 10 segundos na hora pelo navegador do celular, sem precisar baixar o app nem criar conta.
                   </p>
                 </div>
               </div>
@@ -595,7 +625,18 @@ export function TutorialPage() {
                 <Smartphone size={18} className="text-green-400"/> No Android (Google Chrome)
               </h3>
               <ol className="text-sm text-slate-400 space-y-2 list-decimal list-inside">
-                <li>Abra o site <strong className="text-slate-200 break-all font-mono">https://alertacriminal.com.br/</strong> no Chrome.</li>
+                <li>
+                  Abra o site oficial{' '}
+                  <a
+                    href="https://alertacriminal.com.br/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-400 hover:text-blue-300 font-mono font-bold select-text underline decoration-blue-500/50 underline-offset-2"
+                  >
+                    https://alertacriminal.com.br/
+                  </a>{' '}
+                  no Chrome.
+                </li>
                 <li>Toque no menu de <strong>três pontinhos (⋮)</strong> no canto superior direito.</li>
                 <li>Toque em <strong>"Instalar aplicativo"</strong> ou "Adicionar à tela inicial".</li>
                 <li>Confirme. O ícone oficial do Escudo aparecerá junto aos seus aplicativos!</li>
@@ -638,16 +679,52 @@ export function TutorialPage() {
           <p className="text-slate-300 text-sm mb-4 leading-relaxed">
             Multiplique a segurança da sua rua e bairro convidando vizinhos e familiares para a rede.
           </p>
+
+          {/* Cartão de Cópia Rápida do Link Oficial */}
+          <div className="bg-slate-900/80 p-3 sm:p-4 rounded-2xl border border-slate-700/80 mb-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-950 p-3 rounded-xl border border-slate-800">
+              <div className="flex items-center gap-2 min-w-0 flex-1">
+                <span className="text-xs text-slate-400 shrink-0 font-medium">Link Oficial:</span>
+                <a
+                  href="https://alertacriminal.com.br/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-mono text-xs sm:text-sm text-emerald-400 font-bold hover:underline select-text break-words flex items-center gap-1"
+                >
+                  <span>https://alertacriminal.com.br/</span>
+                  <ExternalLink size={12} className="opacity-60 shrink-0" />
+                </a>
+              </div>
+              <button
+                onClick={() => handleCopyLink('https://alertacriminal.com.br/')}
+                className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white text-xs font-bold rounded-lg transition-all shadow-md shrink-0 cursor-pointer"
+                title="Copiar link oficial"
+              >
+                {copiedLink ? (
+                  <>
+                    <Check size={14} className="text-white" />
+                    <span>Copiado!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy size={14} />
+                    <span>Copiar Link</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+
           <ul className="text-sm text-slate-400 space-y-3">
             <li className="flex items-start gap-2">
               <ChevronRight size={16} className="text-green-500 shrink-0 mt-0.5" />
-              <span>
-                <strong>No WhatsApp:</strong> Cole o link <code className="text-green-300 bg-slate-900 px-1 py-0.5 rounded font-mono text-xs break-all">https://alertacriminal.com.br/</code> no grupo da sua rua ou família e <strong>aguarde de 2 a 3 segundos</strong> antes de tocar em enviar. A imagem oficial do nosso Escudo e o resumo do app carregarão automaticamente na miniatura!
+              <span className="select-text leading-relaxed">
+                <strong>No WhatsApp:</strong> Cole o link oficial no grupo da sua rua ou família e <strong>aguarde de 2 a 3 segundos</strong> antes de tocar em enviar. A imagem oficial do nosso Escudo e o resumo do app carregarão automaticamente na miniatura!
               </span>
             </li>
             <li className="flex items-start gap-2">
               <ChevronRight size={16} className="text-blue-500 shrink-0 mt-0.5" />
-              <span>
+              <span className="select-text leading-relaxed">
                 <strong>No Facebook e Redes:</strong> Compartilhe no seu perfil, grupos de bairro ou envie via Messenger para expandir a rede de vigilância comunitária.
               </span>
             </li>

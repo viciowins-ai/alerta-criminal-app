@@ -19,6 +19,12 @@ body {
   color: #f8fafc; /* slate-50 */
 }
 
+code, pre {
+  word-break: break-word;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
 /* Hide scrollbar for clean mobile look */
 ::-webkit-scrollbar {
   display: none;

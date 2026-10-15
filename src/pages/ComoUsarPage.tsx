@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, ChevronDown } from "lucide-react";
+import { ArrowLeft, ChevronDown, Copy, Check, ExternalLink } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import { useTranslation } from "react-i18next";
 import { FlagIcon } from "../components/FlagIcon";
@@ -18,7 +18,30 @@ const TUTORIAL_LANGUAGES = [
 export function ComoUsarPage({ lang = "pt" }: { lang?: string }) {
   const { t, i18n } = useTranslation();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const handleCopyLink = async (text: string) => {
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-9999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2500);
+    } catch (err) {
+      console.error('Failed to copy link:', err);
+    }
+  };
 
   const currentLangObj =
     TUTORIAL_LANGUAGES.find((l) => l.code === lang) || TUTORIAL_LANGUAGES[0];
@@ -605,9 +628,42 @@ export function ComoUsarPage({ lang = "pt" }: { lang?: string }) {
               {t("tutorial.shareTitle")}
             </h2>
             <p
-              className="text-slate-400 leading-relaxed mb-4"
+              className="text-slate-400 leading-relaxed mb-5"
               dangerouslySetInnerHTML={{ __html: t("tutorial.shareDesc") }}
             />
+
+            {/* Quick Official Link Copy Card */}
+            <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md">
+              <div className="flex items-center gap-2 min-w-0 flex-1">
+                <span className="text-xs text-slate-400 shrink-0 font-medium">Link:</span>
+                <a
+                  href="https://alertacriminal.com.br/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-mono text-sm sm:text-base text-emerald-400 font-bold hover:underline select-text break-words flex items-center gap-1.5"
+                >
+                  <span>https://alertacriminal.com.br/</span>
+                  <ExternalLink size={14} className="opacity-60 shrink-0" />
+                </a>
+              </div>
+              <button
+                onClick={() => handleCopyLink('https://alertacriminal.com.br/')}
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white text-xs font-bold rounded-xl transition-all shadow-md shrink-0 cursor-pointer"
+                title="Copiar link"
+              >
+                {copiedLink ? (
+                  <>
+                    <Check size={14} className="text-white" />
+                    <span>Copiado!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy size={14} />
+                    <span>Copiar Link</span>
+                  </>
+                )}
+              </button>
+            </div>
           </section>
         </div>
       </main>
