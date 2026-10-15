@@ -41,10 +41,10 @@ export function TutorialPage() {
     <div className={`flex flex-col h-full bg-slate-900 ${isRTL ? 'text-right' : 'text-left'}`} dir={isRTL ? 'rtl' : 'ltr'}>
       <TopBar title={t('tutorial.visualGuideTitle', 'Tutorial de Uso')} showBack={true} />
       
-      <div className="flex-1 overflow-y-auto p-4 space-y-6 pb-20">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-6 pb-20">
         
         {/* Bloco Geral de Recursos */}
-        <div className="bg-slate-800 rounded-3xl p-6 border border-slate-700">
+        <div className="bg-slate-800 rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-700">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-3 bg-indigo-500/20 text-indigo-400 rounded-xl">
               <BookOpen size={24} />
@@ -57,7 +57,7 @@ export function TutorialPage() {
           
           <div className="space-y-4">
             {/* 1. Mapa de Risco */}
-            <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
+            <div className="bg-slate-900/50 p-3.5 sm:p-4 rounded-2xl border border-slate-700/50 flex gap-3 sm:gap-4 items-start">
               <div className="bg-blue-500/20 p-2 rounded-lg shrink-0 mt-1">
                 <Map size={20} className="text-blue-400" />
               </div>
@@ -102,11 +102,11 @@ export function TutorialPage() {
             </div>
 
             {/* 2. Seletor de Idiomas & Acessibilidade Global */}
-            <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
+            <div className="bg-slate-900/50 p-3.5 sm:p-4 rounded-2xl border border-slate-700/50 flex gap-3 sm:gap-4 items-start">
               <div className="bg-blue-500/20 p-2 rounded-lg shrink-0 mt-1">
                 <Globe size={20} className="text-blue-400" />
               </div>
-              <div>
+              <div className="flex-1 min-w-0">
                 <h3 className="text-white font-semibold mb-1 flex items-center gap-2 flex-wrap">
                   Seletor de Idiomas & Acessibilidade Global
                   <span className="inline-flex items-center gap-1 bg-slate-800 px-2 py-0.5 rounded-full border border-slate-700 text-xs">
@@ -118,14 +118,24 @@ export function TutorialPage() {
                 <p className="text-sm text-slate-400 leading-relaxed mb-3">
                   O Alerta Criminal é uma rede inclusiva projetada para proteger moradores, viajantes e turistas internacionais. O aplicativo é traduzido em tempo real em 7 idiomas principais.
                 </p>
-                <div className="bg-slate-800/60 p-3 rounded-xl border border-slate-700/60 text-sm text-slate-300 space-y-2 mb-3">
-                  <div className="flex items-start gap-2">
-                    <strong className="text-blue-400 shrink-0">No Topo do Mapa:</strong>
-                    <span>Toque no botão com a bandeira e sigla do país ativo (ex: <code className="bg-slate-900 px-1.5 py-0.5 rounded text-blue-300 text-xs font-mono">[🇧🇷] PT</code>) localizado ao lado da barra de pesquisa para abrir a troca instantânea.</span>
+                <div className="bg-slate-800/60 p-3.5 rounded-xl border border-slate-700/60 text-xs sm:text-sm text-slate-300 space-y-3 mb-3">
+                  <div>
+                    <p className="font-bold text-blue-400 mb-1 flex items-center gap-1.5">
+                      <span>📍</span>
+                      <span>No Topo do Mapa:</span>
+                    </p>
+                    <p className="leading-relaxed text-slate-300">
+                      Toque no botão com a bandeira e sigla do país ativo (ex: <code className="bg-slate-900 px-1.5 py-0.5 rounded text-blue-300 text-xs font-mono font-semibold">[🇧🇷] PT</code>) localizado ao lado da barra de pesquisa para abrir a troca instantânea.
+                    </p>
                   </div>
-                  <div className="flex items-start gap-2">
-                    <strong className="text-blue-400 shrink-0">No Perfil / Ajustes:</strong>
-                    <span>Acesse a aba <strong>Perfil</strong> &gt; <strong>Configurações</strong> &gt; <strong>Idioma</strong> para escolher sua língua de preferência a qualquer momento.</span>
+                  <div className="pt-2.5 border-t border-slate-700/60">
+                    <p className="font-bold text-blue-400 mb-1 flex items-center gap-1.5">
+                      <span>⚙️</span>
+                      <span>No Perfil / Ajustes:</span>
+                    </p>
+                    <p className="leading-relaxed text-slate-300">
+                      Acesse a aba <strong>Perfil</strong> &gt; <strong>Configurações</strong> &gt; <strong>Idioma</strong> para escolher sua língua de preferência a qualquer momento.
+                    </p>
                   </div>
                 </div>
                 <h4 className="text-xs font-bold text-slate-300 mb-2 uppercase">Idiomas Suportados & Bandeiras em Alta Resolução:</h4>
@@ -156,11 +166,11 @@ export function TutorialPage() {
             </div>
 
             {/* 3. Filtros de Ocorrências & Mapa de Calor */}
-            <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
+            <div className="bg-slate-900/50 p-3.5 sm:p-4 rounded-2xl border border-slate-700/50 flex gap-3 sm:gap-4 items-start">
               <div className="bg-blue-500/20 p-2 rounded-lg shrink-0 mt-1">
                 <Filter size={20} className="text-blue-400" />
               </div>
-              <div className="w-full">
+              <div className="flex-1 min-w-0">
                 <h3 className="text-white font-semibold mb-1 flex items-center gap-2 flex-wrap">
                   Filtros de Ocorrências & Mapa de Calor
                   <span className="text-xs font-normal text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/20">
@@ -179,10 +189,10 @@ export function TutorialPage() {
 
                   <div className="flex items-start gap-2 pt-2.5 border-t border-slate-700/60">
                     <span className="text-base shrink-0">🎯</span>
-                    <div className="space-y-1">
-                      <strong className="text-blue-400">Botão de Enquadramento Inteligente no Topo:</strong>
+                    <div className="space-y-1 flex-1 min-w-0">
+                      <strong className="text-blue-400 block">Botão de Enquadramento Inteligente no Topo:</strong>
                       <p className="text-xs text-slate-400 leading-relaxed">
-                        Ao selecionar qualquer categoria, um <strong>botão flutuante</strong> surge no topo da tela com o total de ocorrências encontradas (ex: <code className="bg-slate-900 px-1.5 py-0.5 rounded text-red-400 text-xs font-mono font-bold">🔴 2 alertas exibidos • Ver no mapa 📍</code>).
+                        Ao selecionar qualquer categoria, um <strong>botão flutuante</strong> surge no topo da tela com o total de ocorrências encontradas (ex: <code className="bg-slate-900 px-1.5 py-0.5 rounded text-red-400 text-xs font-mono font-bold break-all inline-block max-w-full">🔴 2 alertas exibidos • Ver no mapa 📍</code>).
                       </p>
                       <ul className="text-xs text-slate-300 space-y-1.5 list-disc pl-4 mt-1">
                         <li><strong>Toque no botão para enquadrar:</strong> O mapa calcula a abrangência de todos os alertas filtrados e ajusta a câmera suavemente, centralizando todos simultaneamente na tela com zoom perfeito.</li>
@@ -249,17 +259,17 @@ export function TutorialPage() {
             </div>
 
             {/* 4. Botão SOS */}
-            <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
+            <div className="bg-slate-900/50 p-3.5 sm:p-4 rounded-2xl border border-slate-700/50 flex gap-3 sm:gap-4 items-start">
               <div className="bg-red-500/20 p-2 rounded-lg shrink-0 mt-1">
                 <ShieldAlert size={20} className="text-red-500" />
               </div>
-              <div className="w-full">
-                <h3 className="text-white font-semibold mb-1 flex items-center justify-between flex-wrap gap-2">
-                  <span>Botão SOS (Emergência)</span>
-                  <span className="text-xs font-bold text-red-400 bg-red-500/10 px-2 py-0.5 rounded-full border border-red-500/20">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between flex-wrap gap-2 mb-1.5">
+                  <h3 className="text-white font-semibold text-base">Botão SOS (Emergência)</h3>
+                  <span className="text-[11px] sm:text-xs font-bold text-red-400 bg-red-500/10 px-2.5 py-0.5 rounded-full border border-red-500/20">
                     Botão Ampliado • Toque Rápido
                   </span>
-                </h3>
+                </div>
                 <p className="text-sm text-slate-400 leading-relaxed mb-3">
                   O botão de escudo vermelho no canto direito do mapa possui tamanho ampliado e anatômico para acesso imediato. Use-o <strong>apenas</strong> em caso de perigo real! Ao ser acionado:
                 </p>
@@ -271,23 +281,23 @@ export function TutorialPage() {
                   <li>Oferece um atalho de discagem rápida para ligação com a <strong>Polícia (190)</strong>.</li>
                 </ul>
 
-                <div className="mt-3.5 bg-red-950/30 p-3 rounded-xl border border-red-500/20 text-xs text-slate-300 space-y-1.5">
+                <div className="mt-3.5 bg-red-950/30 p-3.5 rounded-xl border border-red-500/20 text-xs text-slate-300 space-y-1.5 break-words overflow-hidden">
                   <p className="font-bold text-red-400 flex items-center gap-1.5">
                     <span>💡 Como o seu contato ouve o áudio:</span>
                   </p>
-                  <p className="leading-relaxed">
-                    Ao tocar em <strong>WhatsApp</strong> ao lado do contato, o aplicativo envia uma mensagem formatada contendo o link exclusivo <code className="text-red-300 bg-red-950/60 px-1 py-0.5 rounded font-mono">https://alertacriminal.com.br/sos/...</code>. O seu contato clica e ouve o áudio de 10 segundos na hora pelo navegador do celular, sem precisar baixar o app nem criar conta.
+                  <p className="leading-relaxed text-slate-300">
+                    Ao tocar em <strong>WhatsApp</strong> ao lado do contato, o aplicativo envia uma mensagem formatada contendo o link exclusivo <code className="text-red-300 bg-red-950/60 px-1.5 py-0.5 rounded font-mono text-[11px] break-all inline-block max-w-full">https://alertacriminal.com.br/sos/...</code>. O seu contato clica e ouve o áudio de 10 segundos na hora pelo navegador do celular, sem precisar baixar o app nem criar conta.
                   </p>
                 </div>
               </div>
             </div>
 
             {/* 5. Modo Guardião & Camuflagem */}
-            <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
+            <div className="bg-slate-900/50 p-3.5 sm:p-4 rounded-2xl border border-slate-700/50 flex gap-3 sm:gap-4 items-start">
               <div className="bg-blue-500/20 p-2 rounded-lg shrink-0 mt-1">
                 <ShieldCheck size={20} className="text-blue-400" />
               </div>
-              <div>
+              <div className="flex-1 min-w-0">
                 <h3 className="text-white font-semibold mb-1">Modo Guardião & Camuflagem</h3>
                 <p className="text-sm text-slate-400 leading-relaxed mb-2">
                   Ideal para quando estiver voltando para casa, caminhando sozinho ou em transporte por aplicativo. O Modo Guardião monitora seu percurso contínuo.
@@ -302,11 +312,11 @@ export function TutorialPage() {
             </div>
 
             {/* 6. Aviso de Rastreamento (Regras de Ouro) */}
-            <div className="bg-orange-500/10 p-4 rounded-2xl border border-orange-500/30 flex gap-4 items-start">
+            <div className="bg-orange-500/10 p-3.5 sm:p-4 rounded-2xl border border-orange-500/30 flex gap-3 sm:gap-4 items-start">
               <div className="bg-orange-500/20 p-2 rounded-lg shrink-0 mt-1">
                 <AlertTriangle size={20} className="text-orange-400" />
               </div>
-              <div>
+              <div className="flex-1 min-w-0">
                 <h3 className="text-orange-400 font-semibold mb-2">Como manter o rastreio ativo?</h3>
                 <p className="text-sm text-slate-300 leading-relaxed mb-3">
                   Para que o SOS e o Modo Guardião funcionem sem cortes (já que o sistema operacional pode suspender o GPS para economizar carga), siga as 3 regras de ouro:
@@ -320,11 +330,11 @@ export function TutorialPage() {
             </div>
 
             {/* 7. Modo Pânico (Tela Escura Anti-Assalto) */}
-            <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
+            <div className="bg-slate-900/50 p-3.5 sm:p-4 rounded-2xl border border-slate-700/50 flex gap-3 sm:gap-4 items-start">
               <div className="bg-yellow-500/20 p-2 rounded-lg shrink-0 mt-1">
                 <Moon size={20} className="text-yellow-400" />
               </div>
-              <div>
+              <div className="flex-1 min-w-0">
                 <h3 className="text-white font-semibold mb-1">Modo Pânico (Tela Escura Anti-Assalto)</h3>
                 <p className="text-sm text-slate-400 leading-relaxed mb-3">
                   Acesse pelo botão de <strong>Lua (🌙)</strong> no menu ou no mapa. Se você for abordado ou forçado a entregar o celular desbloqueado, ative-o imediatamente.
@@ -338,11 +348,11 @@ export function TutorialPage() {
             </div>
 
             {/* 8. Zeladoria e Riscos Ambientais */}
-            <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
+            <div className="bg-slate-900/50 p-3.5 sm:p-4 rounded-2xl border border-slate-700/50 flex gap-3 sm:gap-4 items-start">
               <div className="bg-cyan-500/20 p-2 rounded-lg shrink-0 mt-1">
                 <Wrench size={20} className="text-cyan-400" />
               </div>
-              <div>
+              <div className="flex-1 min-w-0">
                 <h3 className="text-white font-semibold mb-1">Zeladoria & Riscos Ambientais (🚧)</h3>
                 <p className="text-sm text-slate-400 leading-relaxed mb-2">
                   Segurança pública também depende de prevenção urbana. Reportar riscos estruturais é tão importante quanto relatar assaltos:
@@ -360,11 +370,11 @@ export function TutorialPage() {
             </div>
 
             {/* 9. Contatos de Confiança */}
-            <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
+            <div className="bg-slate-900/50 p-3.5 sm:p-4 rounded-2xl border border-slate-700/50 flex gap-3 sm:gap-4 items-start">
               <div className="bg-emerald-500/20 p-2 rounded-lg shrink-0 mt-1">
                 <PhoneCall size={20} className="text-emerald-400" />
               </div>
-              <div>
+              <div className="flex-1 min-w-0">
                 <h3 className="text-white font-semibold mb-1">Contatos de Confiança</h3>
                 <p className="text-sm text-slate-400 leading-relaxed mb-2">
                   Acesse pelo menu lateral ou Perfil na seção <strong>"Contatos de Confiança"</strong>. Cadastre até 5 parentes ou amigos próximos com telefone de WhatsApp.
@@ -376,11 +386,11 @@ export function TutorialPage() {
             </div>
 
             {/* 10. Grupos Privados */}
-            <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
+            <div className="bg-slate-900/50 p-3.5 sm:p-4 rounded-2xl border border-slate-700/50 flex gap-3 sm:gap-4 items-start">
               <div className="bg-purple-500/20 p-2 rounded-lg shrink-0 mt-1">
                 <Lock size={20} className="text-purple-400" />
               </div>
-              <div>
+              <div className="flex-1 min-w-0">
                 <h3 className="text-white font-semibold mb-1">Grupos Privados (Redes de Vizinhança)</h3>
                 <p className="text-sm text-slate-400 leading-relaxed mb-2">
                   Crie ou participe de Redes Privadas para a sua rua, vizinhança protegida, condomínio ou família através de códigos de convite seguros.
@@ -392,11 +402,11 @@ export function TutorialPage() {
             </div>
 
             {/* 11. Botão Reportar */}
-            <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
+            <div className="bg-slate-900/50 p-3.5 sm:p-4 rounded-2xl border border-slate-700/50 flex gap-3 sm:gap-4 items-start">
               <div className="bg-blue-500/20 p-2 rounded-lg shrink-0 mt-1">
                 <Plus size={20} className="text-blue-400" />
               </div>
-              <div>
+              <div className="flex-1 min-w-0">
                 <h3 className="text-white font-semibold mb-1">Botão Reportar (Sinal de +)</h3>
                 <p className="text-sm text-slate-400 leading-relaxed mb-3">
                   O grande botão azul central na barra inferior. Presenciou algo ou foi vítima? Ajude outras pessoas:
@@ -417,11 +427,11 @@ export function TutorialPage() {
             </div>
 
             {/* 12. Censurar Rostos e Placas (Desfoque de Fotos e Vídeos com IA) */}
-            <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
+            <div className="bg-slate-900/50 p-3.5 sm:p-4 rounded-2xl border border-slate-700/50 flex gap-3 sm:gap-4 items-start">
               <div className="bg-blue-500/20 p-2 rounded-lg shrink-0 mt-1">
                 <Droplet size={20} className="text-blue-400" />
               </div>
-              <div className="w-full">
+              <div className="flex-1 min-w-0">
                 <h3 className="text-white font-semibold mb-1 flex items-center gap-2 flex-wrap">
                   Censurar Rostos e Placas (Fotos e Vídeos com IA)
                   <span className="text-xs font-normal text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/20">
@@ -501,11 +511,11 @@ export function TutorialPage() {
             </div>
 
             {/* 13. Rotas Seguras */}
-            <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
+            <div className="bg-slate-900/50 p-3.5 sm:p-4 rounded-2xl border border-slate-700/50 flex gap-3 sm:gap-4 items-start">
               <div className="bg-indigo-500/20 p-2 rounded-lg shrink-0 mt-1">
                 <Route size={20} className="text-indigo-400" />
               </div>
-              <div>
+              <div className="flex-1 min-w-0">
                 <h3 className="text-white font-semibold mb-1">Rotas Seguras (Desvio Inteligente)</h3>
                 <p className="text-sm text-slate-400 leading-relaxed">
                   Vai se deslocar a pé, de bicicleta, carro ou moto? Em vez de calcular apenas o caminho mais curto, o aplicativo mapeia a <strong>Rota Mais Segura</strong>, desviando dinamicamente de ruas com histórico recente de assaltos e alertas críticos.
@@ -514,11 +524,11 @@ export function TutorialPage() {
             </div>
 
             {/* 14. Feed da Comunidade */}
-            <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
+            <div className="bg-slate-900/50 p-3.5 sm:p-4 rounded-2xl border border-slate-700/50 flex gap-3 sm:gap-4 items-start">
               <div className="bg-green-500/20 p-2 rounded-lg shrink-0 mt-1">
                 <Users size={20} className="text-green-400" />
               </div>
-              <div>
+              <div className="flex-1 min-w-0">
                 <h3 className="text-white font-semibold mb-1">Feed da Comunidade (Rede Comunitária)</h3>
                 <p className="text-sm text-slate-400 leading-relaxed mb-3">
                   A linha do tempo do seu bairro com alertas em tempo real, comentários e mídias.
@@ -533,11 +543,11 @@ export function TutorialPage() {
             </div>
 
             {/* 15. Precisão de GPS */}
-            <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
+            <div className="bg-slate-900/50 p-3.5 sm:p-4 rounded-2xl border border-slate-700/50 flex gap-3 sm:gap-4 items-start">
               <div className="bg-blue-500/20 p-2 rounded-lg shrink-0 mt-1">
                 <Crosshair size={20} className="text-blue-400" />
               </div>
-              <div>
+              <div className="flex-1 min-w-0">
                 <h3 className="text-white font-semibold mb-1">Precisão da Localização (Celular vs PC)</h3>
                 <p className="text-sm text-slate-400 leading-relaxed mb-2">
                   O Alerta Criminal oferece máxima eficácia em smartphones:
@@ -553,11 +563,11 @@ export function TutorialPage() {
             </div>
 
             {/* 16. Pontos e Níveis */}
-            <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 flex gap-4 items-start">
+            <div className="bg-slate-900/50 p-3.5 sm:p-4 rounded-2xl border border-slate-700/50 flex gap-3 sm:gap-4 items-start">
               <div className="bg-yellow-500/20 p-2 rounded-lg shrink-0 mt-1">
                 <Award size={20} className="text-yellow-400" />
               </div>
-              <div>
+              <div className="flex-1 min-w-0">
                 <h3 className="text-white font-semibold mb-1">Pontos (XP) & Selo de Verificado</h3>
                 <p className="text-sm text-slate-400 leading-relaxed">
                   Ganhe experiência ao colaborar com a comunidade: criando reportes verídicos, confirmando ocorrências de vizinhos ou convidando moradores. Ao alcançar o Nível Ouro (500 XP), você desbloqueia o <strong>Selo de Verificado Oficial</strong> no seu perfil, concedendo máxima relevância aos seus alertas!
@@ -568,7 +578,7 @@ export function TutorialPage() {
         </div>
 
         {/* Bloco de Instalação (PWA) */}
-        <div className="bg-slate-800 rounded-3xl p-6 border border-slate-700">
+        <div className="bg-slate-800 rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-700">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-3 bg-blue-500/20 text-blue-400 rounded-xl">
               <Download size={24} />
@@ -580,19 +590,19 @@ export function TutorialPage() {
           </p>
           
           <div className="space-y-4">
-            <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50">
+            <div className="bg-slate-900/50 p-3.5 sm:p-4 rounded-2xl border border-slate-700/50">
               <h3 className="text-white font-semibold flex items-center gap-2 mb-2">
                 <Smartphone size={18} className="text-green-400"/> No Android (Google Chrome)
               </h3>
               <ol className="text-sm text-slate-400 space-y-2 list-decimal list-inside">
-                <li>Abra o site <strong>https://alertacriminal.com.br/</strong> no Chrome.</li>
+                <li>Abra o site <strong className="text-slate-200 break-all font-mono">https://alertacriminal.com.br/</strong> no Chrome.</li>
                 <li>Toque no menu de <strong>três pontinhos (⋮)</strong> no canto superior direito.</li>
                 <li>Toque em <strong>"Instalar aplicativo"</strong> ou "Adicionar à tela inicial".</li>
                 <li>Confirme. O ícone oficial do Escudo aparecerá junto aos seus aplicativos!</li>
               </ol>
             </div>
             
-            <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50">
+            <div className="bg-slate-900/50 p-3.5 sm:p-4 rounded-2xl border border-slate-700/50">
               <h3 className="text-white font-semibold flex items-center gap-2 mb-2">
                 <Smartphone size={18} className="text-blue-400"/> No iPhone / iPad (Safari)
               </h3>
@@ -604,7 +614,7 @@ export function TutorialPage() {
               </ol>
             </div>
             
-            <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50">
+            <div className="bg-slate-900/50 p-3.5 sm:p-4 rounded-2xl border border-slate-700/50">
               <h3 className="text-white font-semibold flex items-center gap-2 mb-2">
                 <Monitor size={18} className="text-slate-300"/> No Computador (Chrome / Edge)
               </h3>
@@ -618,7 +628,7 @@ export function TutorialPage() {
         </div>
 
         {/* Bloco de Compartilhamento */}
-        <div className="bg-slate-800 rounded-3xl p-6 border border-slate-700">
+        <div className="bg-slate-800 rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-700">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-3 bg-green-500/20 text-green-400 rounded-xl">
               <Share2 size={24} />
@@ -632,7 +642,7 @@ export function TutorialPage() {
             <li className="flex items-start gap-2">
               <ChevronRight size={16} className="text-green-500 shrink-0 mt-0.5" />
               <span>
-                <strong>No WhatsApp:</strong> Cole o link <code>https://alertacriminal.com.br/</code> no grupo da sua rua ou família e <strong>aguarde de 2 a 3 segundos</strong> antes de tocar em enviar. A imagem oficial do nosso Escudo e o resumo do app carregarão automaticamente na miniatura!
+                <strong>No WhatsApp:</strong> Cole o link <code className="text-green-300 bg-slate-900 px-1 py-0.5 rounded font-mono text-xs break-all">https://alertacriminal.com.br/</code> no grupo da sua rua ou família e <strong>aguarde de 2 a 3 segundos</strong> antes de tocar em enviar. A imagem oficial do nosso Escudo e o resumo do app carregarão automaticamente na miniatura!
               </span>
             </li>
             <li className="flex items-start gap-2">
@@ -645,7 +655,7 @@ export function TutorialPage() {
         </div>
 
         {/* Bloco de Idiomas Internacionais */}
-        <div className="bg-slate-800 rounded-3xl p-6 border border-slate-700">
+        <div className="bg-slate-800 rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-700">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-3 bg-blue-500/20 text-blue-400 rounded-xl">
               <Globe size={24} />
