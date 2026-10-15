@@ -664,22 +664,32 @@ export function FeedPage() {
                 onKeyDown={(e) => e.key === 'Enter' && handleCreatePost()}
                 placeholder={
                   feedFilter === 'private'
-                    ? (currentSelectedGroup ? t('feed.writeGroupNoticeFor', 'Escreva um aviso para {{name}}...', { name: currentSelectedGroup.name }) : t('feed.writeGroupNotice', 'Escreva um aviso para sua rede privada...'))
+                    ? (currentSelectedGroup ? `Conversar no grupo: digite uma mensagem para ${currentSelectedGroup.name}...` : 'Conversar no grupo: digite uma mensagem para seus vizinhos...')
                     : t('feed.sharePlaceholder', 'Compartilhe algo com a comunidade...')
                 } 
                 className="flex-1 bg-slate-900 rounded-full px-4 py-2 text-sm text-white placeholder-slate-400 outline-none focus:ring-2 focus:ring-indigo-500 border border-slate-700 text-start min-w-0"
               />
             </div>
             
-            <div className="flex items-center justify-between pt-1 border-t border-slate-700/60">
+            <div className="flex items-center justify-between pt-1 border-t border-slate-700/60 flex-wrap gap-2">
               {feedFilter === 'private' ? (
-                <button
-                  onClick={() => navigate(currentSelectedGroup ? `/report?groupId=${currentSelectedGroup.id}` : '/report')}
-                  className="text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors border border-red-500/20 cursor-pointer"
-                >
-                  <AlertTriangle size={13} />
-                  {t('feed.newNetworkAlert', 'Novo Alerta na Rede')}
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => navigate(currentSelectedGroup ? `/report?groupId=${currentSelectedGroup.id}` : '/report')}
+                    className="text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors border border-red-500/20 cursor-pointer"
+                  >
+                    <AlertTriangle size={13} />
+                    {t('feed.newNetworkAlert', 'Novo Alerta na Rede')}
+                  </button>
+                  <button
+                    onClick={() => navigate('/groups')}
+                    className="text-indigo-300 hover:text-white bg-indigo-500/10 hover:bg-indigo-500/20 px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors border border-indigo-500/20 cursor-pointer"
+                    title="Ir para tela de Grupos e Bate-papo"
+                  >
+                    <MessageSquare size={13} />
+                    Bate-papo do Grupo
+                  </button>
+                </div>
               ) : (
                 <span className="text-[11px] text-slate-500">
                   {t('feed.publicVisibility', 'Publicação visível para toda a comunidade')}

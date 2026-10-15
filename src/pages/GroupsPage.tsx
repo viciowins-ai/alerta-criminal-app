@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Shield, Plus, Users, Search, ArrowRight, UserPlus, LogOut, Copy, Check, Lock, ChevronDown, ChevronUp, MapPin, AlertTriangle, Eye, Siren, Flame, MoreHorizontal, Clock, Crown, ShieldCheck, Trash2, Mic, UserMinus, RefreshCw } from 'lucide-react';
+import { Shield, Plus, Users, Search, ArrowRight, UserPlus, LogOut, Copy, Check, Lock, ChevronDown, ChevronUp, MapPin, AlertTriangle, Eye, Siren, Flame, MoreHorizontal, Clock, Crown, ShieldCheck, Trash2, Mic, UserMinus, RefreshCw, MessageSquare, Send, Heart, MessageCircle } from 'lucide-react';
 import { TopBar } from '../components/TopBar';
 import { AttachmentGallery } from '../components/AttachmentGallery';
 import { AudioPlayer } from '../components/AudioPlayer';
 import { VoiceRecorder } from '../components/VoiceRecorder';
+import { CommentsModal } from '../components/CommentsModal';
+import { getLevelInfo } from '../utils/levelUtils';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
-import { collection, addDoc, query, where, getDocs, doc, getDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs, doc, getDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove, serverTimestamp, increment, onSnapshot } from 'firebase/firestore';
 
 export function GroupsPage() {
   const navigate = useNavigate();
@@ -26,6 +28,18 @@ export function GroupsPage() {
   const [groupReports, setGroupReports] = useState<Record<string, any[]>>({});
   const [loadingReports, setLoadingReports] = useState<Record<string, boolean>>({});
   const [membersMap, setMembersMap] = useState<Record<string, { uid: string; name: string; avatar: string; level?: string }>>({});
+  const [activeCommentItem, setActiveCommentItem] = useState<{ id: string; type: 'post' | 'report'; authorName: string } | null>(null);
+  const [groupMessageText, setGroupMessageText] = useState<Record<string, string>>({});
+  const [isSendingMessage, setIsSendingMessage] = useState<Record<string, boolean>>({});
+  const [groupTabFilter, setGroupTabFilter] = useState<Record<string, 'all' | 'messages' | 'reports'>>({});
+  const [userProfile, setUserProfile] = useState<any>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    getDoc(doc(db, 'users', user.uid)).then(snap => {
+      if (snap.exists()) setUserProfile(snap.data());
+    }).catch(console.error);
+  }, [user]);
 
   const fetchMemberProfiles = async (uids: string[]) => {
     const missing = uids.filter(uid => uid && !membersMap[uid]);
@@ -63,49 +77,162 @@ export function GroupsPage() {
     setMembersMap(prev => ({ ...prev, ...newProfiles }));
   };
 
-  const toggleGroupReports = async (groupId: string) => {
+  const toggleGroupReports = (groupId: string) => {
     if (expandedGroupId === groupId) {
       setExpandedGroupId(null);
-      return;
-    }
-    setExpandedGroupId(groupId);
-    if (!groupReports[groupId]) {
-      setLoadingReports(prev => ({ ...prev, [groupId]: true }));
-      try {
-        const qReports = query(collection(db, 'reports'), where('groupId', '==', groupId));
-        const snap = await getDocs(qReports);
-        const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        data.sort((a: any, b: any) => {
-          const tA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
-          const tB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
-          return tB - tA;
-        });
-        setGroupReports(prev => ({ ...prev, [groupId]: data }));
-
-        // Also fetch author profiles if missing
-        const authorUids = data.map((r: any) => r.authorId).filter(Boolean);
-        if (authorUids.length > 0) {
-          fetchMemberProfiles(authorUids);
-        }
-      } catch (err) {
-        console.error("Error loading group reports", err);
-      } finally {
-        setLoadingReports(prev => ({ ...prev, [groupId]: false }));
-      }
+    } else {
+      setExpandedGroupId(groupId);
     }
   };
 
-  const handleDeleteReport = async (groupId: string, reportId: string) => {
-    if (!window.confirm('Tem certeza de que deseja excluir esta ocorrência deste grupo privado?')) return;
+  // Real-time synchronization of posts and reports for the currently expanded group
+  useEffect(() => {
+    if (!expandedGroupId) return;
+    setLoadingReports(prev => ({ ...prev, [expandedGroupId]: true }));
+
+    let currentReports: any[] = [];
+    let currentPosts: any[] = [];
+
+    const syncCombined = () => {
+      const combined = [...currentReports, ...currentPosts];
+      combined.sort((a: any, b: any) => {
+        const tA = a.createdAt?.toMillis ? a.createdAt.toMillis() : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
+        const tB = b.createdAt?.toMillis ? b.createdAt.toMillis() : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
+        return tB - tA;
+      });
+      setGroupReports(prev => ({ ...prev, [expandedGroupId]: combined }));
+      setLoadingReports(prev => ({ ...prev, [expandedGroupId]: false }));
+
+      const authorUids = combined.map((r: any) => r.authorId).filter(Boolean);
+      if (authorUids.length > 0) {
+        fetchMemberProfiles(authorUids);
+      }
+    };
+
+    const qReports = query(collection(db, 'reports'), where('groupId', '==', expandedGroupId));
+    const qPosts = query(collection(db, 'posts'), where('groupId', '==', expandedGroupId));
+
+    const unsubReports = onSnapshot(qReports, (snapshot) => {
+      currentReports = snapshot.docs.map(d => ({ id: d.id, feedType: 'report', ...d.data() }));
+      syncCombined();
+    }, (err) => {
+      console.error("Erro ao sincronizar ocorrências da rede privada:", err);
+      setLoadingReports(prev => ({ ...prev, [expandedGroupId]: false }));
+    });
+
+    const unsubPosts = onSnapshot(qPosts, (snapshot) => {
+      currentPosts = snapshot.docs.map(d => ({ id: d.id, feedType: 'post', ...d.data() }));
+      syncCombined();
+    }, (err) => {
+      console.error("Erro ao sincronizar mensagens da rede privada:", err);
+      setLoadingReports(prev => ({ ...prev, [expandedGroupId]: false }));
+    });
+
+    return () => {
+      unsubReports();
+      unsubPosts();
+    };
+  }, [expandedGroupId]);
+
+  const handleToggleLike = async (groupId: string, item: any) => {
+    if (!user) return;
+    const colName = item.feedType === 'report' ? 'reports' : 'posts';
+    const isLiked = (item.likedBy || item.upvotedBy || []).includes(user.uid);
     try {
-      await deleteDoc(doc(db, 'reports', reportId));
+      await updateDoc(doc(db, colName, item.id), {
+        likesCount: increment(isLiked ? -1 : 1),
+        upvotes: increment(isLiked ? -1 : 1),
+        likedBy: isLiked ? arrayRemove(user.uid) : arrayUnion(user.uid),
+        upvotedBy: isLiked ? arrayRemove(user.uid) : arrayUnion(user.uid)
+      });
+    } catch (err) {
+      console.error("Erro ao curtir:", err);
+    }
+  };
+
+  const handleDeleteItem = async (groupId: string, itemId: string, feedType: 'post' | 'report') => {
+    if (!window.confirm(feedType === 'post' ? 'Tem certeza de que deseja excluir esta mensagem deste grupo?' : 'Tem certeza de que deseja excluir esta ocorrência deste grupo privado?')) return;
+    try {
+      await deleteDoc(doc(db, feedType === 'post' ? 'posts' : 'reports', itemId));
       setGroupReports(prev => ({
         ...prev,
-        [groupId]: (prev[groupId] || []).filter(r => r.id !== reportId)
+        [groupId]: (prev[groupId] || []).filter(r => r.id !== itemId)
       }));
     } catch (err) {
-      console.error("Erro ao excluir ocorrência:", err);
-      alert("Não foi possível excluir a ocorrência.");
+      console.error("Erro ao excluir item:", err);
+      alert("Não foi possível excluir.");
+    }
+  };
+
+  const handleSendTextMessage = async (group: any) => {
+    const text = (groupMessageText[group.id] || '').trim();
+    if (!text || !user) return;
+
+    setIsSendingMessage(prev => ({ ...prev, [group.id]: true }));
+    try {
+      const levelInfo = getLevelInfo(userProfile?.points || 0);
+      const postPayload: any = {
+        authorId: user.uid,
+        authorName: userProfile?.name || user.displayName || 'Morador da Rede',
+        authorAvatar: userProfile?.avatar || user.photoURL || `https://i.pravatar.cc/150?u=${user.uid}`,
+        authorLevel: levelInfo.name,
+        verified: levelInfo.verified,
+        type: 'Aviso da Rede',
+        content: text,
+        location: group.name,
+        visibility: 'group',
+        groupId: group.id,
+        groupName: group.name,
+        likesCount: 0,
+        commentsCount: 0,
+        createdAt: serverTimestamp()
+      };
+
+      const docRef = await addDoc(collection(db, 'posts'), postPayload);
+
+      // Add to local timeline immediately
+      setGroupReports(prev => ({
+        ...prev,
+        [group.id]: [
+          {
+            id: docRef.id,
+            feedType: 'post',
+            ...postPayload,
+            createdAt: { toMillis: () => Date.now() }
+          },
+          ...(prev[group.id] || [])
+        ]
+      }));
+
+      // Ensure group timeline is expanded so user sees message
+      setExpandedGroupId(group.id);
+      setGroupMessageText(prev => ({ ...prev, [group.id]: '' }));
+
+      // Broadcast push notification to group members
+      try {
+        const idToken = await user.getIdToken();
+        await fetch('/api/push/broadcast', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${idToken}`
+          },
+          body: JSON.stringify({
+            title: `💬 [${group.name}] Nova mensagem de ${postPayload.authorName}`,
+            body: text.length > 80 ? `${text.slice(0, 80)}...` : text,
+            url: `/groups`,
+            visibility: 'group',
+            groupId: group.id
+          })
+        });
+      } catch (pushErr) {
+        console.warn("Could not send push notification:", pushErr);
+      }
+    } catch (err) {
+      console.error("Error sending message in group:", err);
+      alert("Não foi possível enviar a mensagem.");
+    } finally {
+      setIsSendingMessage(prev => ({ ...prev, [group.id]: false }));
     }
   };
 
@@ -610,15 +737,15 @@ export function GroupsPage() {
                       </div>
                     </div>
                     
-                    {/* Collapsible Group Occurrences */}
+                    {/* Collapsible Group Chat & Occurrences */}
                     <div className="pt-1">
                       <button 
                         onClick={() => toggleGroupReports(group.id)}
                         className="w-full flex items-center justify-between py-2.5 px-3 bg-slate-900/80 hover:bg-slate-900 border border-indigo-500/30 rounded-lg text-xs font-medium text-slate-300 transition-colors cursor-pointer"
                       >
                         <span className="flex items-center gap-2 text-indigo-400">
-                          <Lock size={14} />
-                          <span className="text-white font-semibold">Ocorrências desta Rede Privada</span>
+                          <MessageCircle size={15} />
+                          <span className="text-white font-semibold">Bate-papo & Ocorrências da Rede Privada</span>
                           {groupReports[group.id] && (
                             <span className="bg-indigo-500/20 text-indigo-300 text-[10px] px-2 py-0.5 rounded-full font-bold">
                               {groupReports[group.id].length}
@@ -629,136 +756,310 @@ export function GroupsPage() {
                       </button>
 
                       {expandedGroupId === group.id && (
-                        <div className="mt-3 space-y-3 border-t border-slate-700/60 pt-3">
+                        <div className="mt-3 space-y-3 border-t border-slate-700/60 pt-3 animate-in fade-in">
+                          {/* Live Chat Banner */}
+                          <div className="bg-indigo-950/40 border border-indigo-500/30 rounded-xl p-2.5 text-xs flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              <Lock size={14} className="text-indigo-400 shrink-0" />
+                              <span className="text-slate-300 text-[11px]">
+                                Canal exclusivo entre os <strong className="text-white">{group.members?.length || 1} membros</strong> deste grupo.
+                              </span>
+                            </div>
+                            <span className="bg-indigo-500/20 text-indigo-300 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase shrink-0">
+                              Privado
+                            </span>
+                          </div>
+
+                          {/* Chat Typing Input Box */}
+                          <div className="bg-slate-900 border border-indigo-500/40 rounded-xl p-2.5 shadow-inner">
+                            <div className="flex items-center gap-2">
+                              <img 
+                                src={userProfile?.avatar || user?.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.displayName || 'U')}&background=random`} 
+                                alt="Você" 
+                                className="w-8 h-8 rounded-full object-cover border border-indigo-500/40 shrink-0" 
+                                referrerPolicy="no-referrer"
+                              />
+                              <input 
+                                type="text"
+                                value={groupMessageText[group.id] || ''}
+                                onChange={(e) => setGroupMessageText(prev => ({ ...prev, [group.id]: e.target.value }))}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' && !e.shiftKey) {
+                                    e.preventDefault();
+                                    handleSendTextMessage(group);
+                                  }
+                                }}
+                                placeholder="Conversar no grupo: digite uma mensagem..."
+                                className="flex-1 bg-slate-800 border border-slate-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-white rounded-lg px-3 py-2 text-xs placeholder-slate-400 outline-none min-w-0"
+                              />
+                              <button
+                                type="button"
+                                disabled={!(groupMessageText[group.id] || '').trim() || isSendingMessage[group.id]}
+                                onClick={() => handleSendTextMessage(group)}
+                                className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:hover:bg-indigo-600 text-white p-2 rounded-lg transition-colors flex items-center justify-center cursor-pointer shrink-0 shadow"
+                                title="Enviar mensagem digitada (Enter)"
+                              >
+                                {isSendingMessage[group.id] ? (
+                                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                ) : (
+                                  <Send size={15} />
+                                )}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setRecordingGroupId(prev => prev === group.id ? null : group.id)}
+                                className={`p-2 rounded-lg border transition-colors flex items-center justify-center cursor-pointer shrink-0 ${
+                                  recordingGroupId === group.id 
+                                    ? 'bg-red-500/20 text-red-400 border-red-500/40' 
+                                    : 'bg-slate-800 text-slate-300 hover:text-white border-slate-700 hover:bg-slate-700'
+                                }`}
+                                title="Gravar áudio de voz"
+                              >
+                                <Mic size={15} />
+                              </button>
+                            </div>
+                            <div className="flex items-center justify-between mt-1.5 px-1 text-[10px] text-slate-400">
+                              <span>Pressione <strong className="text-slate-300">Enter</strong> para enviar mensagem</span>
+                              <span className="flex items-center gap-1 text-indigo-300">
+                                <Lock size={10} /> Criptografado na rede
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Quick Filter Tabs: Todos / Mensagens / Ocorrências */}
+                          {groupReports[group.id] && groupReports[group.id].length > 0 && (
+                            <div className="flex items-center gap-1.5 pt-1">
+                              <button
+                                type="button"
+                                onClick={() => setGroupTabFilter(prev => ({ ...prev, [group.id]: 'all' }))}
+                                className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors cursor-pointer ${
+                                  (groupTabFilter[group.id] || 'all') === 'all'
+                                    ? 'bg-indigo-600 text-white'
+                                    : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+                                }`}
+                              >
+                                Todos ({groupReports[group.id].length})
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setGroupTabFilter(prev => ({ ...prev, [group.id]: 'messages' }))}
+                                className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors flex items-center gap-1 cursor-pointer ${
+                                  groupTabFilter[group.id] === 'messages'
+                                    ? 'bg-indigo-600 text-white'
+                                    : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+                                }`}
+                              >
+                                <MessageSquare size={11} />
+                                Mensagens ({groupReports[group.id].filter(i => i.feedType === 'post').length})
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setGroupTabFilter(prev => ({ ...prev, [group.id]: 'reports' }))}
+                                className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors flex items-center gap-1 cursor-pointer ${
+                                  groupTabFilter[group.id] === 'reports'
+                                    ? 'bg-indigo-600 text-white'
+                                    : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+                                }`}
+                              >
+                                <AlertTriangle size={11} />
+                                Alertas ({groupReports[group.id].filter(i => i.feedType === 'report').length})
+                              </button>
+                            </div>
+                          )}
+
+                          {/* Messages & Reports List */}
                           {loadingReports[group.id] ? (
                             <div className="flex items-center justify-center py-6 text-xs text-slate-400 gap-2">
                               <div className="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-                              Carregando ocorrências da rede privada...
+                              Sincronizando conversas do grupo...
                             </div>
                           ) : !groupReports[group.id] || groupReports[group.id].length === 0 ? (
-                            <div className="bg-slate-900/50 p-4 rounded-xl text-center border border-slate-800">
-                              <Lock size={24} className="text-indigo-400/60 mx-auto mb-2" />
-                              <p className="text-xs text-slate-300 font-medium">Nenhuma ocorrência relatada nesta rede privada ainda.</p>
+                            <div className="bg-slate-900/50 p-5 rounded-xl text-center border border-slate-800">
+                              <MessageCircle size={28} className="text-indigo-400/60 mx-auto mb-2" />
+                              <p className="text-xs text-slate-300 font-semibold">Nenhuma mensagem ou alerta neste grupo ainda.</p>
                               <p className="text-[11px] text-slate-500 mt-1">
-                                Ao relatar um novo alerta, selecione este grupo para que apenas os membros abaixo tenham acesso.
+                                Digite acima para iniciar a conversa com os moradores desta rede privada!
                               </p>
                             </div>
                           ) : (
-                            groupReports[group.id].map(rep => {
-                              const authorMember = membersMap[rep.authorId];
-                              const isMe = rep.authorId === user?.uid;
-                              const authorAvatar = rep.authorAvatar || authorMember?.avatar || (isMe && user?.photoURL) || `https://i.pravatar.cc/150?u=${rep.authorId || 'membro'}`;
-                              const authorName = rep.isAnonymous 
-                                ? 'Morador Anônimo' 
-                                : (rep.authorName || authorMember?.name || (isMe ? (user?.displayName || 'Você') : 'Membro'));
-                              const typeLabel = rep.type === 'roubo' ? 'Roubo/Furto' : rep.type === 'suspeito' ? 'Atividade Suspeita' : rep.type === 'vandalismo' ? 'Vandalismo' : rep.type === 'zeladoria' ? 'Zeladoria / Risco' : 'Outro';
+                            (() => {
+                              const filter = groupTabFilter[group.id] || 'all';
+                              const filteredItems = groupReports[group.id].filter(item => {
+                                if (filter === 'messages') return item.feedType === 'post';
+                                if (filter === 'reports') return item.feedType === 'report';
+                                return true;
+                              });
 
-                              return (
-                                <div key={rep.id} className="bg-slate-900 border border-indigo-500/30 rounded-xl p-3.5 text-xs shadow-md">
-                                  {/* Occurrence Header with Author Profile Picture */}
-                                  <div className="flex items-start justify-between gap-2 mb-2 pb-2 border-b border-slate-800">
-                                    <div className="flex items-center gap-2.5">
-                                      {rep.isAnonymous ? (
-                                        <div className="w-9 h-9 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-400 shrink-0">
-                                          <Shield size={16} />
-                                        </div>
-                                      ) : (
-                                        <div className="relative shrink-0">
-                                          <img 
-                                            src={authorAvatar} 
-                                            alt={authorName} 
-                                            className="w-9 h-9 rounded-full object-cover border border-indigo-500/50 shadow-sm" 
-                                            referrerPolicy="no-referrer" 
-                                          />
-                                          <div className="absolute -bottom-1 -right-1 bg-indigo-600 rounded-full p-0.5 text-white border border-slate-900">
-                                            <Lock size={9} />
-                                          </div>
-                                        </div>
-                                      )}
-                                      <div>
-                                        <div className="flex items-center gap-1.5 flex-wrap">
-                                          <span className="font-bold text-white text-xs">
-                                            {authorName}
-                                          </span>
-                                          {isMe && (
-                                            <span className="text-[9px] bg-indigo-500/20 text-indigo-300 px-1.5 py-0.2 rounded font-medium border border-indigo-500/30">Você</span>
-                                          )}
-                                          {rep.verified && <ShieldCheck size={12} className="text-blue-400" />}
-                                        </div>
-                                        <p className="text-[10px] text-slate-400">
-                                          {rep.createdAt?.toMillis ? new Date(rep.createdAt.toMillis()).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : 'Recentemente'}
-                                          {rep.authorLevel ? ` • ${rep.authorLevel}` : ''}
-                                        </p>
-                                      </div>
-                                    </div>
-
-                                    <span className="font-bold text-[10px] bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0">
-                                      <Lock size={10} />
-                                      {typeLabel}
-                                    </span>
+                              if (filteredItems.length === 0) {
+                                return (
+                                  <div className="bg-slate-900/40 p-4 rounded-xl text-center border border-slate-800 text-xs text-slate-400">
+                                    Nenhum item encontrado nesta categoria.
                                   </div>
+                                );
+                              }
 
-                                  {/* Location */}
-                                  <p className="text-slate-300 font-medium mb-1.5 flex items-center gap-1.5 text-xs">
-                                    <MapPin size={12} className="text-red-400 shrink-0" />
-                                    <span className="truncate">{rep.location?.address || 'Localização no Mapa'}</span>
-                                  </p>
+                              return filteredItems.map(rep => {
+                                const authorMember = membersMap[rep.authorId];
+                                const isMe = rep.authorId === user?.uid;
+                                const authorAvatar = rep.authorAvatar || authorMember?.avatar || (isMe && user?.photoURL) || `https://i.pravatar.cc/150?u=${rep.authorId || 'membro'}`;
+                                const authorName = rep.isAnonymous 
+                                  ? 'Morador Anônimo' 
+                                  : (rep.authorName || authorMember?.name || (isMe ? (user?.displayName || 'Você') : 'Membro'));
+                                const isPost = rep.feedType === 'post';
+                                const isLiked = (rep.likedBy || rep.upvotedBy || []).includes(user?.uid || '');
+                                const likesCount = rep.likesCount || rep.upvotes || (rep.likedBy ? rep.likedBy.length : 0) || 0;
+                                const commentsCount = rep.commentsCount || 0;
 
-                                  {/* Description */}
-                                  {rep.description && (
-                                    <p className="text-slate-200 text-xs leading-relaxed mb-3 bg-slate-800/60 p-2.5 rounded-lg border border-slate-800">
-                                      "{rep.description}"
-                                    </p>
-                                  )}
+                                const typeLabel = isPost
+                                  ? '💬 Mensagem'
+                                  : (rep.type === 'roubo' ? 'Roubo/Furto' : rep.type === 'suspeito' ? 'Atividade Suspeita' : rep.type === 'vandalismo' ? 'Vandalismo' : rep.type === 'zeladoria' ? 'Zeladoria / Risco' : 'Ocorrência');
 
-                                  {/* Voice Audio Message */}
-                                  {rep.audioUrl && (
-                                    <div className="mb-3">
-                                      <div className="flex items-center gap-1.5 text-[11px] font-semibold text-indigo-300 mb-1.5">
-                                        <Mic size={13} className="text-indigo-400" />
-                                        <span>Mensagem de Voz da Ocorrência</span>
+                                return (
+                                  <div 
+                                    key={rep.id} 
+                                    className={`rounded-xl p-3.5 text-xs shadow-md border ${
+                                      isPost 
+                                        ? 'bg-slate-900/90 border-slate-700/80 hover:border-slate-600 transition-colors' 
+                                        : 'bg-slate-900 border-indigo-500/30'
+                                    }`}
+                                  >
+                                    {/* Author & Header */}
+                                    <div className="flex items-start justify-between gap-2 mb-2 pb-2 border-b border-slate-800">
+                                      <div className="flex items-center gap-2.5">
+                                        {rep.isAnonymous ? (
+                                          <div className="w-9 h-9 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-400 shrink-0">
+                                            <Shield size={16} />
+                                          </div>
+                                        ) : (
+                                          <div className="relative shrink-0">
+                                            <img 
+                                              src={authorAvatar} 
+                                              alt={authorName} 
+                                              className="w-9 h-9 rounded-full object-cover border border-indigo-500/50 shadow-sm" 
+                                              referrerPolicy="no-referrer" 
+                                            />
+                                            <div className="absolute -bottom-1 -right-1 bg-indigo-600 rounded-full p-0.5 text-white border border-slate-900">
+                                              <Lock size={9} />
+                                            </div>
+                                          </div>
+                                        )}
+                                        <div>
+                                          <div className="flex items-center gap-1.5 flex-wrap">
+                                            <span className="font-bold text-white text-xs">
+                                              {authorName}
+                                            </span>
+                                            {isMe && (
+                                              <span className="text-[9px] bg-indigo-500/20 text-indigo-300 px-1.5 py-0.2 rounded font-medium border border-indigo-500/30">Você</span>
+                                            )}
+                                            {rep.verified && <ShieldCheck size={12} className="text-blue-400" />}
+                                          </div>
+                                          <p className="text-[10px] text-slate-400">
+                                            {rep.createdAt?.toMillis ? new Date(rep.createdAt.toMillis()).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : 'Recentemente'}
+                                            {rep.authorLevel ? ` • ${rep.authorLevel}` : ''}
+                                          </p>
+                                        </div>
                                       </div>
-                                      <AudioPlayer src={rep.audioUrl} duration={rep.audioDuration} />
-                                    </div>
-                                  )}
 
-                                  {/* Photos & Attachments */}
-                                  {rep.attachments && rep.attachments.length > 0 && (
-                                    <div className="mb-3">
-                                      <AttachmentGallery attachments={rep.attachments} />
+                                      <span className={`font-bold text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0 ${
+                                        isPost 
+                                          ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30' 
+                                          : 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
+                                      }`}>
+                                        <Lock size={10} />
+                                        {typeLabel}
+                                      </span>
                                     </div>
-                                  )}
 
-                                  {/* Footer with Map Action and Delete */}
-                                  <div className="flex items-center justify-between pt-2 border-t border-slate-800">
-                                    <span className="text-[10px] text-slate-500 flex items-center gap-1">
-                                      <Lock size={10} className="text-indigo-400" />
-                                      Exclusivo para membros deste grupo
-                                    </span>
-                                    <div className="flex items-center gap-3">
-                                      {(rep.authorId === user?.uid || user?.email === 'viciowins@gmail.com') && (
+                                    {/* Location (for reports or posts with specific location) */}
+                                    {!isPost && rep.location?.address && (
+                                      <p className="text-slate-300 font-medium mb-1.5 flex items-center gap-1.5 text-xs">
+                                        <MapPin size={12} className="text-red-400 shrink-0" />
+                                        <span className="truncate">{rep.location.address}</span>
+                                      </p>
+                                    )}
+
+                                    {/* Text Content (Post content or Report description) */}
+                                    {(rep.content || rep.description) && (
+                                      <p className={`text-slate-100 text-xs sm:text-sm leading-relaxed mb-3 whitespace-pre-wrap break-words ${
+                                        isPost ? 'bg-slate-800/80 p-2.5 rounded-lg border border-slate-700/60' : 'bg-slate-800/50 p-2.5 rounded-lg border border-slate-800'
+                                      }`}>
+                                        {rep.content || rep.description}
+                                      </p>
+                                    )}
+
+                                    {/* Voice Audio Message */}
+                                    {rep.audioUrl && (
+                                      <div className="mb-3">
+                                        <div className="flex items-center gap-1.5 text-[11px] font-semibold text-indigo-300 mb-1.5">
+                                          <Mic size={13} className="text-indigo-400" />
+                                          <span>Mensagem de Voz</span>
+                                        </div>
+                                        <AudioPlayer src={rep.audioUrl} duration={rep.audioDuration} />
+                                      </div>
+                                    )}
+
+                                    {/* Photos & Attachments */}
+                                    {rep.attachments && rep.attachments.length > 0 && (
+                                      <div className="mb-3">
+                                        <AttachmentGallery attachments={rep.attachments} />
+                                      </div>
+                                    )}
+
+                                    {/* Footer with Like, Comment, Map & Delete Actions */}
+                                    <div className="flex items-center justify-between pt-2 border-t border-slate-800">
+                                      <div className="flex items-center gap-4">
+                                        {/* Curtir / Apoiar */}
                                         <button
                                           type="button"
-                                          onClick={() => handleDeleteReport(group.id, rep.id)}
-                                          title="Excluir ocorrência"
-                                          className="text-xs text-red-400 hover:text-red-300 font-medium flex items-center gap-1 transition-colors cursor-pointer p-1 rounded hover:bg-red-500/10"
+                                          onClick={() => handleToggleLike(group.id, rep)}
+                                          className={`flex items-center gap-1.5 text-xs font-semibold transition-colors cursor-pointer ${
+                                            isLiked ? 'text-red-400' : 'text-slate-400 hover:text-slate-200'
+                                          }`}
+                                          title="Curtir mensagem"
                                         >
-                                          <Trash2 size={13} />
-                                          <span>Excluir</span>
+                                          <Heart size={14} className={isLiked ? 'fill-red-500 text-red-500' : ''} />
+                                          <span>{likesCount}</span>
                                         </button>
-                                      )}
-                                      <button
-                                        type="button"
-                                        onClick={() => navigate(`/?reportId=${rep.id}`)}
-                                        className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold flex items-center gap-1 transition-colors cursor-pointer"
-                                      >
-                                        Ver no Mapa <ArrowRight size={12} />
-                                      </button>
+
+                                        {/* Comentar */}
+                                        <button
+                                          type="button"
+                                          onClick={() => setActiveCommentItem({ id: rep.id, type: isPost ? 'post' : 'report', authorName })}
+                                          className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-indigo-300 transition-colors cursor-pointer"
+                                          title="Ver ou adicionar comentários"
+                                        >
+                                          <MessageSquare size={14} />
+                                          <span>{commentsCount} {commentsCount === 1 ? 'comentário' : 'comentários'}</span>
+                                        </button>
+                                      </div>
+
+                                      <div className="flex items-center gap-2">
+                                        {(rep.authorId === user?.uid || user?.email === 'viciowins@gmail.com') && (
+                                          <button
+                                            type="button"
+                                            onClick={() => handleDeleteItem(group.id, rep.id, rep.feedType)}
+                                            title="Excluir item"
+                                            className="text-xs text-red-400 hover:text-red-300 font-medium flex items-center gap-1 transition-colors cursor-pointer p-1 rounded hover:bg-red-500/10"
+                                          >
+                                            <Trash2 size={13} />
+                                            <span>Excluir</span>
+                                          </button>
+                                        )}
+                                        {!isPost && (
+                                          <button
+                                            type="button"
+                                            onClick={() => navigate(`/?reportId=${rep.id}`)}
+                                            className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                                          >
+                                            Ver no Mapa <ArrowRight size={12} />
+                                          </button>
+                                        )}
+                                      </div>
                                     </div>
                                   </div>
-                                </div>
-                              );
-                            })
+                                );
+                              });
+                            })()
                           )}
                         </div>
                       )}
@@ -800,11 +1101,19 @@ export function GroupsPage() {
 
                     {/* Bottom Actions */}
                     <div className="flex flex-wrap items-center justify-between gap-2 mt-2 pt-2 border-t border-slate-700/40">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <button
+                          type="button"
+                          onClick={() => toggleGroupReports(group.id)}
+                          className="bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg px-3 py-1.5 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm"
+                        >
+                          <MessageCircle size={13} />
+                          Conversar por Texto
+                        </button>
                         <button
                           type="button"
                           onClick={() => setRecordingGroupId(prev => prev === group.id ? null : group.id)}
-                          className="bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg px-3 py-1.5 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm"
+                          className="bg-slate-700 hover:bg-slate-600 text-white rounded-lg px-3 py-1.5 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm"
                         >
                           <Mic size={13} />
                           Áudio Rápido
@@ -833,6 +1142,17 @@ export function GroupsPage() {
           </div>
         )}
       </div>
+
+      {/* Comments Modal for Group Posts and Reports */}
+      {activeCommentItem && (
+        <CommentsModal
+          isOpen={Boolean(activeCommentItem)}
+          onClose={() => setActiveCommentItem(null)}
+          itemId={activeCommentItem.id}
+          itemType={activeCommentItem.type}
+          authorName={activeCommentItem.authorName}
+        />
+      )}
     </div>
   );
 }
