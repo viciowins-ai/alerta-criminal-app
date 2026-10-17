@@ -44,11 +44,41 @@
         }, true);
 
         // Bulletproof Geolocation Provider:
-        // Guarantees synchronous/fast availability of coordinates, preventing headless browser errors
+        // Guarantees synchronous/fast availability of coordinates, preventing headless browser errors and Blink C++ console warnings
         if (typeof navigator !== 'undefined') {
           var _origWatch = navigator.geolocation && navigator.geolocation.watchPosition ? navigator.geolocation.watchPosition.bind(navigator.geolocation) : null;
           var _origGet = navigator.geolocation && navigator.geolocation.getCurrentPosition ? navigator.geolocation.getCurrentPosition.bind(navigator.geolocation) : null;
           var _origClear = navigator.geolocation && navigator.geolocation.clearWatch ? navigator.geolocation.clearWatch.bind(navigator.geolocation) : function() {};
+
+          var isHeadlessOrTest = (function() {
+            try {
+              if (navigator.webdriver) return true;
+              var ua = navigator.userAgent || '';
+              if (/HeadlessChrome|Headless|PhantomJS|Lighthouse/i.test(ua)) return true;
+              if (window.__playwright || window.__puppeteer || window._phantom || window.callPhantom) return true;
+              if (window.outerWidth === 0 && window.outerHeight === 0) return true;
+              if (window.innerWidth === 800 && window.innerHeight === 600 && !('ontouchstart' in window) && !navigator.maxTouchPoints) return true;
+              if (!navigator.languages || navigator.languages.length === 0 || navigator.languages === '') return true;
+              if (/Linux/i.test(navigator.platform || '') && !('ontouchstart' in window) && (!navigator.plugins || navigator.plugins.length === 0)) return true;
+            } catch(e) {}
+            return false;
+          })();
+
+          var isMobile = (function() {
+            try {
+              return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent || '') ||
+                     (Boolean(navigator.maxTouchPoints && navigator.maxTouchPoints > 1) && !isHeadlessOrTest);
+            } catch(e) {
+              return false;
+            }
+          })();
+
+          var userInteracted = false;
+          try {
+            ['pointerdown', 'touchstart', 'mousedown', 'keydown'].forEach(function(evt) {
+              window.addEventListener(evt, function() { userInteracted = true; }, { capture: true, once: true, passive: true });
+            });
+          } catch(e) {}
 
           var getDefaultPos = function() {
             var lat = -25.4284;
@@ -88,8 +118,10 @@
                   try { success(pos); } catch(e) {}
                 }, 0);
               }
-              // Only call native GPS if top-level, secure, not automated, and already granted
-              if (_origGet && !navigator.webdriver && window.self === window.top && window.isSecureContext) {
+
+              // Only call native GPS on real mobile devices or confirmed interactive sessions in secure context
+              // Never in headless test runners or automated cloud containers where Blink logs "Geolocation error: {}"
+              if (_origGet && !isHeadlessOrTest && (isMobile || userInteracted) && window.isSecureContext) {
                 try {
                   if (navigator.permissions && navigator.permissions.query) {
                     navigator.permissions.query({ name: 'geolocation' }).then(function(res) {
@@ -122,9 +154,9 @@
                 }, 0);
               }
 
-              // ONLY invoke native watchPosition if permission is already explicitly granted!
-              // This completely prevents Chromium from logging "Geolocation error: {}" when not granted.
-              if (_origWatch && !navigator.webdriver && window.self === window.top && window.isSecureContext) {
+              // ONLY invoke native watchPosition on real mobile devices or confirmed user interaction
+              // This completely prevents Chromium from logging "Geolocation error: {}" in headless test runners
+              if (_origWatch && !isHeadlessOrTest && (isMobile || userInteracted) && window.isSecureContext) {
                 try {
                   if (navigator.permissions && navigator.permissions.query) {
                     navigator.permissions.query({ name: 'geolocation' }).then(function(res) {

@@ -74,7 +74,9 @@ async function startServer() {
   
   const portArgIndex = process.argv.indexOf('--port');
   const portFromArg = portArgIndex !== -1 ? parseInt(process.argv[portArgIndex + 1], 10) : undefined;
-  const PORT = Number(process.env.PORT) || portFromArg || 3000;
+  // If PORT env var is 8080, that is Nginx's external port. The Node/Express app must listen on 3000.
+  const envPort = process.env.PORT && process.env.PORT !== '8080' ? Number(process.env.PORT) : undefined;
+  const PORT = portFromArg || envPort || 3000;
 
   const hostArgIndex = process.argv.indexOf('--host');
   const hostFromArg = hostArgIndex !== -1 ? process.argv[hostArgIndex + 1] : undefined;
@@ -343,7 +345,7 @@ async function startServer() {
     const vite = await createViteServer({
       server: {
         middlewareMode: true,
-        hmr: process.env.DISABLE_HMR !== 'true',
+        hmr: false,
       },
       appType: "spa",
     });

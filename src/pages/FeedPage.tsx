@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { TopBar } from '../components/TopBar';
 import { AttachmentGallery } from '../components/AttachmentGallery';
 import { AudioPlayer } from '../components/AudioPlayer';
-import { MessageSquare, Heart, Share2, MoreHorizontal, AlertTriangle, ShieldCheck, Send, MapPin, Users, Lock, Plus, ArrowRight, Shield } from 'lucide-react';
+import { MessageSquare, Heart, Share2, MoreHorizontal, AlertTriangle, ShieldCheck, MapPin, Users, Lock, Plus, ArrowRight, Shield } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
 import { collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, doc, getDoc, deleteDoc, updateDoc, increment, where, limit, writeBatch } from 'firebase/firestore';
@@ -24,7 +24,6 @@ export function FeedPage() {
   const [privatePosts, setPrivatePosts] = useState<any[]>([]);
   const [userGroups, setUserGroups] = useState<any[]>([]);
   const [selectedGroupId, setSelectedGroupId] = useState<string>('all');
-  const [newPostContent, setNewPostContent] = useState('');
   const [userProfile, setUserProfile] = useState<any>(null);
   const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
   const [editingItem, setEditingItem] = useState<any>(null);
@@ -387,59 +386,6 @@ export function FeedPage() {
     }
   };
 
-  const handleCreatePost = async () => {
-    if (!newPostContent.trim() || !user || !userProfile) return;
-
-    try {
-      const levelInfo = getLevelInfo(userProfile?.points || 0);
-
-      // Post em Grupo Privado
-      if (feedFilter === 'private') {
-        const targetGroup = userGroups.find(g => g.id === selectedGroupId) || userGroups[0];
-        if (!targetGroup) {
-          navigate('/groups');
-          return;
-        }
-
-        await addDoc(collection(db, 'posts'), {
-          authorId: user.uid,
-          authorName: userProfile.name || user.displayName || 'Morador',
-          authorAvatar: userProfile.avatar || user.photoURL || `https://i.pravatar.cc/150?u=${user.uid}`,
-          authorLevel: levelInfo.name,
-          verified: levelInfo.verified,
-          type: 'Aviso da Rede',
-          content: newPostContent.trim(),
-          location: targetGroup.name,
-          visibility: 'group',
-          groupId: targetGroup.id,
-          groupName: targetGroup.name,
-          likesCount: 0,
-          commentsCount: 0,
-          createdAt: serverTimestamp(),
-        });
-        setNewPostContent('');
-        return;
-      }
-
-      // Post Público na Comunidade Geral
-      await addDoc(collection(db, 'posts'), {
-        authorId: user.uid,
-        authorName: userProfile.name || user.displayName || 'Usuário',
-        authorAvatar: userProfile.avatar || user.photoURL || "https://i.pravatar.cc/150?u=me",
-        authorLevel: levelInfo.name,
-        verified: levelInfo.verified,
-        type: 'Informação',
-        content: newPostContent.trim(),
-        location: 'Sua Localização',
-        likesCount: 0,
-        commentsCount: 0,
-        createdAt: serverTimestamp(),
-      });
-      setNewPostContent('');
-    } catch (error) {
-      handleFirestoreError(error, OperationType.CREATE, 'posts');
-    }
-  };
 
   const formatTime = (timestamp: any) => {
     if (!timestamp) return t('time.now', 'Agora');
@@ -629,85 +575,37 @@ export function FeedPage() {
                 </div>
 
                 {currentSelectedGroup && (
-                  <div className="flex items-center justify-between pt-2 border-t border-slate-700/60 text-[11px] text-slate-400">
-                    <span className="flex items-center gap-1">
-                      <Users size={12} className="text-indigo-400" />
-                      {t('feed.membersCount', '{{count}} membros participantes', { count: currentSelectedGroup.members?.length || 1 })}
-                    </span>
-                    <span className="font-mono text-slate-300 bg-slate-900 px-2 py-0.5 rounded border border-slate-700 text-[10px]">
-                      {t('feed.inviteCode', 'Código:')} {currentSelectedGroup.inviteCode}
-                    </span>
+                  <div className="flex items-center justify-between pt-2 border-t border-slate-700/60 text-[11px] text-slate-400 flex-wrap gap-2">
+                    <div className="flex items-center gap-3">
+                      <span className="flex items-center gap-1">
+                        <Users size={12} className="text-indigo-400" />
+                        {t('feed.membersCount', '{{count}} membros participantes', { count: currentSelectedGroup.members?.length || 1 })}
+                      </span>
+                      <span className="font-mono text-slate-300 bg-slate-900 px-2 py-0.5 rounded border border-slate-700 text-[10px]">
+                        {t('feed.inviteCode', 'Código:')} {currentSelectedGroup.inviteCode}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => navigate(`/report?groupId=${currentSelectedGroup.id}`)}
+                        className="text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1 transition-colors border border-red-500/20 cursor-pointer"
+                      >
+                        <AlertTriangle size={12} />
+                        {t('feed.newNetworkAlert', 'Novo Alerta')}
+                      </button>
+                      <button
+                        onClick={() => navigate('/groups')}
+                        className="text-indigo-300 hover:text-white bg-indigo-500/10 hover:bg-indigo-500/20 px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors border border-indigo-500/20 cursor-pointer"
+                      >
+                        <MessageSquare size={12} />
+                        Bate-papo
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
             )}
-          </div>
-        )}
-
-        {/* Create Post Input */}
-        {(feedFilter !== 'private' || userGroups.length > 0) && (
-          <div className={`p-4 rounded-2xl shadow-sm border flex flex-col gap-3 ${
-            feedFilter === 'private' ? 'bg-slate-800 border-indigo-500/40' : 'bg-slate-800 border-slate-700'
-          }`}>
-            <div className="flex gap-3 items-center">
-              <img 
-                src={userProfile?.avatar || user?.photoURL || "https://i.pravatar.cc/150?u=me"} 
-                alt="Me" 
-                className={`w-10 h-10 rounded-full object-cover shrink-0 ${feedFilter === 'private' ? 'border border-indigo-400/40' : ''}`} 
-                referrerPolicy="no-referrer" 
-              />
-              <input 
-                type="text" 
-                dir="auto"
-                value={newPostContent}
-                onChange={(e) => setNewPostContent(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleCreatePost()}
-                placeholder={
-                  feedFilter === 'private'
-                    ? (currentSelectedGroup ? `Conversar no grupo: digite uma mensagem para ${currentSelectedGroup.name}...` : 'Conversar no grupo: digite uma mensagem para seus vizinhos...')
-                    : t('feed.sharePlaceholder', 'Compartilhe algo com a comunidade...')
-                } 
-                className="flex-1 bg-slate-900 rounded-full px-4 py-2 text-sm text-white placeholder-slate-400 outline-none focus:ring-2 focus:ring-indigo-500 border border-slate-700 text-start min-w-0"
-              />
-            </div>
-            
-            <div className="flex items-center justify-between pt-1 border-t border-slate-700/60 flex-wrap gap-2">
-              {feedFilter === 'private' ? (
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => navigate(currentSelectedGroup ? `/report?groupId=${currentSelectedGroup.id}` : '/report')}
-                    className="text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors border border-red-500/20 cursor-pointer"
-                  >
-                    <AlertTriangle size={13} />
-                    {t('feed.newNetworkAlert', 'Novo Alerta na Rede')}
-                  </button>
-                  <button
-                    onClick={() => navigate('/groups')}
-                    className="text-indigo-300 hover:text-white bg-indigo-500/10 hover:bg-indigo-500/20 px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors border border-indigo-500/20 cursor-pointer"
-                    title="Ir para tela de Grupos e Bate-papo"
-                  >
-                    <MessageSquare size={13} />
-                    Bate-papo do Grupo
-                  </button>
-                </div>
-              ) : (
-                <span className="text-[11px] text-slate-500">
-                  {t('feed.publicVisibility', 'Publicação visível para toda a comunidade')}
-                </span>
-              )}
-
-              {newPostContent.trim() && (
-                <button 
-                  onClick={handleCreatePost}
-                  className={`text-white px-4 py-1.5 rounded-full text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer shadow ${
-                    feedFilter === 'private' ? 'bg-indigo-600 hover:bg-indigo-500' : 'bg-blue-600 hover:bg-blue-500'
-                  }`}
-                >
-                  {feedFilter === 'private' ? <Lock size={12} /> : <Send size={12} />}
-                  {feedFilter === 'private' ? t('feed.publishToNetwork', 'Publicar na Rede') : t('common.publish', 'Publicar')}
-                </button>
-              )}
-            </div>
           </div>
         )}
 

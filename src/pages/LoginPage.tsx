@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Shield, AlertCircle, ExternalLink, Compass } from 'lucide-react';
+import { Shield, AlertCircle, ExternalLink, Compass, Globe, Copy, Check } from 'lucide-react';
 import { auth } from '../firebase';
 import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { useAuth } from '../contexts/AuthContext';
@@ -16,6 +16,8 @@ export function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [inAppDetected, setInAppDetected] = useState(false);
+  const [unauthorizedDomain, setUnauthorizedDomain] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     setInAppDetected(isInAppBrowser());
@@ -43,6 +45,7 @@ export function LoginPage() {
 
     setLoading(true);
     setError(null);
+    setUnauthorizedDomain(null);
     
     try {
       const provider = new GoogleAuthProvider();
@@ -54,20 +57,31 @@ export function LoginPage() {
     } catch (err: any) {
       setLoading(false);
       
+      const errorCode = err?.code || '';
+      const errorMessage = err?.message || '';
+
       // Se o usuário apenas fechou o popup, não mostramos um erro assustador
-      if (err.code === 'auth/popup-closed-by-user' || err.message?.includes('auth/popup-closed-by-user')) {
+      if (errorCode === 'auth/popup-closed-by-user' || errorMessage.includes('auth/popup-closed-by-user')) {
         setError(null);
       } else if (
-        err.code === 'auth/missing-initial-state' ||
-        err.code === 'auth/popup-blocked' ||
-        err.message?.includes('storage-partitioned') ||
-        err.message?.includes('missing initial state') ||
+        errorCode === 'auth/unauthorized-domain' ||
+        errorMessage.includes('auth/unauthorized-domain') ||
+        errorMessage.includes('unauthorized domain') ||
+        errorMessage.includes('unauthorized-domain')
+      ) {
+        console.warn('[Firebase Auth] Domínio não autorizado no Console do Firebase:', window.location.hostname);
+        setUnauthorizedDomain(window.location.hostname || 'ais-dev-...run.app');
+      } else if (
+        errorCode === 'auth/missing-initial-state' ||
+        errorCode === 'auth/popup-blocked' ||
+        errorMessage.includes('storage-partitioned') ||
+        errorMessage.includes('missing initial state') ||
         isInAppBrowser()
       ) {
         setError('O seu navegador bloqueou o acesso do Google. Toque no botão "Abrir no Chrome / Safari" ou use os 3 pontinhos (⋮) para abrir no navegador padrão do celular.');
         setInAppDetected(true);
       } else {
-        console.error(err);
+        console.warn('[Firebase Auth] Erro no login:', errorCode, errorMessage);
         setError('Ocorreu um erro ao conectar com o Google. Tente novamente.');
       }
     }
@@ -123,6 +137,68 @@ export function LoginPage() {
               <span className="font-bold bg-amber-400/20 px-1.5 py-0.5 rounded border border-amber-400/30">⋮</span>
               <span>no topo direito e escolha "Abrir no navegador"</span>
             </p>
+          </div>
+        )}
+
+        {unauthorizedDomain && (
+          <div className="w-full mb-4 p-4 bg-amber-500/15 backdrop-blur-md border border-amber-500/40 rounded-2xl text-amber-200 text-xs space-y-3 shadow-xl animate-in fade-in duration-300">
+            <div className="flex items-center gap-2 font-bold text-amber-300 text-sm">
+              <Globe size={18} className="text-amber-400 shrink-0" />
+              <span>Adicionar Domínio no Firebase</span>
+            </div>
+            
+            <p className="leading-relaxed text-[11.5px] text-amber-100">
+              Na tela do Firebase Console que você abriu (<strong>Domínios autorizados</strong>), clique no botão <strong>"Adicionar domínio"</strong> e cadastre os domínios abaixo para liberar o login:
+            </p>
+
+            <div className="space-y-2">
+              {[
+                { domain: 'alertacriminal.com.br', label: 'Domínio Oficial (Produção)' },
+                { domain: window.location.hostname || 'ais-dev-zhziz4noufss6snsh3ucwb-301228962847.us-east1.run.app', label: 'Ambiente de Testes / Atual' },
+                { domain: 'ais-pre-zhziz4noufss6snsh3ucwb-301228962847.us-east1.run.app', label: 'Ambiente de Pré-visualização' }
+              ].filter((item, idx, arr) => arr.findIndex(x => x.domain === item.domain) === idx).map((item) => (
+                <div key={item.domain} className="bg-slate-900/90 border border-slate-700/80 rounded-xl p-2.5 flex items-center justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] text-slate-400 font-medium truncate">{item.label}</p>
+                    <code className="text-[11px] font-mono text-cyan-300 truncate select-all block">
+                      {item.domain}
+                    </code>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(item.domain);
+                      setCopied(true);
+                      setTimeout(() => setCopied(false), 2000);
+                    }}
+                    className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 text-[11px] font-semibold rounded-lg shrink-0 flex items-center gap-1.5 transition-all border border-slate-700"
+                  >
+                    <Copy size={12} />
+                    <span>Copiar</span>
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <div className="text-[11px] text-slate-300 space-y-1 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
+              <p className="font-semibold text-amber-300">Passo a passo na tela do Firebase:</p>
+              <ol className="list-decimal list-inside space-y-1 text-slate-300/90 text-[10.5px]">
+                <li>Clique no botão <strong>"Adicionar domínio"</strong> (Add domain) no canto da tabela;</li>
+                <li>Cole um dos domínios acima (sem https://, apenas o nome);</li>
+                <li>Clique em <strong>Adicionar</strong> (repita para os outros);</li>
+                <li>Volte aqui e clique novamente em <strong>Continuar com o Google</strong>!</li>
+              </ol>
+            </div>
+
+            <a
+              href="https://console.firebase.google.com/project/alerta-criminal-c1612/authentication/settings"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full py-2.5 bg-amber-400 hover:bg-amber-300 active:scale-98 text-slate-950 font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-md"
+            >
+              <ExternalLink size={15} />
+              <span>Abrir Firebase Console &gt; Domínios Autorizados</span>
+            </a>
           </div>
         )}
 

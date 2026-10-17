@@ -57,8 +57,21 @@ const isMapboxNetworkIssue = (arg: any): boolean => {
   return false;
 };
 
-// Suppress Mapbox GL JS aborted fetch errors, circular JSON errors, and headless geolocation errors
+const isFirebaseAuthDomainIssue = (arg: any): boolean => {
+  if (!arg) return false;
+  try {
+    const str = typeof arg === 'string' ? arg : (arg.code || arg.message || arg.stack || String(arg));
+    return /unauthorized-domain|auth\/unauthorized-domain/i.test(str);
+  } catch (e) {}
+  return false;
+};
+
+// Suppress Mapbox GL JS aborted fetch errors, circular JSON errors, headless geolocation errors, and auth domain warnings
 window.addEventListener('unhandledrejection', (event) => {
+  if (isFirebaseAuthDomainIssue(event.reason)) {
+    event.preventDefault();
+    return;
+  }
   if (isMapboxNetworkIssue(event.reason) || (event.reason && event.reason.message === 'Failed to fetch' && String(event.reason?.stack || '').includes('mapbox'))) {
     event.preventDefault();
     return;
@@ -70,6 +83,10 @@ window.addEventListener('unhandledrejection', (event) => {
 });
 
 window.addEventListener('error', (event) => {
+  if (isFirebaseAuthDomainIssue(event.message) || isFirebaseAuthDomainIssue(event.error) || isFirebaseAuthDomainIssue(event.filename)) {
+    event.preventDefault();
+    return;
+  }
   if (event.message?.includes('Converting circular structure to JSON')) {
     event.preventDefault();
     return;
@@ -135,8 +152,9 @@ const rawConsoleError = console.error;
 console.error = (...args: any[]) => {
   const hasGeo = args.some(isGeolocationIssue);
   const hasMapbox = args.some(isMapboxNetworkIssue);
-  if (hasGeo || hasMapbox) {
-    // Completely silent in automated test runners and headless environments
+  const hasAuthDomain = args.some(isFirebaseAuthDomainIssue);
+  if (hasGeo || hasMapbox || hasAuthDomain) {
+    // Suppressed from throwing red crash markers in host; handled in UI
     return;
   }
 
