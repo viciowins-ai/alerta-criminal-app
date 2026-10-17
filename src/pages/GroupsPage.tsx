@@ -171,18 +171,22 @@ export function GroupsPage() {
     setIsSendingMessage(prev => ({ ...prev, [group.id]: true }));
     try {
       const levelInfo = getLevelInfo(userProfile?.points || 0);
+      const groupName = group?.name || 'Rede Privada';
+      const authorName = userProfile?.name || user.displayName || 'Morador da Rede';
+      const authorAvatar = userProfile?.avatar || user.photoURL || `https://i.pravatar.cc/150?u=${user.uid}`;
+
       const postPayload: any = {
         authorId: user.uid,
-        authorName: userProfile?.name || user.displayName || 'Morador da Rede',
-        authorAvatar: userProfile?.avatar || user.photoURL || `https://i.pravatar.cc/150?u=${user.uid}`,
-        authorLevel: levelInfo.name,
-        verified: levelInfo.verified,
+        authorName: authorName,
+        authorAvatar: authorAvatar,
+        authorLevel: levelInfo?.name || 'Membro Ativo',
+        verified: false,
         type: 'Aviso da Rede',
         content: text,
-        location: group.name,
+        location: groupName,
         visibility: 'group',
         groupId: group.id,
-        groupName: group.name,
+        groupName: groupName,
         likesCount: 0,
         commentsCount: 0,
         createdAt: serverTimestamp()
@@ -218,7 +222,7 @@ export function GroupsPage() {
             'Authorization': `Bearer ${idToken}`
           },
           body: JSON.stringify({
-            title: `💬 [${group.name}] Nova mensagem de ${postPayload.authorName}`,
+            title: `💬 [${groupName}] Nova mensagem de ${authorName}`,
             body: text.length > 80 ? `${text.slice(0, 80)}...` : text,
             url: `/groups`,
             visibility: 'group',
@@ -228,9 +232,9 @@ export function GroupsPage() {
       } catch (pushErr) {
         console.warn("Could not send push notification:", pushErr);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error sending message in group:", err);
-      alert("Não foi possível enviar a mensagem.");
+      alert(`Não foi possível enviar a mensagem: ${err?.message || 'Tente novamente em instantes.'}`);
     } finally {
       setIsSendingMessage(prev => ({ ...prev, [group.id]: false }));
     }

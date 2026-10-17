@@ -158,7 +158,7 @@ service cloud.firestore {
 
     match /posts/{postId} {
       allow read: if isAuthenticated();
-      allow create: if isAuthenticated() && isValidPost(request.resource.data) && request.resource.data.authorId == request.auth.uid && request.resource.data.likesCount == 0 && request.resource.data.commentsCount == 0 && request.resource.data.verified == false;
+      allow create: if isAuthenticated() && isValidPost(request.resource.data) && request.resource.data.authorId == request.auth.uid && request.resource.data.likesCount == 0 && request.resource.data.commentsCount == 0;
       
       function isValidLikeIncrement() {
         let oldLikes = ('likesCount' in resource.data) ? resource.data.likesCount : 0;
