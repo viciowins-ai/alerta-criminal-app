@@ -8,6 +8,7 @@ import { AlertTriangle, MapPin, Users, ShieldAlert, Activity, Car, Bike, Power, 
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { AttachmentGallery } from '../components/AttachmentGallery';
+import { safeWatchPosition, safeClearWatch } from '../utils/geoUtils';
 
 export function AdminDashboardPage() {
   const { user, role, loading } = useAuth();
@@ -105,43 +106,35 @@ export function AdminDashboardPage() {
       unsubSOS();
       unsubOccurrences();
       if (watchIdRef.current !== null) {
-        navigator.geolocation.clearWatch(watchIdRef.current);
+        safeClearWatch(watchIdRef.current);
       }
     };
   }, [user, role, loading, navigate, activeTab]);
 
   useEffect(() => {
     if (isPatrolling && user) {
-      if ('geolocation' in navigator) {
-        try {
-          watchIdRef.current = navigator.geolocation.watchPosition(
-            async (position) => {
-              try {
-                const userRef = doc(db, 'users', user.uid);
-                await updateDoc(userRef, {
-                  location: {
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude
-                  }
-                });
-              } catch (err) {
-                console.error("Erro ao atualizar localização da patrulha", err);
+      watchIdRef.current = safeWatchPosition(
+        async (position) => {
+          try {
+            const userRef = doc(db, 'users', user.uid);
+            await updateDoc(userRef, {
+              location: {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude
               }
-            },
-            (_error) => {
-              // Silently handle GPS error
-            },
-            { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
-          );
-        } catch (_e) {
-          // Silently handle synchronous GPS error
-        }
-      }
+            });
+          } catch (err) {
+            // Silently handle error
+          }
+        },
+        (_error) => {
+          // Silently handle GPS error
+        },
+        { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
+      );
     } else {
       if (watchIdRef.current !== null) {
-        try {
-          navigator.geolocation.clearWatch(watchIdRef.current);
-        } catch (e) {}
+        safeClearWatch(watchIdRef.current);
         watchIdRef.current = null;
       }
     }

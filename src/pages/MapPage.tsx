@@ -15,6 +15,7 @@ import { SOSModal } from '../components/SOSModal';
 import { PanicModeOverlay } from '../components/PanicModeOverlay';
 import { GuardianModeOverlay } from '../components/GuardianModeOverlay';
 import { useAudioRecorder } from '../hooks/useAudioRecorder';
+import { isRealGPSAvailable, getDefaultCoordinates, safeWatchPosition, safeClearWatch } from '../utils/geoUtils';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || '';
 
@@ -131,7 +132,7 @@ export function MapPage() {
   }, []);
   const [riskZones, setRiskZones] = useState<any[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<any | null>(null);
-  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
+  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(getDefaultCoordinates);
   const [isSOSActive, setIsSOSActive] = useState(false);
   const [isPanicMode, setIsPanicMode] = useState(false);
   const [isGuardianMode, setIsGuardianMode] = useState(false);
@@ -147,73 +148,60 @@ export function MapPage() {
   const initialCenterDone = useRef(false);
 
   useEffect(() => {
-    if (!navigator.geolocation) {
-      setGeoError("Geolocalização não é suportada pelo seu navegador.");
-      return;
-    }
-
-    let watchId: number;
-    try {
-      watchId = navigator.geolocation.watchPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          
-          // Only center on user if there's no shared report to center on
-          const hasSharedReport = new URLSearchParams(window.location.search).get('reportId');
-          if (!initialCenterDone.current && mapRef.current && !hasSharedReport) {
-            mapRef.current.flyTo({
-              center: [longitude, latitude],
-              zoom: 16,
-              pitch: 0,
-              bearing: 0,
-              duration: 2000,
-              essential: true
-            });
-            initialCenterDone.current = true;
-          }
-
-          try {
-            sessionStorage.setItem('lastKnownLocation', JSON.stringify({ lat: latitude, lng: longitude }));
-          } catch (e) {}
-
-          setUserLocation(prev => {
-            if (!prev) return { lat: latitude, lng: longitude };
-            
-            const R = 6371e3;
-            const p1 = prev.lat * Math.PI/180;
-            const p2 = latitude * Math.PI/180;
-            const dp = (latitude-prev.lat) * Math.PI/180;
-            const dl = (longitude-prev.lng) * Math.PI/180;
-            const a = Math.sin(dp/2) * Math.sin(dp/2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl/2) * Math.sin(dl/2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            const d = R * c;
-            
-            if (d > 5) return { lat: latitude, lng: longitude };
-            return prev;
+    const watchId = safeWatchPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        
+        // Only center on user if there's no shared report to center on
+        const hasSharedReport = new URLSearchParams(window.location.search).get('reportId');
+        if (!initialCenterDone.current && mapRef.current && !hasSharedReport) {
+          mapRef.current.flyTo({
+            center: [longitude, latitude],
+            zoom: 16,
+            pitch: 0,
+            bearing: 0,
+            duration: 2000,
+            essential: true
           });
-        },
-        (error) => {
-          let errorMessage = 'Erro ao buscar localização GPS.';
-          if (error && error.code === 1) errorMessage = 'Permissão negada. Autorize o uso do GPS.';
-          else if (error && error.code === 2) errorMessage = 'Sinal de GPS indisponível no momento.';
-          else if (error && error.code === 3) errorMessage = 'Tempo limite excedido ao buscar GPS.';
+          initialCenterDone.current = true;
+        }
+
+        try {
+          sessionStorage.setItem('lastKnownLocation', JSON.stringify({ lat: latitude, lng: longitude }));
+        } catch (e) {}
+
+        setUserLocation(prev => {
+          if (!prev) return { lat: latitude, lng: longitude };
           
-          // Only show error toast if user actively triggered it or it's not a background permission denial
-          if (error && error.code !== 1) {
-            setGeoError(errorMessage);
-            setTimeout(() => setGeoError(null), 6000);
-          }
-        },
-        { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
-      );
-    } catch (_e) {
-      // Silently handle synchronous geolocation in headless or restricted environment
-    }
+          const R = 6371e3;
+          const p1 = prev.lat * Math.PI/180;
+          const p2 = latitude * Math.PI/180;
+          const dp = (latitude-prev.lat) * Math.PI/180;
+          const dl = (longitude-prev.lng) * Math.PI/180;
+          const a = Math.sin(dp/2) * Math.sin(dp/2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl/2) * Math.sin(dl/2);
+          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+          const d = R * c;
+          
+          if (d > 5) return { lat: latitude, lng: longitude };
+          return prev;
+        });
+      },
+      (error) => {
+        let errorMessage = 'Erro ao buscar localização GPS.';
+        if (error && error.code === 1) errorMessage = 'Permissão negada. Autorize o uso do GPS.';
+        else if (error && error.code === 2) errorMessage = 'Sinal de GPS indisponível no momento.';
+        else if (error && error.code === 3) errorMessage = 'Tempo limite excedido ao buscar GPS.';
+        
+        if (error && error.code !== 1) {
+          setGeoError(errorMessage);
+          setTimeout(() => setGeoError(null), 6000);
+        }
+      },
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
+    );
 
     return () => {
-      try {
-        if (watchId !== undefined) navigator.geolocation.clearWatch(watchId);
-      } catch (e) {}
+      safeClearWatch(watchId);
     };
   }, []);
 

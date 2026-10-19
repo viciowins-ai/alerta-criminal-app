@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Shield, AlertCircle, ExternalLink, Compass, Globe, Copy, Check } from 'lucide-react';
+import { Shield, AlertCircle, ExternalLink, Compass, Globe, Copy, Check, Loader2 } from 'lucide-react';
 import { auth } from '../firebase';
-import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider } from 'firebase/auth';
 import { useAuth } from '../contexts/AuthContext';
 import { Logo } from '../components/Logo';
 import { isInAppBrowser, openInExternalBrowser } from '../utils/inAppBrowser';
@@ -13,6 +13,7 @@ export function LoginPage() {
   const { user } = useAuth();
   
   const [loading, setLoading] = useState(false);
+  const [redirectChecking, setRedirectChecking] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [inAppDetected, setInAppDetected] = useState(false);
@@ -22,6 +23,45 @@ export function LoginPage() {
   useEffect(() => {
     setInAppDetected(isInAppBrowser());
   }, []);
+
+  // Check for redirect result from Google login (crucial for mobile Chrome, Safari, and PWAs)
+  useEffect(() => {
+    let isMounted = true;
+    getRedirectResult(auth)
+      .then((result) => {
+        if (!isMounted) return;
+        if (result && result.user) {
+          const from = location.state?.from?.pathname || '/';
+          navigate(from, { replace: true });
+        }
+      })
+      .catch((err: any) => {
+        if (!isMounted) return;
+        const errorCode = err?.code || '';
+        const errorMessage = err?.message || '';
+        console.warn('[Firebase Auth] Redirect error:', errorCode, errorMessage);
+        
+        if (
+          errorCode === 'auth/unauthorized-domain' ||
+          errorMessage.includes('auth/unauthorized-domain') ||
+          errorMessage.includes('unauthorized domain') ||
+          errorMessage.includes('unauthorized-domain')
+        ) {
+          setUnauthorizedDomain(window.location.hostname || 'alertacriminal.com.br');
+        } else if (errorCode !== 'auth/popup-closed-by-user') {
+          setError('Ocorreu uma instabilidade ao autenticar com o Google. Tente novamente.');
+        }
+      })
+      .finally(() => {
+        if (isMounted) {
+          setRedirectChecking(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [navigate, location]);
 
   // Redirect if already logged in
   useEffect(() => {
@@ -47,11 +87,27 @@ export function LoginPage() {
     setError(null);
     setUnauthorizedDomain(null);
     
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({
+      prompt: 'select_account'
+    });
+
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+      window.matchMedia('(max-width: 768px)').matches ||
+      window.matchMedia('(display-mode: standalone)').matches ||
+      (navigator as any).standalone === true;
+
+    // Mobile devices (Android/iOS) and standalone PWAs MUST use redirect because popups lose opener reference
+    if (isMobile) {
+      try {
+        await signInWithRedirect(auth, provider);
+        return;
+      } catch (err: any) {
+        console.warn('[Firebase Auth] signInWithRedirect warning, falling back to popup:', err);
+      }
+    }
+
     try {
-      const provider = new GoogleAuthProvider();
-      provider.setCustomParameters({
-        prompt: 'select_account'
-      });
       await signInWithPopup(auth, provider);
       // O useEffect acima vai redirecionar automaticamente quando o 'user' for atualizado
     } catch (err: any) {
@@ -60,26 +116,28 @@ export function LoginPage() {
       const errorCode = err?.code || '';
       const errorMessage = err?.message || '';
 
-      // Se o usuário apenas fechou o popup, não mostramos um erro assustador
-      if (errorCode === 'auth/popup-closed-by-user' || errorMessage.includes('auth/popup-closed-by-user')) {
-        setError(null);
-      } else if (
+      if (
         errorCode === 'auth/unauthorized-domain' ||
         errorMessage.includes('auth/unauthorized-domain') ||
         errorMessage.includes('unauthorized domain') ||
         errorMessage.includes('unauthorized-domain')
       ) {
         console.warn('[Firebase Auth] Domínio não autorizado no Console do Firebase:', window.location.hostname);
-        setUnauthorizedDomain(window.location.hostname || 'ais-dev-...run.app');
+        setUnauthorizedDomain(window.location.hostname || 'alertacriminal.com.br');
       } else if (
-        errorCode === 'auth/missing-initial-state' ||
         errorCode === 'auth/popup-blocked' ||
-        errorMessage.includes('storage-partitioned') ||
-        errorMessage.includes('missing initial state') ||
-        isInAppBrowser()
+        errorCode === 'auth/popup-closed-by-user' ||
+        errorCode === 'auth/missing-initial-state' ||
+        errorMessage.includes('storage-partitioned')
       ) {
-        setError('O seu navegador bloqueou o acesso do Google. Toque no botão "Abrir no Chrome / Safari" ou use os 3 pontinhos (⋮) para abrir no navegador padrão do celular.');
-        setInAppDetected(true);
+        // Fallback directly to redirect for blocked popups
+        try {
+          setLoading(true);
+          await signInWithRedirect(auth, provider);
+        } catch {
+          setLoading(false);
+          setError('O navegador bloqueou a janela de autenticação. Tente novamente no navegador padrão.');
+        }
       } else {
         console.warn('[Firebase Auth] Erro no login:', errorCode, errorMessage);
         setError('Ocorreu um erro ao conectar com o Google. Tente novamente.');
@@ -232,11 +290,14 @@ export function LoginPage() {
           <button
             type="button"
             onClick={handleGoogleLogin}
-            disabled={loading}
-            className="w-full py-3.5 rounded-2xl font-bold text-slate-700 bg-white hover:bg-slate-50 transition-all flex items-center justify-center gap-3 active:scale-[0.98] shadow-lg"
+            disabled={loading || redirectChecking}
+            className="w-full py-3.5 rounded-2xl font-bold text-slate-700 bg-white hover:bg-slate-50 transition-all flex items-center justify-center gap-3 active:scale-[0.98] shadow-lg disabled:opacity-80"
           >
-            {loading ? (
-              <div className="w-6 h-6 border-2 border-slate-300 border-t-blue-600 rounded-full animate-spin" />
+            {loading || redirectChecking ? (
+              <div className="flex items-center gap-2 text-slate-800 text-sm font-semibold">
+                <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
+                <span>Conectando com o Google...</span>
+              </div>
             ) : (
               <>
                 <svg className="w-6 h-6" viewBox="0 0 24 24">
