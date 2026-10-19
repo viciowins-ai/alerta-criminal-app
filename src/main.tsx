@@ -148,22 +148,9 @@ const sanitizeConsoleArg = (arg: any, seen = new WeakSet()): any => {
   return clean;
 };
 
-const checkGeoInArgs = (args: any[]): boolean => {
-  if (args.some(isGeolocationIssue)) return true;
-  try {
-    const fullStr = args.map(a => {
-      if (typeof a === 'string') return a;
-      if (a && typeof a === 'object') return (a.message || a.name || '') + ' ' + (typeof JSON !== 'undefined' ? JSON.stringify(a) : '');
-      return String(a || '');
-    }).join(' ');
-    if (/geo|geolocation|position/i.test(fullStr)) return true;
-  } catch (e) {}
-  return false;
-};
-
 const rawConsoleError = console.error;
 console.error = (...args: any[]) => {
-  const hasGeo = checkGeoInArgs(args);
+  const hasGeo = args.some(isGeolocationIssue);
   const hasMapbox = args.some(isMapboxNetworkIssue);
   const hasAuthDomain = args.some(isFirebaseAuthDomainIssue);
   if (hasGeo || hasMapbox || hasAuthDomain) {
@@ -183,7 +170,7 @@ console.error = (...args: any[]) => {
 
 const rawConsoleWarn = console.warn;
 console.warn = (...args: any[]) => {
-  const hasGeo = checkGeoInArgs(args);
+  const hasGeo = args.some(isGeolocationIssue);
   const hasMapbox = args.some(isMapboxNetworkIssue);
   if (hasGeo || hasMapbox) {
     // Completely silent in automated test runners and headless environments
