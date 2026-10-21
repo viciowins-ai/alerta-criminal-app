@@ -90,7 +90,7 @@ async function startServer() {
       'Content-Security-Policy',
       "frame-ancestors 'self' https://*.google.com https://*.googleusercontent.com https://*.run.app https://*.alertacriminal.com.br http://*.alertacriminal.com.br alertacriminal.com.br https://alerta-criminal-c1612.web.app https://alerta-criminal-c1612.firebaseapp.com *"
     );
-    res.setHeader('Permissions-Policy', 'geolocation=(self "*")');
+    res.setHeader('Permissions-Policy', 'geolocation=*');
     res.removeHeader('X-Frame-Options');
     next();
   });

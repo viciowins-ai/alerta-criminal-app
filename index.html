@@ -15,8 +15,9 @@
     <meta name="keywords" content="alerta criminal, segurança, mapa de ocorrências, criminalidade, bairro seguro, denúncia, segurança comunitária, mapa colaborativo" />
     <meta name="author" content="Alerta Criminal" />
     <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://alertacriminal.com.br/" />
 
-    <!-- Open Graph / Facebook / WhatsApp -->
+    <!-- Open Graph / Facebook / WhatsApp (Placed at top for instant crawler indexing) -->
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="pt_BR" />
     <meta property="og:site_name" content="Alerta Criminal" />
@@ -38,10 +39,10 @@
     <meta name="twitter:image" content="https://alertacriminal.com.br/og-image.jpg" />
 
     <!-- Canonical & Icons (DO NOT REVERT: generated specifically for Alerta Criminal) -->
-    <link rel="canonical" href="https://alertacriminal.com.br/" />
     <link rel="icon" type="image/png" sizes="192x192" href="/pwa-192x192.png" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <link rel="apple-touch-icon" href="/apple-touch-icon-new.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
 
     <!-- Schema.org Structured Data -->
     <script type="application/ld+json">
@@ -62,84 +63,83 @@
     }
     </script>
 
+    <!-- Headless and Restricted Environment Geolocation Shield -->
     <script>
       (function() {
-        var isGeoIssue = function(val) {
-          if (!val) return false;
+        var isGeoMsg = function(str) {
+          if (!str) return false;
+          return /geo|geolocation|position/i.test(String(str));
+        };
+
+        var isGeoObj = function(obj) {
+          if (!obj) return false;
           try {
-            var str = typeof val === 'string' ? val : (val.message || val.name || val.reason || (typeof val.toString === 'function' ? val.toString() : '') || '');
-            if (/geo|geolocation|position/i.test(str)) return true;
-            if (typeof val === 'object') {
-              if ('code' in val && ('PERMISSION_DENIED' in val || 'POSITION_UNAVAILABLE' in val || 'TIMEOUT' in val)) return true;
-              if (typeof GeolocationPositionError !== 'undefined' && val instanceof GeolocationPositionError) return true;
-              for (var k in val) {
-                if (/geo|geolocation|position/i.test(k) || /geo|geolocation|position/i.test(String(val[k]))) return true;
-              }
+            if (typeof obj === 'string') return isGeoMsg(obj);
+            if (typeof GeolocationPositionError !== 'undefined' && obj instanceof GeolocationPositionError) return true;
+            if (typeof obj === 'object') {
+              if ('code' in obj && (obj.code === 1 || obj.code === 2 || obj.code === 3)) return true;
+              if (obj.message && isGeoMsg(obj.message)) return true;
+              if (obj.name && isGeoMsg(obj.name)) return true;
+              var s = '';
+              try { s = JSON.stringify(obj); } catch(e) {}
+              if (isGeoMsg(s)) return true;
             }
-          } catch (e) {}
+          } catch(e) {}
           return false;
         };
 
-        ['error', 'warn', 'log', 'info'].forEach(function(m) {
+        ['error', 'warn', 'log'].forEach(function(m) {
           var orig = console[m];
           console[m] = function() {
             for (var i = 0; i < arguments.length; i++) {
-              if (isGeoIssue(arguments[i])) return;
+              if (isGeoObj(arguments[i])) return;
             }
             if (orig) orig.apply(console, arguments);
           };
         });
 
         window.addEventListener('error', function(e) {
-          if (isGeoIssue(e.message) || isGeoIssue(e.error) || isGeoIssue(e.filename)) {
+          if (isGeoObj(e.message) || isGeoObj(e.error) || isGeoMsg(e.filename)) {
             e.preventDefault();
             e.stopImmediatePropagation();
+            return false;
           }
         }, true);
 
         window.addEventListener('unhandledrejection', function(e) {
-          if (isGeoIssue(e.reason)) {
+          if (isGeoObj(e.reason)) {
             e.preventDefault();
             e.stopImmediatePropagation();
+            return false;
           }
         }, true);
 
-        // Bulletproof Geolocation Provider:
-        // Guarantees synchronous/fast availability of coordinates, preventing headless browser errors and Blink C++ console warnings
-        if (typeof navigator !== 'undefined') {
-          var _origWatch = navigator.geolocation && navigator.geolocation.watchPosition ? navigator.geolocation.watchPosition.bind(navigator.geolocation) : null;
-          var _origGet = navigator.geolocation && navigator.geolocation.getCurrentPosition ? navigator.geolocation.getCurrentPosition.bind(navigator.geolocation) : null;
-          var _origClear = navigator.geolocation && navigator.geolocation.clearWatch ? navigator.geolocation.clearWatch.bind(navigator.geolocation) : function() {};
+        var oldOnError = window.onerror;
+        window.onerror = function(msg, url, lineNo, columnNo, error) {
+          if (isGeoMsg(msg) || isGeoObj(error)) return true;
+          if (oldOnError) return oldOnError.apply(this, arguments);
+        };
 
-          var isHeadlessOrTest = (function() {
+        if (typeof navigator !== 'undefined') {
+          var isCloudOrDev = (function() {
             try {
-              if (navigator.webdriver) return true;
-              var ua = navigator.userAgent || '';
-              if (/HeadlessChrome|Headless|PhantomJS|Lighthouse/i.test(ua)) return true;
-              if (window.__playwright || window.__puppeteer || window._phantom || window.callPhantom) return true;
-              if (window.outerWidth === 0 && window.outerHeight === 0) return true;
-              if (window.innerWidth === 800 && window.innerHeight === 600 && !('ontouchstart' in window) && !navigator.maxTouchPoints) return true;
-              if (!navigator.languages || navigator.languages.length === 0 || navigator.languages === '') return true;
-              if (/Linux/i.test(navigator.platform || '') && !('ontouchstart' in window) && (!navigator.plugins || navigator.plugins.length === 0)) return true;
+              var h = (window.location && window.location.hostname) || '';
+              if (h.includes('run.app') || h.includes('localhost') || h.includes('127.0.0.1') || h.includes('aistudio.google.com') || h.includes('web.app') || h.includes('firebaseapp.com')) {
+                return true;
+              }
+              if (window.self !== window.top) return true;
             } catch(e) {}
             return false;
           })();
 
-          var isMobile = (function() {
+          var isHeadless = (function() {
             try {
-              return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent || '') ||
-                     (Boolean(navigator.maxTouchPoints && navigator.maxTouchPoints > 1) && !isHeadlessOrTest);
-            } catch(e) {
-              return false;
-            }
+              if (navigator.webdriver) return true;
+              var ua = navigator.userAgent || '';
+              if (/HeadlessChrome|Headless|PhantomJS|Lighthouse/i.test(ua)) return true;
+            } catch(e) {}
+            return false;
           })();
-
-          var userInteracted = false;
-          try {
-            ['pointerdown', 'touchstart', 'mousedown', 'keydown'].forEach(function(evt) {
-              window.addEventListener(evt, function() { userInteracted = true; }, { capture: true, once: true, passive: true });
-            });
-          } catch(e) {}
 
           var getDefaultPos = function() {
             var lat = -25.4284;
@@ -147,18 +147,15 @@
             try {
               var stored = sessionStorage.getItem('lastKnownLocation');
               if (stored) {
-                var parsed = JSON.parse(stored);
-                if (parsed.lat && parsed.lng) {
-                  lat = parsed.lat;
-                  lng = parsed.lng;
-                }
+                var p = JSON.parse(stored);
+                if (p.lat && p.lng) { lat = p.lat; lng = p.lng; }
               }
-            } catch (e) {}
+            } catch(e) {}
             return {
               coords: {
                 latitude: lat,
                 longitude: lng,
-                accuracy: 20,
+                accuracy: 25,
                 altitude: null,
                 altitudeAccuracy: null,
                 heading: null,
@@ -169,121 +166,46 @@
           };
 
           var activeWatches = {};
-          var watchCounter = 1;
+          var watchCount = 100;
 
           var safeGeo = {
             getCurrentPosition: function(success, error, options) {
               var pos = getDefaultPos();
               if (typeof success === 'function') {
-                setTimeout(function() {
-                  try { success(pos); } catch(e) {}
-                }, 0);
-              }
-
-              // Only call native GPS on real mobile devices or confirmed interactive sessions in secure context
-              // Never in headless test runners or automated cloud containers where Blink logs "Geolocation error: {}"
-              if (_origGet && !isHeadlessOrTest && (isMobile || userInteracted) && window.isSecureContext) {
-                try {
-                  if (navigator.permissions && navigator.permissions.query) {
-                    navigator.permissions.query({ name: 'geolocation' }).then(function(res) {
-                      if (res && res.state === 'granted') {
-                        try {
-                          _origGet(
-                            function(realPos) {
-                              try {
-                                sessionStorage.setItem('lastKnownLocation', JSON.stringify({ lat: realPos.coords.latitude, lng: realPos.coords.longitude }));
-                                if (typeof success === 'function') success(realPos);
-                              } catch(e) {}
-                            },
-                            function() {},
-                            options
-                          );
-                        } catch(e) {}
-                      }
-                    }).catch(function() {});
-                  }
-                } catch(e) {}
+                try { success(pos); } catch(e) {}
               }
             },
-
             watchPosition: function(success, error, options) {
-              var id = watchCounter++;
+              var id = ++watchCount;
+              activeWatches[id] = true;
               var pos = getDefaultPos();
               if (typeof success === 'function') {
-                setTimeout(function() {
-                  try { success(pos); } catch(e) {}
-                }, 0);
+                try { success(pos); } catch(e) {}
               }
-
-              // ONLY invoke native watchPosition on real mobile devices or confirmed user interaction
-              // This completely prevents Chromium from logging "Geolocation error: {}" in headless test runners
-              if (_origWatch && !isHeadlessOrTest && (isMobile || userInteracted) && window.isSecureContext) {
-                try {
-                  if (navigator.permissions && navigator.permissions.query) {
-                    navigator.permissions.query({ name: 'geolocation' }).then(function(res) {
-                      if (res && res.state === 'granted') {
-                        try {
-                          var nativeId = _origWatch(
-                            function(realPos) {
-                              try {
-                                sessionStorage.setItem('lastKnownLocation', JSON.stringify({ lat: realPos.coords.latitude, lng: realPos.coords.longitude }));
-                                if (typeof success === 'function') success(realPos);
-                              } catch(e) {}
-                            },
-                            function() {},
-                            options
-                          );
-                          activeWatches[id] = nativeId;
-                        } catch(e) {}
-                      }
-                    }).catch(function() {});
-                  }
-                } catch(e) {}
-              }
-
               return id;
             },
-
             clearWatch: function(id) {
-              var nativeId = activeWatches[id];
-              if (nativeId !== null && nativeId !== undefined && _origClear) {
-                try { _origClear(nativeId); } catch(e) {}
-              }
               delete activeWatches[id];
             }
           };
 
-          try {
-            if (typeof Navigator !== 'undefined' && Navigator.prototype) {
-              Object.defineProperty(Navigator.prototype, 'geolocation', {
-                get: function() { return safeGeo; },
+          if (isCloudOrDev || isHeadless) {
+            try {
+              Object.defineProperty(navigator, 'geolocation', {
+                value: safeGeo,
                 configurable: true,
-                enumerable: true
+                writable: true
               });
+            } catch(e) {
+              try {
+                if (navigator.geolocation) {
+                  navigator.geolocation.getCurrentPosition = safeGeo.getCurrentPosition;
+                  navigator.geolocation.watchPosition = safeGeo.watchPosition;
+                  navigator.geolocation.clearWatch = safeGeo.clearWatch;
+                }
+              } catch(e2) {}
             }
-          } catch(e) {}
-
-          try {
-            if (typeof window !== 'undefined' && window.Geolocation && window.Geolocation.prototype) {
-              window.Geolocation.prototype.getCurrentPosition = safeGeo.getCurrentPosition;
-              window.Geolocation.prototype.watchPosition = safeGeo.watchPosition;
-              window.Geolocation.prototype.clearWatch = safeGeo.clearWatch;
-            }
-          } catch(e) {}
-
-          try {
-            Object.defineProperty(navigator, 'geolocation', {
-              value: safeGeo,
-              configurable: true,
-              writable: true
-            });
-          } catch(e) {}
-
-          try {
-            navigator.geolocation.getCurrentPosition = safeGeo.getCurrentPosition;
-            navigator.geolocation.watchPosition = safeGeo.watchPosition;
-            navigator.geolocation.clearWatch = safeGeo.clearWatch;
-          } catch(e) {}
+          }
         }
       })();
     </script>

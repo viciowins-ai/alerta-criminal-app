@@ -11,6 +11,7 @@ import { PanicModeOverlay } from '../components/PanicModeOverlay';
 import { useNavigate } from 'react-router-dom';
 import { useAudioRecorder } from '../hooks/useAudioRecorder';
 import i18n from '../i18n/config';
+import { safeWatchPosition, safeClearWatch } from '../utils/geoUtils';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || '';
 
@@ -126,59 +127,47 @@ export function RoutePage() {
 
   // Geolocation
   useEffect(() => {
-    if (!navigator.geolocation) {
-      setGeoError("Geolocalização não é suportada pelo seu navegador.");
-      return;
-    }
-
-    let watchId: number;
-    try {
-      watchId = navigator.geolocation.watchPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          
-          if (!initialCenterDone.current && mapRef.current) {
-            mapRef.current.flyTo({
-              center: [longitude, latitude],
-              zoom: 15,
-              duration: 2000,
-              essential: true
-            });
-            initialCenterDone.current = true;
-          }
-
-          setUserLocation(prev => {
-            if (!prev) return { lat: latitude, lng: longitude };
-            
-            const R = 6371e3;
-            const p1 = prev.lat * Math.PI/180;
-            const p2 = latitude * Math.PI/180;
-            const dp = (latitude-prev.lat) * Math.PI/180;
-            const dl = (longitude-prev.lng) * Math.PI/180;
-            const a = Math.sin(dp/2) * Math.sin(dp/2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl/2) * Math.sin(dl/2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            const d = R * c;
-            
-            if (d > 5) return { lat: latitude, lng: longitude };
-            return prev;
+    const watchId = safeWatchPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        
+        if (!initialCenterDone.current && mapRef.current) {
+          mapRef.current.flyTo({
+            center: [longitude, latitude],
+            zoom: 15,
+            duration: 2000,
+            essential: true
           });
-        },
-        (error) => {
-          if (error && error.code !== 1) {
-            setGeoError('Não foi possível obter sua localização.');
-            setTimeout(() => setGeoError(null), 6000);
-          }
-        },
-        { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
-      );
-    } catch (_e) {
-      // Silently handle synchronous geolocation in headless or restricted environment
-    }
+          initialCenterDone.current = true;
+        }
+
+        setUserLocation(prev => {
+          if (!prev) return { lat: latitude, lng: longitude };
+          
+          const R = 6371e3;
+          const p1 = prev.lat * Math.PI/180;
+          const p2 = latitude * Math.PI/180;
+          const dp = (latitude-prev.lat) * Math.PI/180;
+          const dl = (longitude-prev.lng) * Math.PI/180;
+          const a = Math.sin(dp/2) * Math.sin(dp/2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl/2) * Math.sin(dl/2);
+          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+          const d = R * c;
+          
+          if (d > 5) return { lat: latitude, lng: longitude };
+          return prev;
+        });
+      },
+      (error) => {
+        if (error && error.code !== 1) {
+          setGeoError('Não foi possível obter sua localização.');
+          setTimeout(() => setGeoError(null), 6000);
+        }
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 5000 }
+    );
 
     return () => {
-      try {
-        if (watchId !== undefined) navigator.geolocation.clearWatch(watchId);
-      } catch (e) {}
+      safeClearWatch(watchId);
     };
   }, []);
 

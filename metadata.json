@@ -1,9 +1,7 @@
 {
   "name": "Alerta Criminal",
   "description": "A community-driven safety and incident reporting app with real-time maps, safe route planning, and gamification.",
-  "requestFramePermissions": [
-    "geolocation"
-  ],
+  "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
   ]

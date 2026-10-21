@@ -521,7 +521,7 @@ export function TutorialPage() {
                         <strong>Extrair Foto do Vídeo (📸):</strong> Pause no frame ideal e extraia uma fotografia estática de alta definição para aplicar o pincel manual com os dedos.
                       </li>
                       <li>
-                        <strong>Processamento 100% Seguro no Aparelho & LGPD (Sem Custos):</strong> Todo o processamento do vídeo com áudio protegido ocorre diretamente no seu próprio celular ou computador. O vídeo original sem censura <strong>nunca é enviado para servidores nem para a nuvem</strong>, garantindo sigilo absoluto e sem nenhum custo adicional.
+                        <strong>Processamento 100% Seguro no Aparelho & LGPD:</strong> Todo o processamento do vídeo com áudio protegido ocorre diretamente no seu próprio celular ou computador. O vídeo original sem censura <strong>nunca é enviado para servidores nem para a nuvem</strong>, garantindo sigilo absoluto.
                       </li>
                     </ul>
                   </div>

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { ShieldAlert, CheckCircle2, LogOut } from 'lucide-react';
-import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 
 export function AcceptTermsPage() {
@@ -16,10 +16,10 @@ export function AcceptTermsPage() {
     setIsAccepting(true);
     try {
       const userRef = doc(db, 'users', user.uid);
-      await updateDoc(userRef, {
+      await setDoc(userRef, {
         termsAccepted: true,
         termsAcceptedAt: serverTimestamp()
-      });
+      }, { merge: true });
       navigate('/', { replace: true });
     } catch (error) {
       console.error("Erro ao aceitar termos:", error);

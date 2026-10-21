@@ -13,6 +13,7 @@ import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { handleFirestoreError, OperationType } from '../utils/firestoreErrorHandler';
 import { getLevelInfo } from '../utils/levelUtils';
 import { useTranslation } from 'react-i18next';
+import { safeWatchPosition, safeGetCurrentPosition, safeClearWatch } from '../utils/geoUtils';
 
 const INCIDENT_TYPES = [
   { id: 'roubo', label: 'Roubo/Furto', icon: <Siren size={24} />, baseColor: 'red', desc: 'Assaltos ou furtos', placeholder: 'Ex: Dois homens em uma moto preta, armados. Ocorreu há 10 min...' },
@@ -147,73 +148,54 @@ export function ReportPage() {
   const userHasDragged = useRef(false);
 
   useEffect(() => {
-    let watchId: number;
-    if ('geolocation' in navigator) {
-      try {
-        watchId = navigator.geolocation.watchPosition(
-          (position) => {
-            const { longitude, latitude } = position.coords;
-            setUserLocation({ lng: longitude, lat: latitude });
-            
-            if (!userHasDragged.current) {
-               setReportLocation({ longitude, latitude });
-               mapRef.current?.flyTo({ center: [longitude, latitude], zoom: 16, duration: 1000 });
-               fetchAddress(longitude, latitude);
-            }
-          },
-          (_error) => {
-            // Silently handle unavailable location
-          },
-          { enableHighAccuracy: true, maximumAge: 5000 }
-        );
-      } catch (_e) {
-        // Silently handle synchronous geolocation error in restricted environments
-      }
-    }
+    const watchId = safeWatchPosition(
+      (position) => {
+        const { longitude, latitude } = position.coords;
+        setUserLocation({ lng: longitude, lat: latitude });
+        
+        if (!userHasDragged.current) {
+           setReportLocation({ longitude, latitude });
+           mapRef.current?.flyTo({ center: [longitude, latitude], zoom: 16, duration: 1000 });
+           fetchAddress(longitude, latitude);
+        }
+      },
+      (_error) => {
+        // Silently handle unavailable location
+      },
+      { enableHighAccuracy: true, maximumAge: 5000 }
+    );
 
     return () => {
-      try {
-        if (watchId !== undefined) navigator.geolocation.clearWatch(watchId);
-      } catch (e) {}
+      safeClearWatch(watchId);
     };
   }, []);
 
   const requestLocation = useCallback(() => {
     setIsLocating(true);
     setAddress('Buscando localização de alta precisão...');
-    if ('geolocation' in navigator) {
-      try {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const { longitude, latitude } = position.coords;
-            setUserLocation({ lng: longitude, lat: latitude });
-            setReportLocation({ longitude, latitude });
-            userHasDragged.current = false;
-            mapRef.current?.flyTo({ center: [longitude, latitude], zoom: 17, duration: 1000 });
-            fetchAddress(longitude, latitude);
-            setIsLocating(false);
-          }, 
-          (_error) => {
-            if (userLocation) {
-              userHasDragged.current = false;
-              setReportLocation({ longitude: userLocation.lng, latitude: userLocation.lat });
-              mapRef.current?.flyTo({ center: [userLocation.lng, userLocation.lat], zoom: 16, duration: 1000 });
-              fetchAddress(userLocation.lng, userLocation.lat);
-            } else {
-              setAddress('Não foi possível obter sua localização precisa.');
-            }
-            setIsLocating(false);
-          },
-          { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
-        );
-      } catch (_e) {
-        setAddress('Erro ao acessar o GPS.');
+    safeGetCurrentPosition(
+      (position) => {
+        const { longitude, latitude } = position.coords;
+        setUserLocation({ lng: longitude, lat: latitude });
+        setReportLocation({ longitude, latitude });
+        userHasDragged.current = false;
+        mapRef.current?.flyTo({ center: [longitude, latitude], zoom: 17, duration: 1000 });
+        fetchAddress(longitude, latitude);
         setIsLocating(false);
-      }
-    } else {
-      setAddress('GPS não suportado neste dispositivo.');
-      setIsLocating(false);
-    }
+      }, 
+      (_error) => {
+        if (userLocation) {
+          userHasDragged.current = false;
+          setReportLocation({ longitude: userLocation.lng, latitude: userLocation.lat });
+          mapRef.current?.flyTo({ center: [userLocation.lng, userLocation.lat], zoom: 16, duration: 1000 });
+          fetchAddress(userLocation.lng, userLocation.lat);
+        } else {
+          setAddress('Não foi possível obter sua localização precisa.');
+        }
+        setIsLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+    );
   }, [userLocation]);
 
   const fetchAddress = async (lng: number, lat: number) => {

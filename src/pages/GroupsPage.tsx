@@ -7,6 +7,7 @@ import { AudioPlayer } from '../components/AudioPlayer';
 import { VoiceRecorder } from '../components/VoiceRecorder';
 import { CommentsModal } from '../components/CommentsModal';
 import { getLevelInfo } from '../utils/levelUtils';
+import { safeGetCurrentPosition } from '../utils/geoUtils';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
 import { collection, addDoc, query, where, getDocs, doc, getDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove, serverTimestamp, increment, onSnapshot } from 'firebase/firestore';
@@ -270,19 +271,17 @@ export function GroupsPage() {
         groupName: group.name
       };
 
-      if (navigator.geolocation) {
-        await new Promise<void>((resolve) => {
-          navigator.geolocation.getCurrentPosition(
-            (pos) => {
-              reportPayload.location.lat = pos.coords.latitude;
-              reportPayload.location.lng = pos.coords.longitude;
-              resolve();
-            },
-            () => resolve(),
-            { enableHighAccuracy: true, timeout: 6000, maximumAge: 5000 }
-          );
-        });
-      }
+      await new Promise<void>((resolve) => {
+        safeGetCurrentPosition(
+          (pos) => {
+            reportPayload.location.lat = pos.coords.latitude;
+            reportPayload.location.lng = pos.coords.longitude;
+            resolve();
+          },
+          () => resolve(),
+          { enableHighAccuracy: true, timeout: 6000, maximumAge: 5000 }
+        );
+      });
 
       const docRef = await addDoc(collection(db, 'reports'), reportPayload);
       
