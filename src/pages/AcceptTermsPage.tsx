@@ -17,6 +17,8 @@ export function AcceptTermsPage() {
     try {
       const userRef = doc(db, 'users', user.uid);
       await setDoc(userRef, {
+        uid: user.uid,
+        email: user.email || `${user.uid}@anonymous.com`,
         termsAccepted: true,
         termsAcceptedAt: serverTimestamp()
       }, { merge: true });

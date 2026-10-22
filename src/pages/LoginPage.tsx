@@ -24,9 +24,15 @@ export function LoginPage() {
     setInAppDetected(isInAppBrowser());
   }, []);
 
-  // Check for redirect result from Google login (crucial for mobile Chrome, Safari, and PWAs)
+  // Check for redirect result from Google login (if redirect was used as fallback)
   useEffect(() => {
     let isMounted = true;
+    const safetyTimeout = setTimeout(() => {
+      if (isMounted) {
+        setRedirectChecking(false);
+      }
+    }, 2000);
+
     getRedirectResult(auth)
       .then((result) => {
         if (!isMounted) return;
@@ -53,6 +59,7 @@ export function LoginPage() {
         }
       })
       .finally(() => {
+        clearTimeout(safetyTimeout);
         if (isMounted) {
           setRedirectChecking(false);
         }
@@ -60,6 +67,7 @@ export function LoginPage() {
 
     return () => {
       isMounted = false;
+      clearTimeout(safetyTimeout);
     };
   }, [navigate, location]);
 
@@ -75,16 +83,17 @@ export function LoginPage() {
     // If inside Facebook / Instagram / In-App browser, Google OAuth popups fail due to storage partitioning
     if (isInAppBrowser()) {
       setError(null);
-      setMessage('Navegador do Facebook detectado. Redirecionando para o Chrome/Safari para login seguro...');
+      setMessage('Navegador do Facebook/Instagram detectado. Redirecionando para o Chrome/Safari para login seguro...');
       const opened = openInExternalBrowser();
       if (!opened) {
-        setError('O Facebook bloqueia login com o Google dentro do aplicativo. Toque nos 3 pontinhos (⋮) no canto superior direito e selecione "Abrir no navegador externo".');
+        setError('O navegador interno bloqueia login com o Google. Toque nos 3 pontinhos (⋮) no canto superior direito e selecione "Abrir no navegador externo".');
       }
       return;
     }
 
     setLoading(true);
     setError(null);
+    setMessage(null);
     setUnauthorizedDomain(null);
     
     const provider = new GoogleAuthProvider();
@@ -92,29 +101,25 @@ export function LoginPage() {
       prompt: 'select_account'
     });
 
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-      window.matchMedia('(max-width: 768px)').matches ||
-      window.matchMedia('(display-mode: standalone)').matches ||
-      (navigator as any).standalone === true;
-
-    // Mobile devices (Android/iOS) and standalone PWAs MUST use redirect because popups lose opener reference
-    if (isMobile) {
-      try {
-        await signInWithRedirect(auth, provider);
-        return;
-      } catch (err: any) {
-        console.warn('[Firebase Auth] signInWithRedirect warning, falling back to popup:', err);
-      }
-    }
-
     try {
-      await signInWithPopup(auth, provider);
-      // O useEffect acima vai redirecionar automaticamente quando o 'user' for atualizado
+      // Primary: signInWithPopup is universally reliable on modern Android Chrome, iOS Safari, desktop and PWAs
+      const result = await signInWithPopup(auth, provider);
+      if (result && result.user) {
+        const from = location.state?.from?.pathname || '/';
+        navigate(from, { replace: true });
+        return;
+      }
     } catch (err: any) {
-      setLoading(false);
-      
       const errorCode = err?.code || '';
       const errorMessage = err?.message || '';
+
+      console.warn('[Firebase Auth] Erro no signInWithPopup:', errorCode, errorMessage);
+
+      if (errorCode === 'auth/popup-closed-by-user' || errorCode === 'auth/cancelled-popup-request') {
+        // User closed or dismissed the popup without selecting an account
+        setLoading(false);
+        return;
+      }
 
       if (
         errorCode === 'auth/unauthorized-domain' ||
@@ -122,25 +127,35 @@ export function LoginPage() {
         errorMessage.includes('unauthorized domain') ||
         errorMessage.includes('unauthorized-domain')
       ) {
+        setLoading(false);
         console.warn('[Firebase Auth] Domínio não autorizado no Console do Firebase:', window.location.hostname);
         setUnauthorizedDomain(window.location.hostname || 'alertacriminal.com.br');
-      } else if (
+        return;
+      }
+
+      // If popup was explicitly blocked by browser settings or unsupported environment, fallback to redirect
+      if (
         errorCode === 'auth/popup-blocked' ||
-        errorCode === 'auth/popup-closed-by-user' ||
-        errorCode === 'auth/missing-initial-state' ||
+        errorCode === 'auth/operation-not-supported-in-this-environment' ||
         errorMessage.includes('storage-partitioned')
       ) {
-        // Fallback directly to redirect for blocked popups
         try {
-          setLoading(true);
+          setMessage('Abrindo tela de login do Google...');
           await signInWithRedirect(auth, provider);
-        } catch {
+          return;
+        } catch (redirectErr: any) {
+          console.error('[Firebase Auth] Erro no redirect fallback:', redirectErr);
           setLoading(false);
           setError('O navegador bloqueou a janela de autenticação. Tente novamente no navegador padrão.');
+          return;
         }
+      }
+
+      setLoading(false);
+      if (errorCode === 'auth/network-request-failed') {
+        setError('Falha de conexão com a internet. Verifique sua rede e tente novamente.');
       } else {
-        console.warn('[Firebase Auth] Erro no login:', errorCode, errorMessage);
-        setError('Ocorreu um erro ao conectar com o Google. Tente novamente.');
+        setError('Não foi possível conectar com o Google no momento. Tente novamente.');
       }
     }
   };
