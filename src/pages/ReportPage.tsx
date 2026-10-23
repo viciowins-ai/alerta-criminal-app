@@ -3,7 +3,8 @@ import { TopBar } from '../components/TopBar';
 import { ImageBlurEditor } from '../components/ImageBlurEditor';
 import { VideoPrivacyEditor } from '../components/VideoPrivacyEditor';
 import { VoiceRecorder } from '../components/VoiceRecorder';
-import { MapPin, Camera, Video, CheckCircle2, Siren, Eye, Flame, MoreHorizontal, Send, X, LocateFixed, AlertTriangle, Mic, Shield, Lock } from 'lucide-react';
+import { InAppCameraModal } from '../components/InAppCameraModal';
+import { MapPin, Camera, Video, CheckCircle2, Siren, Eye, Flame, MoreHorizontal, Send, X, LocateFixed, AlertTriangle, Mic, Shield, Lock, Image as ImageIcon, Loader2 } from 'lucide-react';
 import Map, { ViewStateChangeEvent, MapRef, Marker } from 'react-map-gl/mapbox';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -14,6 +15,7 @@ import { handleFirestoreError, OperationType } from '../utils/firestoreErrorHand
 import { getLevelInfo } from '../utils/levelUtils';
 import { useTranslation } from 'react-i18next';
 import { safeWatchPosition, safeGetCurrentPosition, safeClearWatch } from '../utils/geoUtils';
+import { compressImageIfNeeded } from '../utils/imageCompressor';
 
 const INCIDENT_TYPES = [
   { id: 'roubo', label: 'Roubo/Furto', icon: <Siren size={24} />, baseColor: 'red', desc: 'Assaltos ou furtos', placeholder: 'Ex: Dois homens em uma moto preta, armados. Ocorreu há 10 min...' },
@@ -51,7 +53,10 @@ export function ReportPage() {
   const [userGroups, setUserGroups] = useState<any[]>([]);
   const [visibility, setVisibility] = useState<'public' | 'group'>(urlGroupId ? 'group' : 'public');
   const [selectedGroupId, setSelectedGroupId] = useState<string>(urlGroupId || '');
+  const [isInAppCameraOpen, setIsInAppCameraOpen] = useState(false);
+  const [isCompressingImage, setIsCompressingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -91,9 +96,26 @@ export function ReportPage() {
   const isVideoFile = (f: File) => f.type.startsWith('video/') || /\.(mp4|mov|avi|webm|mkv|3gp|m4v|ogv)$/i.test(f.name);
   const isImageFile = (f: File) => f.type.startsWith('image/') || /\.(jpg|jpeg|png|webp|gif|heic|heif)$/i.test(f.name);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      const newFiles = Array.from(e.target.files);
+      setIsCompressingImage(true);
+      const rawFiles: File[] = Array.from(e.target.files);
+      
+      // Scale down any ultra-high resolution photos to prevent memory crashes
+      const newFiles: File[] = await Promise.all(
+        rawFiles.map(async (file: File): Promise<File> => {
+          if (isImageFile(file)) {
+            try {
+              return await compressImageIfNeeded(file);
+            } catch {
+              return file;
+            }
+          }
+          return file;
+        })
+      );
+      setIsCompressingImage(false);
+
       const firstVideo = newFiles.find(isVideoFile);
       const firstImage = newFiles.find(isImageFile);
 
@@ -114,6 +136,19 @@ export function ReportPage() {
       }
     }
     if (e.target) e.target.value = '';
+  };
+
+  const handleCameraCapture = async (file: File) => {
+    setIsInAppCameraOpen(false);
+    setIsCompressingImage(true);
+    try {
+      const compressed = await compressImageIfNeeded(file);
+      setIsCompressingImage(false);
+      setEditingImage(compressed);
+    } catch {
+      setIsCompressingImage(false);
+      setEditingImage(file);
+    }
   };
 
   const removeAttachment = (index: number) => {
@@ -683,40 +718,80 @@ export function ReportPage() {
           <h3 className="text-sm font-semibold text-white mb-3">
             {t('report.attachmentsTitle', 'Anexos (Opcional)')}
           </h3>
-          <div className="flex gap-3">
+          <div className="grid grid-cols-3 gap-2.5">
+            {/* Hidden Native Inputs (capture attribute removed to prevent Android LMK crash) */}
             <input 
               type="file" 
               accept="image/*" 
-              capture="environment" 
               ref={fileInputRef} 
               onChange={handleFileChange} 
               className="hidden" 
             />
             <input 
               type="file" 
+              accept="image/*,video/*" 
+              multiple
+              ref={galleryInputRef} 
+              onChange={handleFileChange} 
+              className="hidden" 
+            />
+            <input 
+              type="file" 
               accept="video/*" 
-              capture="environment" 
               ref={videoInputRef} 
               onChange={handleFileChange} 
               className="hidden" 
             />
-            <button type="button" onClick={() => fileInputRef.current?.click()} className="flex-1 bg-slate-800/50 border border-dashed border-slate-600 rounded-2xl p-4 flex flex-col items-center justify-center gap-2 hover:bg-slate-700/80 hover:border-slate-500 transition-all group">
-              <div className="p-3 bg-slate-900/50 rounded-full group-hover:bg-slate-800 transition-colors">
-                <Camera size={22} className="text-slate-400 group-hover:text-blue-400 transition-colors" />
+
+            {/* 1. Tirar Foto (Câmera Integrada de Alta Performance) */}
+            <button 
+              type="button" 
+              onClick={() => setIsInAppCameraOpen(true)} 
+              className="bg-slate-800/60 border border-dashed border-blue-500/40 rounded-2xl p-3 flex flex-col items-center justify-center gap-1.5 hover:bg-slate-800 hover:border-blue-400 transition-all group active:scale-95"
+            >
+              <div className="p-2.5 bg-blue-500/10 text-blue-400 rounded-full group-hover:bg-blue-500/20 transition-colors">
+                <Camera size={20} className="drop-shadow-sm" />
               </div>
-              <span className="text-xs font-semibold text-slate-400 group-hover:text-slate-300">
+              <span className="text-[11px] font-bold text-slate-200">
                 {t('report.takePhoto', 'Tirar Foto')}
               </span>
             </button>
-            <button type="button" onClick={() => videoInputRef.current?.click()} className="flex-1 bg-slate-800/50 border border-dashed border-slate-600 rounded-2xl p-4 flex flex-col items-center justify-center gap-2 hover:bg-slate-700/80 hover:border-slate-500 transition-all group">
-              <div className="p-3 bg-slate-900/50 rounded-full group-hover:bg-slate-800 transition-colors">
-                <Video size={22} className="text-slate-400 group-hover:text-blue-400 transition-colors" />
+
+            {/* 2. Galeria / Arquivos */}
+            <button 
+              type="button" 
+              onClick={() => galleryInputRef.current?.click()} 
+              className="bg-slate-800/60 border border-dashed border-slate-600 rounded-2xl p-3 flex flex-col items-center justify-center gap-1.5 hover:bg-slate-800 hover:border-slate-400 transition-all group active:scale-95"
+            >
+              <div className="p-2.5 bg-slate-900/60 text-slate-300 rounded-full group-hover:bg-slate-700 transition-colors">
+                <ImageIcon size={20} />
               </div>
-              <span className="text-xs font-semibold text-slate-400 group-hover:text-slate-300">
+              <span className="text-[11px] font-bold text-slate-300">
+                {t('report.gallery', 'Galeria')}
+              </span>
+            </button>
+
+            {/* 3. Gravar Vídeo */}
+            <button 
+              type="button" 
+              onClick={() => videoInputRef.current?.click()} 
+              className="bg-slate-800/60 border border-dashed border-slate-600 rounded-2xl p-3 flex flex-col items-center justify-center gap-1.5 hover:bg-slate-800 hover:border-slate-400 transition-all group active:scale-95"
+            >
+              <div className="p-2.5 bg-slate-900/60 text-slate-300 rounded-full group-hover:bg-slate-700 transition-colors">
+                <Video size={20} />
+              </div>
+              <span className="text-[11px] font-bold text-slate-300">
                 {t('report.recordVideo', 'Gravar Vídeo')}
               </span>
             </button>
           </div>
+
+          {isCompressingImage && (
+            <div className="mt-2.5 flex items-center justify-center gap-2 p-2 bg-blue-500/10 border border-blue-500/30 rounded-xl text-blue-300 text-xs animate-pulse">
+              <Loader2 size={14} className="animate-spin text-blue-400" />
+              <span>Otimizando imagem para evitar travamentos de memória...</span>
+            </div>
+          )}
           
           <p className="text-[11px] text-red-400/80 text-center font-medium px-4 mt-2">
             {t('report.legalNotice', '⚠️ Por motivos legais, evite filmar rostos de terceiros e placas de viaturas. Use o desfoque antes de enviar.')}
@@ -882,6 +957,13 @@ export function ReportPage() {
           }}
         />
       )}
+
+      <InAppCameraModal
+        isOpen={isInAppCameraOpen}
+        onClose={() => setIsInAppCameraOpen(false)}
+        onCapture={handleCameraCapture}
+        onFallbackToFilePicker={() => fileInputRef.current?.click()}
+      />
     </div>
   );
 }

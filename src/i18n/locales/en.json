@@ -192,6 +192,7 @@
     "descTitle": "Description (Optional)",
     "attachmentsTitle": "Attachments (Optional)",
     "takePhoto": "Take Photo",
+    "gallery": "Gallery",
     "recordVideo": "Record Video",
     "legalNotice": "⚠️ For legal reasons, avoid filming faces of third parties and police license plates.",
     "visibilityTitle": "Alert Visibility",

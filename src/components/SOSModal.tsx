@@ -173,7 +173,6 @@ export function SOSModal({
             <input 
               type="file" 
               accept="video/*" 
-              capture="environment" 
               className="hidden" 
               ref={fileInputRef}
               onChange={handleFileChange}
