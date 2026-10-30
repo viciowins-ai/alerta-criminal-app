@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Check, Droplet, Undo, Info } from 'lucide-react';
+import { X, Check, Droplet, Undo, Info, CheckCircle2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 interface ImageBlurEditorProps {
@@ -146,16 +146,30 @@ export function ImageBlurEditor({ file, onSave, onCancel }: ImageBlurEditorProps
   return (
     <div className="fixed inset-0 z-[100] bg-slate-950 flex flex-col items-center justify-between animate-in fade-in zoom-in-95 duration-200">
       {/* Top Bar */}
-      <div className="w-full flex items-center justify-between p-4 bg-slate-900/80 border-b border-slate-800">
-        <button onClick={onCancel} className="p-2 text-slate-400 hover:text-white rounded-full hover:bg-slate-800 transition-colors">
-          <X size={24} />
+      <div className="w-full flex items-center justify-between p-3.5 bg-slate-900/80 border-b border-slate-800">
+        <button onClick={onCancel} className="p-2 text-slate-400 hover:text-white rounded-full hover:bg-slate-800 transition-colors" title="Cancelar">
+          <X size={20} />
         </button>
-        <span className="text-white font-semibold flex items-center gap-2">
-          <Droplet size={18} className="text-blue-400" /> {t('blur.title', 'Censurar Rostos')}
+        <span className="text-white text-sm font-semibold flex items-center gap-2">
+          <Droplet size={17} className="text-blue-400" /> {t('blur.title', 'Censurar Rostos')}
         </span>
-        <button onClick={handleSave} className="p-2 text-blue-400 hover:text-blue-300 rounded-full hover:bg-blue-500/10 transition-colors">
-          <Check size={24} />
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => onSave(file)}
+            className="px-2.5 py-1 text-xs font-bold text-emerald-400 hover:text-emerald-300 bg-emerald-950/50 hover:bg-emerald-900/50 border border-emerald-500/30 rounded-lg flex items-center gap-1 transition-colors"
+            title="Usar imagem original sem aplicar desfoque"
+          >
+            <CheckCircle2 size={13} />
+            Sem Desfoque
+          </button>
+          <button
+            onClick={handleSave}
+            className="p-2 text-blue-400 hover:text-blue-300 rounded-full hover:bg-blue-500/10 transition-colors"
+            title="Salvar com desfoque"
+          >
+            <Check size={20} />
+          </button>
+        </div>
       </div>
 
       {/* Warning */}
@@ -189,16 +203,17 @@ export function ImageBlurEditor({ file, onSave, onCancel }: ImageBlurEditorProps
       </div>
 
       {/* Bottom Controls */}
-      <div className="w-full p-6 bg-slate-900 border-t border-slate-800 flex items-center justify-between gap-4">
+      <div className="w-full p-4 sm:p-5 bg-slate-900 border-t border-slate-800 flex items-center justify-between gap-3">
         <button 
           onClick={handleUndo} 
           disabled={history.length <= 1}
-          className="p-3 text-slate-400 hover:text-white disabled:opacity-50 disabled:hover:text-slate-400 hover:bg-slate-800 rounded-xl transition-all"
+          className="p-2.5 text-slate-400 hover:text-white disabled:opacity-50 disabled:hover:text-slate-400 hover:bg-slate-800 rounded-xl transition-all"
+          title="Desfazer"
         >
-          <Undo size={24} />
+          <Undo size={20} />
         </button>
         
-        <div className="flex-1 flex flex-col items-center gap-2 max-w-[200px]">
+        <div className="flex-1 flex flex-col items-center gap-1.5 max-w-[200px]">
           <span className="text-xs text-slate-400">{t('blur.brushSize', 'Tamanho do Desfoque')}</span>
           <input 
             type="range" 
@@ -209,6 +224,14 @@ export function ImageBlurEditor({ file, onSave, onCancel }: ImageBlurEditorProps
             className="w-full accent-blue-500"
           />
         </div>
+
+        <button
+          onClick={() => onSave(file)}
+          className="px-3 py-2 text-xs font-bold text-emerald-400 hover:text-emerald-300 bg-emerald-950/50 hover:bg-emerald-900/50 border border-emerald-500/40 rounded-xl flex items-center gap-1.5 transition-colors shrink-0"
+        >
+          <CheckCircle2 size={14} />
+          Sem Desfoque
+        </button>
       </div>
     </div>
   );

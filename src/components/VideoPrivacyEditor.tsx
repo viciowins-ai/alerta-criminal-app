@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { X, Check, Shield, Sparkles, Play, Pause, Camera, RotateCcw, AlertTriangle, EyeOff, Loader2, Eye, Volume2, VolumeX } from 'lucide-react';
+import { X, Check, Shield, Sparkles, Play, Pause, Camera, RotateCcw, AlertTriangle, EyeOff, Loader2, Eye, Volume2, VolumeX, CheckCircle2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { FilesetResolver, FaceDetector } from '@mediapipe/tasks-vision';
 
@@ -22,8 +22,8 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
   const [duration, setDuration] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
 
-  // Active Privacy Mode
-  const [activeTab, setActiveTab] = useState<'ai' | 'mask' | 'photo'>('ai');
+  // Active Privacy Mode ('ai' | 'mask' | 'noblur' | 'photo')
+  const [activeTab, setActiveTab] = useState<'ai' | 'mask' | 'noblur' | 'photo'>('ai');
   const [showBlurPreview, setShowBlurPreview] = useState(true);
 
   // AI Face Detection State
@@ -53,6 +53,8 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
   const audioContextRef = useRef<AudioContext | null>(null);
   const audioSourceRef = useRef<MediaElementAudioSourceNode | null>(null);
   const audioDestRef = useRef<MediaStreamAudioDestinationNode | null>(null);
+  const exportCancelledRef = useRef<boolean>(false);
+  const activeRecorderRef = useRef<MediaRecorder | null>(null);
 
   // Load Video File URL
   useEffect(() => {
@@ -236,7 +238,7 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
     }
 
     // 3. Render Blur Overlays
-    if (showBlurPreview) {
+    if (showBlurPreview && activeTab !== 'noblur') {
       if (activeTab === 'ai') {
         if (activeFacesRef.current.length > 0) {
           for (const box of activeFacesRef.current) {
@@ -342,6 +344,7 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
     const canvas = canvasRef.current;
     if (!video || !canvas) return;
 
+    exportCancelledRef.current = false;
     setIsExporting(true);
     setExportProgress(0);
     setExportStatusText('Processando desfoque do vídeo...');
@@ -351,6 +354,8 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
     setIsPlaying(false);
     video.currentTime = 0;
     await new Promise((res) => setTimeout(res, 250));
+
+    if (exportCancelledRef.current) return;
 
     const mimeType = getSupportedMimeType();
     const stream = canvas.captureStream(30);
@@ -381,6 +386,7 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
     } catch {
       recorder = new MediaRecorder(stream);
     }
+    activeRecorderRef.current = recorder;
 
     const chunks: Blob[] = [];
     recorder.ondataavailable = (e) => {
@@ -407,6 +413,13 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
     const totalDur = video.duration || 1;
     const checkInterval = setInterval(() => {
       if (!video) return;
+      if (exportCancelledRef.current) {
+        clearInterval(checkInterval);
+        try {
+          if (recorder.state !== 'inactive') recorder.stop();
+        } catch {}
+        return;
+      }
       const pct = Math.min(99, Math.round((video.currentTime / totalDur) * 100));
       setExportProgress(pct);
       setExportStatusText(`Gravando vídeo com desfoque: ${pct}%`);
@@ -414,7 +427,7 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
       if (video.ended || video.currentTime >= totalDur - 0.15) {
         clearInterval(checkInterval);
         try {
-          recorder.stop();
+          if (recorder.state !== 'inactive') recorder.stop();
         } catch {}
         video.pause();
         setIsPlaying(false);
@@ -423,6 +436,7 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
 
     const resultBlob = await finishedPromise;
     clearInterval(checkInterval);
+    if (exportCancelledRef.current) return;
 
     const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
     const outputName = file.name.replace(/\.[^/.]+$/, '') + `_desfocado.${ext}`;
@@ -434,6 +448,34 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
     setIsExporting(false);
     setExportProgress(100);
     setExportStatusText('Vídeo com desfoque pronto!');
+  };
+
+  const handleUseWithoutBlur = () => {
+    exportCancelledRef.current = true;
+    if (activeRecorderRef.current && activeRecorderRef.current.state !== 'inactive') {
+      try {
+        activeRecorderRef.current.stop();
+      } catch {}
+    }
+    if (videoRef.current) {
+      videoRef.current.pause();
+    }
+    setIsExporting(false);
+    onSave(file);
+  };
+
+  const handleCancel = () => {
+    exportCancelledRef.current = true;
+    if (activeRecorderRef.current && activeRecorderRef.current.state !== 'inactive') {
+      try {
+        activeRecorderRef.current.stop();
+      } catch {}
+    }
+    if (videoRef.current) {
+      videoRef.current.pause();
+    }
+    setIsExporting(false);
+    onCancel();
   };
 
   const formatTime = (secs: number) => {
@@ -463,7 +505,7 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
           </div>
         </div>
         <button
-          onClick={onCancel}
+          onClick={handleCancel}
           className="p-2 text-slate-400 hover:text-white rounded-full hover:bg-slate-800 transition-colors"
           title={t('common.cancel', 'Cancelar')}
         >
@@ -512,7 +554,12 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
 
             {/* Status indicator on top of video */}
             <div className="absolute top-3 left-3 flex items-center gap-2 pointer-events-none">
-              {showBlurPreview ? (
+              {activeTab === 'noblur' ? (
+                <span className="bg-emerald-600/90 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-md">
+                  <CheckCircle2 size={11} />
+                  Sem Desfoque (Original)
+                </span>
+              ) : showBlurPreview ? (
                 <span className="bg-blue-600/90 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-md">
                   <Shield size={11} />
                   Desfoque Ativo
@@ -536,14 +583,16 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
             </div>
 
             {/* Toggle Compare Button */}
-            <button
-              onClick={() => setShowBlurPreview((prev) => !prev)}
-              className="absolute top-3 right-3 bg-slate-900/80 hover:bg-slate-800 backdrop-blur-md border border-slate-700 text-slate-200 text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-lg transition-colors"
-              title="Comparar antes e depois"
-            >
-              <Eye size={12} className={showBlurPreview ? 'text-blue-400' : 'text-slate-400'} />
-              <span>{showBlurPreview ? 'Ver Original' : 'Ver com Desfoque'}</span>
-            </button>
+            {activeTab !== 'noblur' && (
+              <button
+                onClick={() => setShowBlurPreview((prev) => !prev)}
+                className="absolute top-3 right-3 bg-slate-900/80 hover:bg-slate-800 backdrop-blur-md border border-slate-700 text-slate-200 text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-lg transition-colors"
+                title="Comparar antes e depois"
+              >
+                <Eye size={12} className={showBlurPreview ? 'text-blue-400' : 'text-slate-400'} />
+                <span>{showBlurPreview ? 'Ver Original' : 'Ver com Desfoque'}</span>
+              </button>
+            )}
 
             {/* Manual Drag Overlay when in 'mask' tab */}
             {activeTab === 'mask' && (
@@ -626,7 +675,7 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
 
         {/* Export Progress Bar */}
         {isExporting && (
-          <div className="w-full mt-3 bg-slate-900/95 border border-blue-500/60 rounded-xl p-4 shadow-2xl flex flex-col gap-2 animate-in fade-in">
+          <div className="w-full mt-3 bg-slate-900/95 border border-blue-500/60 rounded-xl p-4 shadow-2xl flex flex-col gap-2.5 animate-in fade-in">
             <div className="flex items-center justify-between text-xs">
               <span className="font-semibold text-blue-300 flex items-center gap-1.5">
                 <Loader2 size={14} className="animate-spin text-blue-400" />
@@ -639,6 +688,16 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
                 className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 transition-all duration-150"
                 style={{ width: `${exportProgress}%` }}
               />
+            </div>
+            <div className="pt-1 flex items-center justify-between border-t border-slate-800/80">
+              <span className="text-[11px] text-slate-400">Prefere anexar sem esperar?</span>
+              <button
+                onClick={handleUseWithoutBlur}
+                className="text-[11px] font-bold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 bg-emerald-950/60 hover:bg-emerald-900/60 px-2.5 py-1 rounded-lg border border-emerald-500/40 transition-colors"
+              >
+                <CheckCircle2 size={13} />
+                Enviar Sem Desfoque
+              </button>
             </div>
           </div>
         )}
@@ -655,41 +714,62 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
           )}
 
           {/* Mode Tabs */}
-          <div className="grid grid-cols-3 gap-1.5 bg-slate-900/90 p-1 rounded-xl border border-slate-800">
+          <div className="grid grid-cols-4 gap-1 bg-slate-900/90 p-1 rounded-xl border border-slate-800">
             <button
-              onClick={() => setActiveTab('ai')}
-              className={`py-2 px-1 text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all ${
+              onClick={() => {
+                setActiveTab('ai');
+                setShowBlurPreview(true);
+              }}
+              className={`py-2 px-1 text-[11px] font-bold rounded-lg flex items-center justify-center gap-1 transition-all ${
                 activeTab === 'ai'
                   ? 'bg-blue-600 text-white shadow-md'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
-              <Sparkles size={14} className={activeTab === 'ai' ? 'animate-pulse' : ''} />
+              <Sparkles size={13} className={activeTab === 'ai' ? 'animate-pulse' : ''} />
               <span>IA Rostos</span>
             </button>
 
             <button
-              onClick={() => setActiveTab('mask')}
-              className={`py-2 px-1 text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all ${
+              onClick={() => {
+                setActiveTab('mask');
+                setShowBlurPreview(true);
+              }}
+              className={`py-2 px-1 text-[11px] font-bold rounded-lg flex items-center justify-center gap-1 transition-all ${
                 activeTab === 'mask'
                   ? 'bg-blue-600 text-white shadow-md'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
-              <EyeOff size={14} />
-              <span>Área / Tarja</span>
+              <EyeOff size={13} />
+              <span>Área/Tarja</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveTab('noblur');
+                setShowBlurPreview(false);
+              }}
+              className={`py-2 px-1 text-[11px] font-bold rounded-lg flex items-center justify-center gap-1 transition-all ${
+                activeTab === 'noblur'
+                  ? 'bg-emerald-600 text-white shadow-md'
+                  : 'text-emerald-400/90 hover:text-emerald-300'
+              }`}
+            >
+              <CheckCircle2 size={13} />
+              <span>Sem Desfoque</span>
             </button>
 
             <button
               onClick={() => setActiveTab('photo')}
-              className={`py-2 px-1 text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all ${
+              className={`py-2 px-1 text-[11px] font-bold rounded-lg flex items-center justify-center gap-1 transition-all ${
                 activeTab === 'photo'
                   ? 'bg-blue-600 text-white shadow-md'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
-              <Camera size={14} />
-              <span>Extrair Foto</span>
+              <Camera size={13} />
+              <span>Foto</span>
             </button>
           </div>
 
@@ -779,6 +859,29 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
               </div>
             )}
 
+            {activeTab === 'noblur' && (
+              <div className="flex flex-col gap-2.5">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <p className="text-xs text-white font-semibold flex items-center gap-1.5">
+                      <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
+                      Vídeo Original (Sem Desfoque)
+                    </p>
+                    <p className="text-[11px] text-slate-300 mt-1 leading-relaxed">
+                      Nenhum desfoque será aplicado. O vídeo original é mantido em qualidade total e anexado de forma instantânea, sem espera de gravação ou re-codificação.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={handleUseWithoutBlur}
+                  className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/40 transition-colors"
+                >
+                  <Check size={16} />
+                  Usar Este Vídeo Sem Desfoque
+                </button>
+              </div>
+            )}
+
             {activeTab === 'photo' && (
               <div className="flex flex-col gap-2.5">
                 <p className="text-xs text-slate-300">
@@ -798,7 +901,7 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
       )}
 
       {/* Bottom Footer Actions */}
-      <div className="w-full p-3.5 bg-slate-900/90 border-t border-slate-800 flex items-center justify-between gap-3 backdrop-blur-md">
+      <div className="w-full p-3.5 bg-slate-900/90 border-t border-slate-800 flex items-center justify-between gap-2.5 backdrop-blur-md">
         {processedVideoUrl && processedFile ? (
           <>
             <button
@@ -806,35 +909,51 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
                 setProcessedVideoUrl(null);
                 setProcessedFile(null);
               }}
-              className="px-4 py-2.5 rounded-xl bg-slate-800 text-slate-300 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-colors"
+              className="px-3.5 py-2.5 rounded-xl bg-slate-800 text-slate-300 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-colors shrink-0"
             >
               <RotateCcw size={14} />
               Refazer
             </button>
             <button
+              onClick={handleUseWithoutBlur}
+              className="px-3 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 hover:text-emerald-300 border border-emerald-500/30 text-xs font-bold flex items-center gap-1.5 transition-colors shrink-0"
+            >
+              <CheckCircle2 size={14} />
+              Sem Desfoque
+            </button>
+            <button
               onClick={() => onSave(processedFile)}
-              className="flex-1 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/50 transition-colors"
+              className="flex-1 px-3 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-950/50 transition-colors"
             >
               <Check size={16} />
-              Salvar e Usar Vídeo com Desfoque
+              Usar Vídeo Desfocado
             </button>
           </>
         ) : (
           <>
             <button
-              onClick={onCancel}
-              className="px-3.5 py-2.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white text-xs font-semibold transition-colors"
+              onClick={handleCancel}
+              className="px-3 py-2.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white text-xs font-semibold transition-colors shrink-0"
             >
               Cancelar
             </button>
 
             <button
+              onClick={handleUseWithoutBlur}
+              className="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 hover:text-emerald-300 border border-emerald-500/30 text-xs font-bold flex items-center gap-1.5 transition-colors shrink-0"
+              title="Usar vídeo original sem desfoque"
+            >
+              <CheckCircle2 size={14} />
+              Sem Desfoque
+            </button>
+
+            <button
               onClick={handleExportBlurredVideo}
               disabled={isExporting}
-              className="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-blue-950/50 transition-colors disabled:opacity-50"
+              className="flex-1 px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-lg shadow-blue-950/50 transition-colors disabled:opacity-50"
             >
-              <Shield size={16} />
-              {isExporting ? 'Processando Vídeo...' : 'Salvar Vídeo com Desfoque'}
+              <Shield size={15} />
+              {isExporting ? 'Processando Vídeo...' : 'Salvar com Desfoque'}
             </button>
           </>
         )}
