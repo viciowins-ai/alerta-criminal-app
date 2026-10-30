@@ -86,3 +86,14 @@ export async function compressImageIfNeeded(file: File, maxDimension = 1920, qua
     }
   });
 }
+
+/**
+ * Format bytes to readable string (e.g. 1.2 MB, 450 KB)
+ */
+export function formatFileSize(bytes: number): string {
+  if (!bytes || bytes <= 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
+}

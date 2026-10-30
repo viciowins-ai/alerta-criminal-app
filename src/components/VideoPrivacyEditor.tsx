@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { X, Check, Shield, Sparkles, Play, Pause, Camera, RotateCcw, AlertTriangle, EyeOff, Loader2, Eye, Volume2, VolumeX, CheckCircle2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { FilesetResolver, FaceDetector } from '@mediapipe/tasks-vision';
+import { formatFileSize } from '../utils/imageCompressor';
 
 interface VideoPrivacyEditorProps {
   file: File;
@@ -862,14 +863,25 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
             {activeTab === 'noblur' && (
               <div className="flex flex-col gap-2.5">
                 <div className="flex items-start justify-between gap-2">
-                  <div>
+                  <div className="space-y-1">
                     <p className="text-xs text-white font-semibold flex items-center gap-1.5">
                       <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
                       Vídeo Original (Sem Desfoque)
+                      <span className="text-[10px] font-bold bg-slate-800 text-slate-300 px-2 py-0.5 rounded-full border border-slate-700">
+                        {formatFileSize(file.size)}
+                      </span>
                     </p>
-                    <p className="text-[11px] text-slate-300 mt-1 leading-relaxed">
-                      Nenhum desfoque será aplicado. O vídeo original é mantido em qualidade total e anexado de forma instantânea, sem espera de gravação ou re-codificação.
+                    <p className="text-[11px] text-slate-300 leading-relaxed">
+                      Nenhum desfoque será aplicado. O vídeo original é mantido em qualidade total e anexado de forma instantânea.
                     </p>
+                    {file.size > 15 * 1024 * 1024 && (
+                      <div className="mt-1.5 p-2 bg-amber-500/10 border border-amber-500/30 rounded-lg text-[10px] text-amber-200 flex items-start gap-1.5">
+                        <AlertTriangle size={13} className="text-amber-400 shrink-0 mt-0.5" />
+                        <span>
+                          <strong>Vídeo em alta definição ({formatFileSize(file.size)}):</strong> O envio via 4G móvel pode levar alguns minutos. Se quiser envio instantâneo, use a aba <strong>Foto</strong> para extrair uma imagem rápida.
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
                 <button
@@ -877,7 +889,7 @@ export function VideoPrivacyEditor({ file, onSave, onExtractPhoto, onCancel }: V
                   className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/40 transition-colors"
                 >
                   <Check size={16} />
-                  Usar Este Vídeo Sem Desfoque
+                  Usar Este Vídeo Sem Desfoque ({formatFileSize(file.size)})
                 </button>
               </div>
             )}

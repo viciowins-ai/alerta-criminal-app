@@ -4,7 +4,7 @@ import { ImageBlurEditor } from '../components/ImageBlurEditor';
 import { VideoPrivacyEditor } from '../components/VideoPrivacyEditor';
 import { VoiceRecorder } from '../components/VoiceRecorder';
 import { InAppCameraModal } from '../components/InAppCameraModal';
-import { MapPin, Camera, Video, CheckCircle2, Siren, Eye, Flame, MoreHorizontal, Send, X, LocateFixed, AlertTriangle, Mic, Shield, Lock, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { MapPin, Camera, Video, CheckCircle2, Siren, Eye, Flame, MoreHorizontal, Send, X, LocateFixed, AlertTriangle, Mic, Shield, Lock, Image as ImageIcon, Loader2, UploadCloud, Clock, Wifi } from 'lucide-react';
 import Map, { ViewStateChangeEvent, MapRef, Marker } from 'react-map-gl/mapbox';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -15,7 +15,7 @@ import { handleFirestoreError, OperationType } from '../utils/firestoreErrorHand
 import { getLevelInfo } from '../utils/levelUtils';
 import { useTranslation } from 'react-i18next';
 import { safeWatchPosition, safeGetCurrentPosition, safeClearWatch } from '../utils/geoUtils';
-import { compressImageIfNeeded } from '../utils/imageCompressor';
+import { compressImageIfNeeded, formatFileSize } from '../utils/imageCompressor';
 
 const INCIDENT_TYPES = [
   { id: 'roubo', label: 'Roubo/Furto', icon: <Siren size={24} />, baseColor: 'red', desc: 'Assaltos ou furtos', placeholder: 'Ex: Dois homens em uma moto preta, armados. Ocorreu há 10 min...' },
@@ -47,6 +47,32 @@ export function ReportPage() {
   const [editingImage, setEditingImage] = useState<File | null>(null);
   const [editingVideo, setEditingVideo] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadStatus, setUploadStatus] = useState<{
+    active: boolean;
+    fileName: string;
+    fileIndex: number;
+    totalFiles: number;
+    progress: number;
+    bytesTransferred: number;
+    totalBytes: number;
+    speedKBps: number;
+    estimatedSecondsLeft: number;
+    phase: 'uploading' | 'saving' | 'broadcasting' | 'done';
+    statusText?: string;
+  }>({
+    active: false,
+    fileName: '',
+    fileIndex: 0,
+    totalFiles: 0,
+    progress: 0,
+    bytesTransferred: 0,
+    totalBytes: 0,
+    speedKBps: 0,
+    estimatedSecondsLeft: 0,
+    phase: 'uploading'
+  });
+  const currentUploadTaskRef = useRef<any>(null);
+  const cancelRequestedRef = useRef<boolean>(false);
   const [audioData, setAudioData] = useState<{ url: string; duration: number } | null>(null);
   const [searchParams] = useSearchParams();
   const urlGroupId = searchParams.get('groupId');
@@ -264,6 +290,31 @@ export function ReportPage() {
     fetchAddress(evt.viewState.longitude, evt.viewState.latitude);
   }, []);
 
+  const handleCancelUpload = () => {
+    cancelRequestedRef.current = true;
+    if (currentUploadTaskRef.current) {
+      try {
+        currentUploadTaskRef.current.cancel();
+      } catch (e) {
+        console.warn('Erro ao cancelar upload:', e);
+      }
+    }
+    setIsSubmitting(false);
+    setUploadStatus({
+      active: false,
+      fileName: '',
+      fileIndex: 0,
+      totalFiles: 0,
+      progress: 0,
+      bytesTransferred: 0,
+      totalBytes: 0,
+      speedKBps: 0,
+      estimatedSecondsLeft: 0,
+      phase: 'uploading'
+    });
+    setUploadProgress(0);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedType || !user) return;
@@ -273,38 +324,101 @@ export function ReportPage() {
       return;
     }
 
+    cancelRequestedRef.current = false;
     setIsSubmitting(true);
     
     try {
       const attachmentData: {url: string, type: string}[] = [];
       
-      // Upload attachments
-      for (const file of attachments) {
+      // Upload attachments com telemetria detalhada de velocidade e progresso
+      for (let i = 0; i < attachments.length; i++) {
+        if (cancelRequestedRef.current) {
+          throw new Error('Envio cancelado pelo usuário.');
+        }
+
+        const file = attachments[i];
+        
+        setUploadStatus({
+          active: true,
+          fileName: file.name,
+          fileIndex: i + 1,
+          totalFiles: attachments.length,
+          progress: 0,
+          bytesTransferred: 0,
+          totalBytes: file.size,
+          speedKBps: 0,
+          estimatedSecondsLeft: 0,
+          phase: 'uploading',
+          statusText: `Enviando anexo ${i + 1} de ${attachments.length}...`
+        });
+
         const fileRef = ref(storage, `reports/${user.uid}/${Date.now()}_${file.name}`);
         const uploadTask = uploadBytesResumable(fileRef, file);
+        currentUploadTaskRef.current = uploadTask;
         
+        let lastBytes = 0;
+        let lastTime = Date.now();
+
         await new Promise<void>((resolve, reject) => {
           uploadTask.on('state_changed', 
             (snapshot) => {
-              const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-              setUploadProgress(progress);
-              console.log('Upload is ' + progress + '% done');
+              if (cancelRequestedRef.current) {
+                try { uploadTask.cancel(); } catch {}
+                reject(new Error('Envio cancelado pelo usuário.'));
+                return;
+              }
+
+              const transferred = snapshot.bytesTransferred;
+              const total = snapshot.totalBytes;
+              const pct = total > 0 ? Math.round((transferred / total) * 100) : 0;
+              setUploadProgress(pct);
+
+              const now = Date.now();
+              const timeDelta = (now - lastTime) / 1000;
+              let currentSpeed = 0;
+              let secLeft = 0;
+              if (timeDelta >= 0.4) {
+                const bytesDelta = transferred - lastBytes;
+                currentSpeed = Math.max(0, bytesDelta / timeDelta / 1024);
+                const remaining = total - transferred;
+                secLeft = currentSpeed > 0 ? Math.round(remaining / (currentSpeed * 1024)) : 0;
+                lastBytes = transferred;
+                lastTime = now;
+              }
+
+              setUploadStatus(prev => ({
+                ...prev,
+                progress: pct,
+                bytesTransferred: transferred,
+                totalBytes: total,
+                speedKBps: currentSpeed > 0 ? Math.round(currentSpeed) : prev.speedKBps,
+                estimatedSecondsLeft: secLeft > 0 ? secLeft : prev.estimatedSecondsLeft
+              }));
             }, 
             (error) => {
+              currentUploadTaskRef.current = null;
               reject(error);
             }, 
             async () => {
               try {
                 const url = await getDownloadURL(uploadTask.snapshot.ref);
                 attachmentData.push({ url, type: file.type });
+                currentUploadTaskRef.current = null;
                 resolve();
               } catch (err) {
+                currentUploadTaskRef.current = null;
                 reject(err);
               }
             }
           );
         });
       }
+
+      setUploadStatus(prev => ({
+        ...prev,
+        phase: 'saving',
+        statusText: 'Gravando ocorrência no mapa e gerando protocolo...'
+      }));
 
       const levelInfo = getLevelInfo(userProfile?.points || 0);
 
@@ -403,6 +517,12 @@ export function ReportPage() {
 
       // Trigger Push Notification and Email Broadcast via Backend (com isolamento estrito de grupos)
       try {
+        setUploadStatus(prev => ({
+          ...prev,
+          phase: 'broadcasting',
+          statusText: 'Disparando alertas de segurança para a vizinhança...'
+        }));
+
         const idToken = await user.getIdToken();
         const isPrivate = visibility === 'group' || Boolean(reportPayload.groupId);
         const timeFormatted = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
@@ -444,7 +564,26 @@ export function ReportPage() {
       setIsSuccess(true);
       setUploadProgress(0);
       setTimeout(() => navigate('/'), 2000);
-    } catch (error) {
+    } catch (error: any) {
+      if (cancelRequestedRef.current || error?.message === 'Envio cancelado pelo usuário.' || error?.code === 'storage/canceled') {
+        console.log("Upload cancelado pelo usuário.");
+        setIsSubmitting(false);
+        setUploadStatus({
+          active: false,
+          fileName: '',
+          fileIndex: 0,
+          totalFiles: 0,
+          progress: 0,
+          bytesTransferred: 0,
+          totalBytes: 0,
+          speedKBps: 0,
+          estimatedSecondsLeft: 0,
+          phase: 'uploading'
+        });
+        setUploadProgress(0);
+        return;
+      }
+
       console.error("DEBUG ERROR:", error);
       if (error instanceof Error) {
         alert("Erro no upload: " + error.message);
@@ -452,6 +591,18 @@ export function ReportPage() {
         alert("Erro desconhecido: " + (typeof error === 'object' && error !== null ? (error as any).message || 'Falha ao processar alerta' : String(error)));
       }
       setIsSubmitting(false);
+      setUploadStatus({
+        active: false,
+        fileName: '',
+        fileIndex: 0,
+        totalFiles: 0,
+        progress: 0,
+        bytesTransferred: 0,
+        totalBytes: 0,
+        speedKBps: 0,
+        estimatedSecondsLeft: 0,
+        phase: 'uploading'
+      });
       setUploadProgress(0);
       handleFirestoreError(error, OperationType.CREATE, 'reports');
     }
@@ -798,53 +949,83 @@ export function ReportPage() {
           </p>
           
           {attachments.length > 0 && (
-            <div className="mt-4 flex gap-2 overflow-x-auto pb-2">
-              {attachments.map((file, index) => {
-                const isVid = isVideoFile(file);
-                return (
-                  <div key={index} className="relative w-24 h-24 shrink-0 rounded-xl overflow-hidden border border-slate-700 bg-slate-800/90 group shadow-md">
-                    {!isVid ? (
-                      <div 
-                        onClick={() => setEditingImage(file)}
-                        className="w-full h-full cursor-pointer relative"
-                        title="Toque para editar o desfoque da foto"
-                      >
-                        <img src={URL.createObjectURL(file)} alt="attachment" className="w-full h-full object-cover" />
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                          <span className="text-[10px] text-white font-bold bg-slate-900/90 px-1.5 py-0.5 rounded">Editar Foto</span>
+            <div className="mt-4 space-y-3">
+              <div className="flex gap-2.5 overflow-x-auto pb-2">
+                {attachments.map((file, index) => {
+                  const isVid = isVideoFile(file);
+                  const isHeavy = file.size > 15 * 1024 * 1024;
+                  return (
+                    <div key={index} className="relative w-28 h-28 shrink-0 rounded-2xl overflow-hidden border border-slate-700 bg-slate-800/90 group shadow-md flex flex-col">
+                      {!isVid ? (
+                        <div 
+                          onClick={() => setEditingImage(file)}
+                          className="w-full h-full cursor-pointer relative"
+                          title="Toque para editar o desfoque da foto"
+                        >
+                          <img src={URL.createObjectURL(file)} alt="attachment" className="w-full h-full object-cover" />
+                          <div className="absolute inset-x-0 bottom-0 bg-slate-950/80 backdrop-blur-xs py-1 px-1.5 flex items-center justify-between text-[9px] text-slate-300">
+                            <span className="truncate max-w-[55px] font-medium">{file.name}</span>
+                            <span className="font-bold text-slate-400">{formatFileSize(file.size)}</span>
+                          </div>
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                            <span className="text-[10px] text-white font-bold bg-slate-900/90 px-1.5 py-0.5 rounded">Editar Foto</span>
+                          </div>
                         </div>
-                      </div>
-                    ) : (
-                      <div 
-                        onClick={() => setEditingVideo(file)}
-                        className="w-full h-full bg-slate-900 border border-blue-500/30 flex flex-col items-center justify-center cursor-pointer hover:bg-slate-850 transition-colors p-1.5 text-center relative"
-                        title="Toque para abrir editor de privacidade e desfoque do vídeo"
-                      >
-                        <div className="p-2 bg-blue-600/20 text-blue-400 rounded-full mb-1">
-                          <Video size={18} />
+                      ) : (
+                        <div 
+                          onClick={() => setEditingVideo(file)}
+                          className="w-full h-full bg-slate-900 border border-blue-500/30 flex flex-col items-center justify-between cursor-pointer hover:bg-slate-850 transition-colors p-2 text-center relative"
+                          title="Toque para abrir editor de privacidade e desfoque do vídeo"
+                        >
+                          <div className="p-2 bg-blue-600/20 text-blue-400 rounded-full mt-1">
+                            <Video size={20} />
+                          </div>
+                          <div className="w-full">
+                            <span className="text-[9px] text-blue-300 font-bold flex items-center justify-center gap-0.5 leading-tight">
+                              <Shield size={10} className="text-blue-400 shrink-0" /> Desfocar Vídeo
+                            </span>
+                            <span className="text-[8px] text-slate-400 truncate block max-w-full mt-0.5">
+                              {file.name}
+                            </span>
+                            <span className={`text-[9px] font-bold block mt-0.5 ${isHeavy ? 'text-amber-400' : 'text-slate-400'}`}>
+                              {isHeavy ? '⚠️ ' : ''}{formatFileSize(file.size)}
+                            </span>
+                          </div>
                         </div>
-                        <span className="text-[9px] text-blue-300 font-bold flex items-center gap-0.5 leading-tight">
-                          <Shield size={10} className="text-blue-400 shrink-0" /> Desfocar Vídeo
-                        </span>
-                        <span className="text-[8px] text-slate-400 truncate max-w-[80px] mt-0.5">
-                          {file.name}
-                        </span>
-                      </div>
-                    )}
-                    <button 
-                      type="button" 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        removeAttachment(index);
-                      }}
-                      className="absolute top-1 right-1 bg-black/70 rounded-full p-1 hover:bg-red-500 transition-colors z-10"
-                      title="Remover anexo"
-                    >
-                      <X size={12} className="text-white" />
-                    </button>
+                      )}
+                      <button 
+                        type="button" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeAttachment(index);
+                        }}
+                        className="absolute top-1.5 right-1.5 bg-black/80 hover:bg-red-500 rounded-full p-1 transition-colors z-10"
+                        title="Remover anexo"
+                      >
+                        <X size={12} className="text-white" />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Dica amigável se houver vídeo pesado (> 15MB) */}
+              {attachments.some(f => isVideoFile(f) && f.size > 15 * 1024 * 1024) && (
+                <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-start gap-2.5 text-xs text-amber-200">
+                  <AlertTriangle size={17} className="text-amber-400 shrink-0 mt-0.5" />
+                  <div className="flex-1 space-y-1">
+                    <p className="font-bold text-amber-300 text-xs">
+                      Vídeo pesado em alta resolução ({formatFileSize(attachments.find(f => isVideoFile(f))?.size || 0)})
+                    </p>
+                    <p className="text-[11px] text-amber-200/90 leading-relaxed">
+                      Em redes móveis (4G/3G), vídeos gravados pela câmera do celular levam de 1 a 3 minutos para envio completo aos servidores.
+                    </p>
+                    <p className="text-[11px] text-amber-300/90 font-medium">
+                      💡 <strong>Dica rápida:</strong> Se preferir envio instantâneo sem esperar o upload do vídeo, você pode tocar no vídeo e escolher <em>"Extrair Foto"</em>.
+                    </p>
                   </div>
-                );
-              })}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -888,13 +1069,20 @@ export function ReportPage() {
               {isSubmitting ? (
                 <>
                   <div className="flex items-center gap-2">
-                    <span className="animate-pulse">{t('report.sending', 'Enviando...')}</span>
+                    <Loader2 size={18} className="animate-spin text-blue-400 shrink-0" />
+                    <span className="text-white font-medium text-xs sm:text-sm">
+                      {uploadStatus.phase === 'uploading'
+                        ? `Enviando anexo ${uploadStatus.fileIndex}/${uploadStatus.totalFiles} (${uploadStatus.progress}% • ${formatFileSize(uploadStatus.bytesTransferred)}/${formatFileSize(uploadStatus.totalBytes)})`
+                        : uploadStatus.phase === 'saving'
+                        ? 'Gravando ocorrência no mapa...'
+                        : 'Notificando vizinhança...'}
+                    </span>
                   </div>
-                  {uploadProgress > 0 && uploadProgress < 100 && (
-                    <div className="w-full max-w-[200px] h-1.5 bg-slate-700 rounded-full overflow-hidden mt-1">
+                  {uploadStatus.phase === 'uploading' && (
+                    <div className="w-full max-w-[240px] h-1.5 bg-slate-700/80 rounded-full overflow-hidden mt-1">
                       <div 
-                        className="h-full bg-blue-400 transition-all duration-300" 
-                        style={{ width: `${uploadProgress}%` }}
+                        className="h-full bg-gradient-to-r from-blue-400 to-indigo-400 transition-all duration-300" 
+                        style={{ width: `${Math.max(4, uploadStatus.progress)}%` }}
                       />
                     </div>
                   )}
@@ -913,6 +1101,98 @@ export function ReportPage() {
           </button>
         </div>
       </form>
+      
+      {/* Upload Progress Modal Overlay (Informações claras sobre o progresso e velocidade) */}
+      {isSubmitting && (
+        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-slate-900 border border-slate-700/90 rounded-3xl p-6 max-w-sm w-full shadow-2xl flex flex-col items-center text-center space-y-4">
+            {/* Animated Icon */}
+            <div className="relative">
+              <div className="w-16 h-16 rounded-full bg-blue-500/20 border border-blue-500/40 flex items-center justify-center text-blue-400">
+                {uploadStatus.phase === 'uploading' ? (
+                  <UploadCloud size={30} className="text-blue-400 animate-pulse" />
+                ) : uploadStatus.phase === 'saving' ? (
+                  <Loader2 size={30} className="text-indigo-400 animate-spin" />
+                ) : (
+                  <Siren size={30} className="text-red-400 animate-pulse" />
+                )}
+              </div>
+              <div className="absolute -inset-1 rounded-full border border-blue-400/30 animate-ping pointer-events-none" />
+            </div>
+
+            <div className="space-y-1">
+              <h3 className="text-base font-bold text-white">
+                {uploadStatus.phase === 'uploading'
+                  ? 'Enviando Ocorrência...'
+                  : uploadStatus.phase === 'saving'
+                  ? 'Gravando no Mapa...'
+                  : 'Notificando Moradores...'}
+              </h3>
+              <p className="text-xs text-slate-400">
+                {uploadStatus.phase === 'uploading'
+                  ? `Anexo ${uploadStatus.fileIndex} de ${uploadStatus.totalFiles}: ${uploadStatus.fileName}`
+                  : uploadStatus.statusText || 'Processando alerta de segurança...'}
+              </p>
+            </div>
+
+            {uploadStatus.phase === 'uploading' && (
+              <div className="w-full space-y-2.5 bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/60">
+                {/* Progress Bar & Percentage */}
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-blue-400 text-sm">
+                    {uploadStatus.progress}%
+                  </span>
+                  <span className="text-slate-300 font-medium">
+                    {formatFileSize(uploadStatus.bytesTransferred)} / {formatFileSize(uploadStatus.totalBytes)}
+                  </span>
+                </div>
+
+                <div className="w-full h-2.5 bg-slate-700 rounded-full overflow-hidden p-0.5 border border-slate-600/40">
+                  <div
+                    className="h-full bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 rounded-full transition-all duration-300"
+                    style={{ width: `${Math.max(4, uploadStatus.progress)}%` }}
+                  />
+                </div>
+
+                {/* Speed & Estimated Time */}
+                <div className="flex items-center justify-between text-[11px] text-slate-400 pt-0.5 border-t border-slate-700/50">
+                  <span className="flex items-center gap-1 text-slate-300">
+                    <Wifi size={12} className="text-blue-400" />
+                    {uploadStatus.speedKBps > 0 ? `${uploadStatus.speedKBps} KB/s` : 'Enviando pacotes...'}
+                  </span>
+                  <span className="flex items-center gap-1 text-slate-300">
+                    <Clock size={12} className="text-indigo-400" />
+                    {uploadStatus.estimatedSecondsLeft > 0 ? `~${uploadStatus.estimatedSecondsLeft}s restantes` : 'Calculando...'}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Explicação pedagógica se for vídeo grande */}
+            {uploadStatus.phase === 'uploading' && uploadStatus.totalBytes > 10 * 1024 * 1024 && (
+              <div className="p-2.5 bg-blue-500/10 border border-blue-500/20 rounded-xl text-[11px] text-blue-200/90 text-left space-y-1">
+                <p className="font-semibold text-blue-300 flex items-center gap-1">
+                  <AlertTriangle size={12} className="text-blue-400" />
+                  Por que pode demorar no 4G?
+                </p>
+                <p className="text-[10px] leading-relaxed text-slate-300">
+                  Vídeos de celular têm alta resolução ({formatFileSize(uploadStatus.totalBytes)}). Em redes móveis, a velocidade de upload da operadora costuma levar de 1 a 3 minutos para enviar tudo sem perda de dados.
+                </p>
+              </div>
+            )}
+
+            {/* Cancel Button */}
+            <button
+              type="button"
+              onClick={handleCancelUpload}
+              className="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 hover:text-white text-xs font-semibold rounded-xl border border-slate-700 transition-all flex items-center justify-center gap-1.5"
+            >
+              <X size={14} className="text-red-400" />
+              Cancelar Envio
+            </button>
+          </div>
+        </div>
+      )}
       
       {editingImage && (
         <ImageBlurEditor 
