@@ -1,22 +1,25 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Camera, RefreshCw, Zap, ZapOff, AlertCircle, Image as ImageIcon } from 'lucide-react';
+import { X, Camera, RefreshCw, Zap, ZapOff, AlertCircle, Image as ImageIcon, Video, Square, Smartphone } from 'lucide-react';
 
 interface InAppCameraModalProps {
   isOpen: boolean;
   onClose: () => void;
   onCapture: (file: File) => void;
-  onFallbackToFilePicker: () => void;
+  onFallbackToFilePicker: (mode: 'photo' | 'video' | 'gallery') => void;
+  initialMode?: 'photo' | 'video';
 }
 
 export function InAppCameraModal({
   isOpen,
   onClose,
   onCapture,
-  onFallbackToFilePicker
+  onFallbackToFilePicker,
+  initialMode = 'photo'
 }: InAppCameraModalProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   
+  const [mode, setMode] = useState<'photo' | 'video'>(initialMode);
   const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment');
   const [hasTorch, setHasTorch] = useState(false);
   const [torchOn, setTorchOn] = useState(false);
@@ -24,8 +27,36 @@ export function InAppCameraModal({
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [isInitializing, setIsInitializing] = useState(true);
 
+  // Video recording states
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingSeconds, setRecordingSeconds] = useState(0);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const recordedChunksRef = useRef<Blob[]>([]);
+  const timerIntervalRef = useRef<any>(null);
+
+  // Reset mode to initialMode whenever modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setMode(initialMode);
+      setIsRecording(false);
+      setRecordingSeconds(0);
+    }
+  }, [isOpen, initialMode]);
+
   // Stop camera tracks cleanly
   const stopStream = () => {
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    }
+
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      try {
+        mediaRecorderRef.current.stop();
+      } catch {}
+      mediaRecorderRef.current = null;
+    }
+
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => {
         try {
@@ -34,9 +65,12 @@ export function InAppCameraModal({
       });
       streamRef.current = null;
     }
+
     if (videoRef.current) {
       videoRef.current.srcObject = null;
     }
+    setTorchOn(false);
+    setIsRecording(false);
   };
 
   // Start in-app camera
@@ -62,31 +96,58 @@ export function InAppCameraModal({
       }
 
       try {
-        const constraints: MediaStreamConstraints = {
-          audio: false,
-          video: {
-            facingMode: { ideal: facingMode },
-            width: { ideal: 1920 },
-            height: { ideal: 1080 }
-          }
-        };
+        let stream: MediaStream | null = null;
 
-        let stream: MediaStream;
-        try {
-          stream = await navigator.mediaDevices.getUserMedia(constraints);
-        } catch {
-          // Fallback if ideal resolution/facingMode is rejected
-          stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        // If in video mode, attempt to capture video + audio for complete incident documentation
+        if (mode === 'video') {
+          try {
+            stream = await navigator.mediaDevices.getUserMedia({
+              audio: true,
+              video: {
+                facingMode: { ideal: facingMode },
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
+              }
+            });
+          } catch {
+            // Audio permission might be denied or unsupported, fallback to video-only
+            try {
+              stream = await navigator.mediaDevices.getUserMedia({
+                audio: false,
+                video: {
+                  facingMode: { ideal: facingMode },
+                  width: { ideal: 1280 },
+                  height: { ideal: 720 }
+                }
+              });
+            } catch {
+              stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+            }
+          }
+        } else {
+          // Photo mode: video stream only
+          try {
+            stream = await navigator.mediaDevices.getUserMedia({
+              audio: false,
+              video: {
+                facingMode: { ideal: facingMode },
+                width: { ideal: 1920 },
+                height: { ideal: 1080 }
+              }
+            });
+          } catch {
+            stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+          }
         }
 
         if (!isMounted) {
-          stream.getTracks().forEach(t => t.stop());
+          stream?.getTracks().forEach(t => t.stop());
           return;
         }
 
         streamRef.current = stream;
 
-        if (videoRef.current) {
+        if (videoRef.current && stream) {
           videoRef.current.srcObject = stream;
           await videoRef.current.play().catch(() => {});
         }
@@ -104,7 +165,7 @@ export function InAppCameraModal({
         console.warn('[InAppCamera] Error accessing camera:', err);
         setIsInitializing(false);
         if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-          setCameraError('Permissão da câmera negada. Você pode autorizar no navegador ou escolher da galeria.');
+          setCameraError('Permissão da câmera negada. Você pode autorizar no navegador ou usar o app de câmera do aparelho.');
         } else {
           setCameraError('Não foi possível iniciar a câmera integrada.');
         }
@@ -117,7 +178,7 @@ export function InAppCameraModal({
       isMounted = false;
       stopStream();
     };
-  }, [isOpen, facingMode]);
+  }, [isOpen, facingMode, mode]);
 
   // Toggle Torch/Flash
   const toggleTorch = async () => {
@@ -138,6 +199,7 @@ export function InAppCameraModal({
 
   // Flip front/back camera
   const toggleFacingMode = () => {
+    if (isRecording) return;
     setFacingMode(prev => (prev === 'environment' ? 'user' : 'environment'));
   };
 
@@ -191,15 +253,118 @@ export function InAppCameraModal({
     }
   };
 
+  // Helper to find supported video mime type
+  const getSupportedVideoMimeType = () => {
+    if (typeof MediaRecorder === 'undefined') return '';
+    const candidates = [
+      'video/mp4;codecs=avc1,mp4a.40.2',
+      'video/mp4',
+      'video/webm;codecs=vp9,opus',
+      'video/webm;codecs=vp8,opus',
+      'video/webm'
+    ];
+    for (const t of candidates) {
+      if (MediaRecorder.isTypeSupported(t)) {
+        return t;
+      }
+    }
+    return '';
+  };
+
+  // Start recording video
+  const startRecording = () => {
+    if (!streamRef.current || isRecording) return;
+
+    recordedChunksRef.current = [];
+    setRecordingSeconds(0);
+
+    const mimeType = getSupportedVideoMimeType();
+    const options: MediaRecorderOptions = mimeType ? { mimeType } : {};
+
+    try {
+      const recorder = new MediaRecorder(streamRef.current, options);
+      
+      recorder.ondataavailable = (event) => {
+        if (event.data && event.data.size > 0) {
+          recordedChunksRef.current.push(event.data);
+        }
+      };
+
+      recorder.onstop = () => {
+        const finalMime = recorder.mimeType || 'video/mp4';
+        const ext = finalMime.includes('mp4') ? 'mp4' : 'webm';
+        const blob = new Blob(recordedChunksRef.current, { type: finalMime });
+        
+        if (blob.size > 0) {
+          const file = new File([blob], `video_gravado_${Date.now()}.${ext}`, {
+            type: blob.type || 'video/mp4',
+            lastModified: Date.now()
+          });
+          stopStream();
+          onCapture(file);
+        }
+        setIsRecording(false);
+        setRecordingSeconds(0);
+      };
+
+      recorder.start(500); // 500ms time slices
+      mediaRecorderRef.current = recorder;
+      setIsRecording(true);
+
+      timerIntervalRef.current = setInterval(() => {
+        setRecordingSeconds((prev) => {
+          if (prev >= 60) {
+            // Auto stop at 60 seconds
+            stopRecording();
+            return 60;
+          }
+          return prev + 1;
+        });
+      }, 1000);
+    } catch (err) {
+      console.error('[InAppCamera] Failed to initialize MediaRecorder:', err);
+      // Fallback to native device recorder
+      stopStream();
+      onClose();
+      onFallbackToFilePicker('video');
+    }
+  };
+
+  // Stop recording video
+  const stopRecording = () => {
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    }
+
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      try {
+        mediaRecorderRef.current.stop();
+      } catch (e) {
+        console.warn('Error stopping MediaRecorder:', e);
+      }
+    }
+  };
+
+  // Format seconds to mm:ss
+  const formatTime = (secs: number) => {
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-[120] bg-black flex flex-col justify-between overflow-hidden animate-in fade-in duration-200">
       {/* Top Controls Bar */}
-      <div className="relative z-20 flex items-center justify-between p-4 pt-safe bg-gradient-to-b from-black/80 via-black/40 to-transparent">
+      <div className="relative z-20 flex items-center justify-between p-4 pt-safe bg-gradient-to-b from-black/85 via-black/40 to-transparent">
         <button
           type="button"
           onClick={() => {
+            if (isRecording) {
+              stopRecording();
+            }
             stopStream();
             onClose();
           }}
@@ -209,7 +374,18 @@ export function InAppCameraModal({
           <X size={22} />
         </button>
 
+        {/* Live Video Recording Indicator */}
+        {isRecording && (
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-600/90 text-white shadow-lg animate-pulse">
+            <span className="w-2.5 h-2.5 rounded-full bg-white" />
+            <span className="text-xs font-mono font-bold tracking-wider">
+              {formatTime(recordingSeconds)} / 01:00
+            </span>
+          </div>
+        )}
+
         <div className="flex items-center gap-2">
+          {/* Torch/Flash button */}
           {hasTorch && (
             <button
               type="button"
@@ -223,10 +399,12 @@ export function InAppCameraModal({
             </button>
           )}
 
+          {/* Flip camera */}
           <button
             type="button"
             onClick={toggleFacingMode}
-            className="p-3 bg-black/50 hover:bg-black/70 text-white rounded-full backdrop-blur-md transition-all active:scale-95"
+            disabled={isRecording}
+            className="p-3 bg-black/50 hover:bg-black/70 text-white rounded-full backdrop-blur-md transition-all active:scale-95 disabled:opacity-40"
             aria-label="Alternar Câmera"
           >
             <RefreshCw size={20} />
@@ -274,56 +452,141 @@ export function InAppCameraModal({
               <p className="text-sm font-bold text-white">Câmera Indisponível</p>
               <p className="text-xs text-slate-300 leading-relaxed">{cameraError}</p>
             </div>
-            <button
-              type="button"
-              onClick={() => {
-                stopStream();
-                onClose();
-                onFallbackToFilePicker();
-              }}
-              className="w-full py-3 bg-blue-600 hover:bg-blue-500 active:scale-98 text-white rounded-xl text-xs font-bold transition-all shadow-lg flex items-center justify-center gap-2"
-            >
-              <ImageIcon size={16} />
-              <span>Escolher foto da Galeria / Arquivos</span>
-            </button>
+            <div className="flex flex-col gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  stopStream();
+                  onClose();
+                  onFallbackToFilePicker(mode);
+                }}
+                className="w-full py-3 bg-blue-600 hover:bg-blue-500 active:scale-98 text-white rounded-xl text-xs font-bold transition-all shadow-lg flex items-center justify-center gap-2"
+              >
+                <Smartphone size={16} />
+                <span>Usar App de Câmera do Celular</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  stopStream();
+                  onClose();
+                  onFallbackToFilePicker('gallery');
+                }}
+                className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2"
+              >
+                <ImageIcon size={16} />
+                <span>Escolher da Galeria</span>
+              </button>
+            </div>
           </div>
         )}
       </div>
 
-      {/* Bottom Shutter Controls */}
-      <div className="relative z-20 flex items-center justify-around px-8 py-6 pb-safe bg-gradient-to-t from-black via-black/70 to-transparent">
-        {/* Gallery / File Picker quick option */}
-        <button
-          type="button"
-          onClick={() => {
-            stopStream();
-            onClose();
-            onFallbackToFilePicker();
-          }}
-          className="flex flex-col items-center gap-1 text-slate-300 hover:text-white transition-all active:scale-95"
-          title="Abrir Galeria"
-        >
-          <div className="w-11 h-11 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20">
-            <ImageIcon size={20} />
+      {/* Bottom Controls Area */}
+      <div className="relative z-20 flex flex-col items-center pb-safe bg-gradient-to-t from-black via-black/80 to-transparent pt-3">
+        {/* Mode Selector (FOTO | VÍDEO) */}
+        {!isRecording && (
+          <div className="flex items-center gap-6 mb-3">
+            <button
+              type="button"
+              onClick={() => setMode('photo')}
+              className={`text-xs font-bold uppercase tracking-wider py-1 px-3 rounded-full transition-all ${
+                mode === 'photo'
+                  ? 'text-amber-300 bg-amber-400/20 border border-amber-400/40 shadow-sm'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              Foto
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode('video')}
+              className={`text-xs font-bold uppercase tracking-wider py-1 px-3 rounded-full transition-all ${
+                mode === 'video'
+                  ? 'text-red-400 bg-red-500/20 border border-red-500/40 shadow-sm'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              Vídeo
+            </button>
           </div>
-          <span className="text-[10px] font-semibold">Galeria</span>
-        </button>
+        )}
 
-        {/* Snap Button */}
-        <button
-          type="button"
-          onClick={takePhoto}
-          disabled={isCapturing || isInitializing || Boolean(cameraError)}
-          className="relative w-20 h-20 rounded-full border-4 border-white flex items-center justify-center transition-all active:scale-90 disabled:opacity-40 group shadow-2xl shadow-blue-500/20"
-          aria-label="Tirar Foto"
-        >
-          <div className="w-16 h-16 rounded-full bg-white group-hover:scale-95 transition-transform flex items-center justify-center text-slate-900">
-            <Camera size={26} className="text-slate-900 drop-shadow-sm" />
-          </div>
-        </button>
+        {/* Shutter row */}
+        <div className="w-full flex items-center justify-around px-8 pb-6">
+          {/* Gallery / File Picker quick option */}
+          <button
+            type="button"
+            disabled={isRecording}
+            onClick={() => {
+              stopStream();
+              onClose();
+              onFallbackToFilePicker('gallery');
+            }}
+            className="flex flex-col items-center gap-1 text-slate-300 hover:text-white transition-all active:scale-95 disabled:opacity-20"
+            title="Abrir Galeria"
+          >
+            <div className="w-11 h-11 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20">
+              <ImageIcon size={20} />
+            </div>
+            <span className="text-[10px] font-semibold">Galeria</span>
+          </button>
 
-        {/* Placeholder to balance layout */}
-        <div className="w-11" />
+          {/* Shutter Button (Photo vs Video) */}
+          {mode === 'photo' ? (
+            <button
+              type="button"
+              onClick={takePhoto}
+              disabled={isCapturing || isInitializing || Boolean(cameraError)}
+              className="relative w-20 h-20 rounded-full border-4 border-white flex items-center justify-center transition-all active:scale-90 disabled:opacity-40 group shadow-2xl shadow-blue-500/20"
+              aria-label="Tirar Foto"
+            >
+              <div className="w-16 h-16 rounded-full bg-white group-hover:scale-95 transition-transform flex items-center justify-center text-slate-900">
+                <Camera size={26} className="text-slate-900 drop-shadow-sm" />
+              </div>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={isRecording ? stopRecording : startRecording}
+              disabled={isInitializing || Boolean(cameraError)}
+              className={`relative w-20 h-20 rounded-full border-4 flex items-center justify-center transition-all active:scale-95 disabled:opacity-40 shadow-2xl ${
+                isRecording 
+                  ? 'border-red-500 shadow-red-500/40 bg-red-500/20' 
+                  : 'border-white shadow-red-500/20 hover:border-red-400'
+              }`}
+              aria-label={isRecording ? 'Parar Gravação' : 'Gravar Vídeo'}
+            >
+              {isRecording ? (
+                <div className="w-7 h-7 bg-red-500 rounded-md transition-all flex items-center justify-center">
+                  <Square size={16} className="text-white fill-white" />
+                </div>
+              ) : (
+                <div className="w-15 h-15 rounded-full bg-red-500 hover:scale-95 transition-transform flex items-center justify-center">
+                  <Video size={24} className="text-white" />
+                </div>
+              )}
+            </button>
+          )}
+
+          {/* Native System Camera option */}
+          <button
+            type="button"
+            disabled={isRecording}
+            onClick={() => {
+              stopStream();
+              onClose();
+              onFallbackToFilePicker(mode);
+            }}
+            className="flex flex-col items-center gap-1 text-slate-300 hover:text-white transition-all active:scale-95 disabled:opacity-20"
+            title="Usar Câmera Nativa do Aparelho"
+          >
+            <div className="w-11 h-11 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20">
+              <Smartphone size={20} />
+            </div>
+            <span className="text-[10px] font-semibold">Câmera Nativa</span>
+          </button>
+        </div>
       </div>
     </div>
   );

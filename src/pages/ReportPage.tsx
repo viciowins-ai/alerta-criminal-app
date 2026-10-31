@@ -80,6 +80,7 @@ export function ReportPage() {
   const [visibility, setVisibility] = useState<'public' | 'group'>(urlGroupId ? 'group' : 'public');
   const [selectedGroupId, setSelectedGroupId] = useState<string>(urlGroupId || '');
   const [isInAppCameraOpen, setIsInAppCameraOpen] = useState(false);
+  const [cameraInitialMode, setCameraInitialMode] = useState<'photo' | 'video'>('photo');
   const [isCompressingImage, setIsCompressingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
@@ -166,14 +167,18 @@ export function ReportPage() {
 
   const handleCameraCapture = async (file: File) => {
     setIsInAppCameraOpen(false);
-    setIsCompressingImage(true);
-    try {
-      const compressed = await compressImageIfNeeded(file);
-      setIsCompressingImage(false);
-      setEditingImage(compressed);
-    } catch {
-      setIsCompressingImage(false);
-      setEditingImage(file);
+    if (isVideoFile(file)) {
+      setEditingVideo(file);
+    } else {
+      setIsCompressingImage(true);
+      try {
+        const compressed = await compressImageIfNeeded(file);
+        setIsCompressingImage(false);
+        setEditingImage(compressed);
+      } catch {
+        setIsCompressingImage(false);
+        setEditingImage(file);
+      }
     }
   };
 
@@ -870,10 +875,11 @@ export function ReportPage() {
             {t('report.attachmentsTitle', 'Anexos (Opcional)')}
           </h3>
           <div className="grid grid-cols-3 gap-2.5">
-            {/* Hidden Native Inputs (capture attribute removed to prevent Android LMK crash) */}
+            {/* Hidden Native Inputs (capture='environment' specifies direct hardware camera/camcorder) */}
             <input 
               type="file" 
               accept="image/*" 
+              capture="environment"
               ref={fileInputRef} 
               onChange={handleFileChange} 
               className="hidden" 
@@ -889,6 +895,7 @@ export function ReportPage() {
             <input 
               type="file" 
               accept="video/*" 
+              capture="environment"
               ref={videoInputRef} 
               onChange={handleFileChange} 
               className="hidden" 
@@ -897,7 +904,10 @@ export function ReportPage() {
             {/* 1. Tirar Foto (Câmera Integrada de Alta Performance) */}
             <button 
               type="button" 
-              onClick={() => setIsInAppCameraOpen(true)} 
+              onClick={() => {
+                setCameraInitialMode('photo');
+                setIsInAppCameraOpen(true);
+              }} 
               className="bg-slate-800/60 border border-dashed border-blue-500/40 rounded-2xl p-3 flex flex-col items-center justify-center gap-1.5 hover:bg-slate-800 hover:border-blue-400 transition-all group active:scale-95"
             >
               <div className="p-2.5 bg-blue-500/10 text-blue-400 rounded-full group-hover:bg-blue-500/20 transition-colors">
@@ -922,16 +932,19 @@ export function ReportPage() {
               </span>
             </button>
 
-            {/* 3. Gravar Vídeo */}
+            {/* 3. Gravar Vídeo (Abre Câmera de Vídeo Integrada ou Nativa) */}
             <button 
               type="button" 
-              onClick={() => videoInputRef.current?.click()} 
-              className="bg-slate-800/60 border border-dashed border-slate-600 rounded-2xl p-3 flex flex-col items-center justify-center gap-1.5 hover:bg-slate-800 hover:border-slate-400 transition-all group active:scale-95"
+              onClick={() => {
+                setCameraInitialMode('video');
+                setIsInAppCameraOpen(true);
+              }} 
+              className="bg-slate-800/60 border border-dashed border-red-500/40 rounded-2xl p-3 flex flex-col items-center justify-center gap-1.5 hover:bg-slate-800 hover:border-red-400 transition-all group active:scale-95"
             >
-              <div className="p-2.5 bg-slate-900/60 text-slate-300 rounded-full group-hover:bg-slate-700 transition-colors">
-                <Video size={20} />
+              <div className="p-2.5 bg-red-500/10 text-red-400 rounded-full group-hover:bg-red-500/20 transition-colors">
+                <Video size={20} className="drop-shadow-sm" />
               </div>
-              <span className="text-[11px] font-bold text-slate-300">
+              <span className="text-[11px] font-bold text-slate-200">
                 {t('report.recordVideo', 'Gravar Vídeo')}
               </span>
             </button>
@@ -1240,9 +1253,18 @@ export function ReportPage() {
 
       <InAppCameraModal
         isOpen={isInAppCameraOpen}
+        initialMode={cameraInitialMode}
         onClose={() => setIsInAppCameraOpen(false)}
         onCapture={handleCameraCapture}
-        onFallbackToFilePicker={() => fileInputRef.current?.click()}
+        onFallbackToFilePicker={(fallbackMode) => {
+          if (fallbackMode === 'video') {
+            videoInputRef.current?.click();
+          } else if (fallbackMode === 'gallery') {
+            galleryInputRef.current?.click();
+          } else {
+            fileInputRef.current?.click();
+          }
+        }}
       />
     </div>
   );
