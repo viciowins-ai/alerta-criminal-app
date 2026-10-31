@@ -1,6 +1,6 @@
 import React from 'react';
 import { TopBar } from '../components/TopBar';
-import { HelpCircle, MessageCircle, FileText, ExternalLink, Star, BookOpen } from 'lucide-react';
+import { HelpCircle, MessageCircle, FileText, ExternalLink, Star } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
@@ -29,7 +29,6 @@ export function HelpPage() {
         </div>
 
         <div className="bg-slate-800 rounded-3xl shadow-sm border border-slate-700 overflow-hidden">
-          <HelpItem icon={<BookOpen size={20} className="text-yellow-500" />} label={t('help.visualTutorial', 'Tutorial Visual (Botões e Mapa)')} onClick={() => navigate('/tutorial')} />
           <HelpItem icon={<Star size={20} className="text-yellow-400 fill-yellow-400" />} label={t('help.rateApp', 'Avaliar Aplicativo')} onClick={() => navigate('/help/feedback')} />
           <HelpItem icon={<MessageCircle size={20} className="text-blue-500" />} label={t('help.contactSupport', 'Falar com Suporte')} onClick={() => navigate('/help/support')} />
           <HelpItem icon={<FileText size={20} className="text-green-500" />} label={t('help.faq', 'Perguntas Frequentes (FAQ)')} onClick={() => navigate('/help/faq')} />

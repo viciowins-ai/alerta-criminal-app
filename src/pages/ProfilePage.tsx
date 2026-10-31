@@ -57,6 +57,7 @@ export function ProfilePage() {
       )
     },
     { icon: <BookOpen className="text-blue-500" />, label: t('profile.howToUse', 'Como Usar o App'), path: '/como-usar' },
+    { icon: <BookOpen className="text-yellow-500" />, label: t('help.visualTutorial', 'Tutorial Visual (Botões e Mapa)'), path: '/tutorial' },
     { icon: <Star className="text-yellow-400 fill-yellow-400" />, label: t('profile.feedback', 'Avaliar Aplicativo'), path: '/help/feedback' },
     { icon: <Users className="text-indigo-500" />, label: t('profile.groups', 'Grupos Privados'), path: '/groups' },
     { icon: <Award className="text-yellow-500" />, label: t('profile.contributionLevel', 'Meu Nível de Contribuição'), path: '/gamification', badge: t(`levels.badge.${levelInfo.badge}`, levelInfo.badge) },
