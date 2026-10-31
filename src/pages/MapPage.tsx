@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import Map, { Source, Layer, Marker, MapRef } from 'react-map-gl/mapbox';
-import { AttachmentGallery } from '../components/AttachmentGallery';
-import { AudioPlayer } from '../components/AudioPlayer';
+import { IncidentDetailSheet } from '../components/map/IncidentDetailSheet';
+import { MapFilterPopover } from '../components/map/MapFilterPopover';
 import { Search, Filter, ShieldAlert, Navigation, Building2, Landmark, Coffee, Train, LocateFixed, X, AlertCircle, ThumbsUp, Moon, ShieldCheck, Share2, MapPin, Play, Car, Bike, Globe, Siren, Eye, Flame, AlertTriangle, Check, Layers } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -1006,142 +1006,25 @@ export function MapPage() {
               )}
             </button>
           
-          {showFilters && (
-            <>
-              {/* Invisible backdrop to dismiss when tapping outside */}
-              <div 
-                className="fixed inset-0 z-40 bg-black/20" 
-                onClick={() => setShowFilters(false)} 
-              />
-              
-              {(() => {
-                const isRTL = i18n.language === 'ar' || (typeof document !== 'undefined' && document.documentElement.dir === 'rtl');
-                return (
-                  <div 
-                    className={`absolute top-full mt-2 w-64 sm:w-72 max-w-[calc(100vw-1.5rem)] bg-slate-900/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-700/70 overflow-hidden z-50 animate-fade-in divide-y divide-slate-800/80 ${
-                      isRTL ? 'left-0 right-auto' : 'right-0 left-auto'
-                    }`}
-                  >
-                    {/* Header with Title and Clear button */}
-                    <div className="px-3.5 py-2.5 flex items-center justify-between bg-slate-950/40">
-                      <div className="flex items-center gap-2">
-                        <Filter size={14} className="text-blue-400" />
-                        <span className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-                          {t('map.filters.title', 'Filtros')}
-                        </span>
-                      </div>
-                      {activeFilter && (
-                        <button
-                          onClick={() => { setActiveFilter(null); setShowFilters(false); }}
-                          className="text-[11px] font-semibold text-blue-400 hover:text-blue-300 transition-colors"
-                        >
-                          {t('common.clear', 'Limpar')}
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Filter Items */}
-                    <div className="p-1.5 space-y-0.5">
-                      <button
-                        onClick={() => handleSelectFilter(null)}
-                        className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all ${!activeFilter ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30' : 'text-slate-300 hover:bg-slate-800/80 border border-transparent'}`}
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <Layers size={14} className="text-blue-400 shrink-0" />
-                          <span className="truncate">{t('map.filters.all', 'Todos os Alertas')}</span>
-                        </div>
-                        {!activeFilter && <Check size={16} className={`text-blue-400 shrink-0 ${isRTL ? 'mr-2' : 'ml-2'}`} />}
-                      </button>
-
-                      <button
-                        onClick={() => handleSelectFilter('roubo')}
-                        className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all ${activeFilter === 'roubo' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'text-slate-300 hover:bg-slate-800/80 border border-transparent'}`}
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <span className="w-2.5 h-2.5 rounded-full bg-red-500 shrink-0 shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
-                          <span className="truncate">{t('report.types.roubo', 'Roubo/Furto')}</span>
-                        </div>
-                        {activeFilter === 'roubo' && <Check size={16} className={`text-red-400 shrink-0 ${isRTL ? 'mr-2' : 'ml-2'}`} />}
-                      </button>
-
-                      <button
-                        onClick={() => handleSelectFilter('suspeito')}
-                        className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all ${activeFilter === 'suspeito' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'text-slate-300 hover:bg-slate-800/80 border border-transparent'}`}
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <span className="w-2.5 h-2.5 rounded-full bg-orange-500 shrink-0 shadow-[0_0_8px_rgba(249,115,22,0.5)]" />
-                          <span className="truncate">{t('report.types.suspeito', 'Atividade Suspeita')}</span>
-                        </div>
-                        {activeFilter === 'suspeito' && <Check size={16} className={`text-orange-400 shrink-0 ${isRTL ? 'mr-2' : 'ml-2'}`} />}
-                      </button>
-
-                      <button
-                        onClick={() => handleSelectFilter('zeladoria')}
-                        className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all ${activeFilter === 'zeladoria' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'text-slate-300 hover:bg-slate-800/80 border border-transparent'}`}
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 shrink-0 shadow-[0_0_8px_rgba(6,182,212,0.5)]" />
-                          <span className="truncate">{t('report.types.zeladoria', 'Zeladoria / Risco')}</span>
-                        </div>
-                        {activeFilter === 'zeladoria' && <Check size={16} className={`text-cyan-400 shrink-0 ${isRTL ? 'mr-2' : 'ml-2'}`} />}
-                      </button>
-
-                      <button
-                        onClick={() => handleSelectFilter('vandalismo')}
-                        className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all ${activeFilter === 'vandalismo' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' : 'text-slate-300 hover:bg-slate-800/80 border border-transparent'}`}
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <span className="w-2.5 h-2.5 rounded-full bg-yellow-400 shrink-0 shadow-[0_0_8px_rgba(234,179,8,0.5)]" />
-                          <span className="truncate">{t('report.types.vandalismo', 'Vandalismo')}</span>
-                        </div>
-                        {activeFilter === 'vandalismo' && <Check size={16} className={`text-yellow-400 shrink-0 ${isRTL ? 'mr-2' : 'ml-2'}`} />}
-                      </button>
-
-                      <button
-                        onClick={() => handleSelectFilter('outro')}
-                        className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all ${activeFilter === 'outro' ? 'bg-slate-500/20 text-slate-300 border border-slate-500/30' : 'text-slate-300 hover:bg-slate-800/80 border border-transparent'}`}
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <span className="w-2.5 h-2.5 rounded-full bg-slate-400 shrink-0" />
-                          <span className="truncate">{t('report.types.outro', 'Outro')}</span>
-                        </div>
-                        {activeFilter === 'outro' && <Check size={16} className={`text-slate-300 shrink-0 ${isRTL ? 'mr-2' : 'ml-2'}`} />}
-                      </button>
-                    </div>
-
-                    {/* Heatmap Section */}
-                    <div className="p-1.5 bg-slate-950/40">
-                      <button
-                        onClick={() => { setShowHeatmap(!showHeatmap); setShowFilters(false); }}
-                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all ${
-                          showHeatmap 
-                            ? 'bg-orange-500/20 text-orange-300 border border-orange-500/40 shadow-sm' 
-                            : 'text-slate-300 hover:bg-slate-800/80 border border-transparent'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <Flame size={16} className={showHeatmap ? "text-orange-400 shrink-0 animate-pulse" : "text-slate-400 shrink-0"} />
-                          <div className="flex flex-col text-left">
-                            <span className="truncate font-semibold">{t('map.filters.heatmap', 'Mapa de Calor')}</span>
-                            <span className="text-[10px] text-slate-400">Mancha térmica criminal</span>
-                          </div>
-                        </div>
-                        <div className={`w-9 h-5 rounded-full transition-colors relative shrink-0 ${isRTL ? 'mr-2' : 'ml-2'} ${showHeatmap ? 'bg-orange-600' : 'bg-slate-700'}`}>
-                          <div 
-                            className={`w-3.5 h-3.5 bg-white rounded-full absolute top-[3px] transition-all duration-200 ${
-                              showHeatmap 
-                                ? (isRTL ? 'right-[18px]' : 'left-[18px]') 
-                                : (isRTL ? 'right-[3px]' : 'left-[3px]')
-                            }`} 
-                          />
-                        </div>
-                      </button>
-                    </div>
-                  </div>
-                );
-              })()}
-            </>
-          )}
+          <MapFilterPopover
+            isOpen={showFilters}
+            activeFilter={activeFilter}
+            showHeatmap={showHeatmap}
+            isRTL={i18n.language === 'ar' || (typeof document !== 'undefined' && document.documentElement.dir === 'rtl')}
+            onClose={() => setShowFilters(false)}
+            onSelectFilter={(type) => {
+              handleSelectFilter(type);
+              setShowFilters(false);
+            }}
+            onClearFilter={() => {
+              setActiveFilter(null);
+              setShowFilters(false);
+            }}
+            onToggleHeatmap={() => {
+              setShowHeatmap(!showHeatmap);
+              setShowFilters(false);
+            }}
+          />
           </div>
         </div>
       </div>
@@ -1464,117 +1347,18 @@ export function MapPage() {
       )}
 
       {/* Bottom Sheet Summary */}
-      {selectedLocation && (
-        <div className="absolute bottom-0 left-0 right-0 bg-slate-950/95 backdrop-blur-xl rounded-t-[2rem] shadow-[0_-10px_40px_rgba(0,0,0,0.7)] p-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] z-50 transition-transform border-t border-slate-700/60 animate-in slide-in-from-bottom-full max-h-[50vh] flex flex-col">
-          <div className="relative flex items-center justify-center mb-4 shrink-0">
-            <div className="w-12 h-1.5 bg-slate-700 rounded-full cursor-pointer hover:bg-slate-600 transition-colors" onClick={() => setSelectedLocation(null)} />
-            <button 
-              onClick={() => setSelectedLocation(null)}
-              className="absolute right-0 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-slate-800 text-slate-400 hover:text-white transition-colors"
-              title={t('common.close', 'Fechar')}
-            >
-              <X size={16} />
-            </button>
-          </div>
-          <div className="flex-1 overflow-y-auto hide-scrollbar -mx-5 px-5 pb-2">
-            <div className="flex justify-between items-start mb-4">
-            <div className="flex-1 pr-4">
-              <h2 className="text-xl font-black text-white tracking-tight mb-1 line-clamp-2">{selectedLocation.location.address || getLabel(selectedLocation.type)}</h2>
-              <div className="flex items-center gap-3 mt-2">
-                <p className="text-sm text-slate-400 font-medium">
-                  {t('map.riskLevels.risk', 'Risco')}: <span className={`font-bold drop-shadow-[0_0_8px_rgba(239,68,68,0.5)] ${
-                    selectedLocation.type === 'roubo' ? 'text-red-500' :
-                    selectedLocation.type === 'suspeito' ? 'text-orange-500' :
-                    selectedLocation.type === 'zeladoria' || selectedLocation.type === 'vandalismo' ? 'text-yellow-500' : 'text-green-500'
-                  }`}>{getRiskLevel(selectedLocation.type)}</span>
-                </p>
-                <div className="w-1 h-1 rounded-full bg-slate-600" />
-                <p className="text-sm text-slate-400 font-medium flex items-center gap-1">
-                  <ThumbsUp size={14} className={selectedLocation.upvotedBy?.includes(user?.uid) ? 'text-blue-400' : ''} />
-                  {selectedLocation.upvotes || 0} {t('map.confirmed', 'confirmaram')}
-                </p>
-                {selectedLocation.authorName && (
-                  <>
-                    <div className="w-1 h-1 rounded-full bg-slate-600" />
-                    <p className="text-sm text-slate-400 font-medium">{t('map.byAuthor', 'Por:')} <span className="text-white">{selectedLocation.authorName}</span></p>
-                  </>
-                )}
-              </div>
-            </div>
-            <div className="bg-slate-900/50 border border-white/5 rounded-xl p-2 text-center min-w-[4rem] shrink-0">
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">{t('map.status', 'Status')}</p>
-              <p className={`text-sm font-black leading-none ${
-                selectedLocation.status === 'verified' ? 'text-green-500' :
-                selectedLocation.status === 'pending' ? 'text-yellow-500' : 'text-red-500'
-              }`}>{selectedLocation.status === 'verified' ? t('map.statusVerified', 'Verificado') : selectedLocation.status === 'pending' ? t('map.statusPending', 'Pendente') : t('map.statusFake', 'Falso')}</p>
-            </div>
-          </div>
-          
-          {selectedLocation.description && (
-            <p className="text-sm text-slate-300 mb-4 italic border-l-2 border-slate-600 pl-3">"{selectedLocation.description}"</p>
-          )}
-
-          {selectedLocation.audioUrl && (
-            <div className="mb-4">
-              <AudioPlayer src={selectedLocation.audioUrl} duration={selectedLocation.audioDuration} />
-            </div>
-          )}
-
-          {selectedLocation.attachments && selectedLocation.attachments.length > 0 && (
-            <div className="mb-4">
-              <AttachmentGallery attachments={selectedLocation.attachments} />
-            </div>
-          )}
-          </div>
-
-          <div className="flex gap-3 overflow-x-auto pt-3 pb-1 hide-scrollbar shrink-0 border-t border-slate-800 mt-2">
-            <button 
-              onClick={() => navigate(`/route?destination=${encodeURIComponent(selectedLocation.location.address || '')}`)}
-              className="flex flex-col items-center gap-1.5 min-w-[68px]"
-            >
-              <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white shadow-lg active:scale-95 transition-transform">
-                <Navigation size={18} />
-              </div>
-              <span className="text-[11px] font-bold text-blue-500">{t('nav.routes', 'Rotas')}</span>
-            </button>
-            <button 
-              onClick={() => handleUpvote(selectedLocation.id)}
-              className="flex flex-col items-center gap-1.5 min-w-[68px]"
-            >
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-all duration-300 ${
-                selectedLocation.upvotedBy?.includes(user?.uid) 
-                  ? 'bg-blue-500 text-white shadow-blue-500/30 border border-blue-400' 
-                  : 'bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700'
-              }`}>
-                <ThumbsUp size={18} className={selectedLocation.upvotedBy?.includes(user?.uid) ? 'fill-current' : ''} />
-              </div>
-              <span className={`text-[11px] font-bold ${selectedLocation.upvotedBy?.includes(user?.uid) ? 'text-blue-400' : 'text-slate-300'}`}>
-                {selectedLocation.upvotedBy?.includes(user?.uid) ? t('map.confirmedAction', 'Confirmado') : t('map.confirmAction', 'Confirmar')}
-              </span>
-            </button>
-            <button 
-              onClick={handleShareLocation}
-              className="flex flex-col items-center gap-1.5 min-w-[68px]"
-            >
-              <div className="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-white shadow-lg active:scale-95 transition-transform">
-                <Share2 size={18} />
-              </div>
-              <span className="text-[11px] font-bold text-slate-300">{t('map.share', 'Compartilhar')}</span>
-            </button>
-            {(user?.uid === selectedLocation.authorId || user?.email === 'viciowins@gmail.com') && (
-              <button 
-                onClick={handleDeleteReport}
-                className="flex flex-col items-center gap-1.5 min-w-[68px]"
-              >
-                <div className="w-10 h-10 rounded-full bg-slate-800 border border-red-500/50 flex items-center justify-center text-red-500 shadow-lg active:scale-95 transition-transform">
-                  <X size={18} />
-                </div>
-                <span className="text-[11px] font-bold text-red-500">{t('map.delete', 'Excluir')}</span>
-              </button>
-            )}
-          </div>
-        </div>
-      )}
+      <IncidentDetailSheet
+        selectedLocation={selectedLocation}
+        currentUserId={user?.uid}
+        currentUserEmail={user?.email}
+        onClose={() => setSelectedLocation(null)}
+        onNavigateRoute={(address) => navigate(`/route?destination=${encodeURIComponent(address)}`)}
+        onUpvote={handleUpvote}
+        onShare={handleShareLocation}
+        onDelete={handleDeleteReport}
+        getRiskLevel={getRiskLevel}
+        getLabel={getLabel}
+      />
 
       <SOSModal 
         isOpen={sosModalData.isOpen}

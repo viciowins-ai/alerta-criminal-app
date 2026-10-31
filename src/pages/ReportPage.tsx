@@ -4,8 +4,8 @@ import { ImageBlurEditor } from '../components/ImageBlurEditor';
 import { VideoPrivacyEditor } from '../components/VideoPrivacyEditor';
 import { VoiceRecorder } from '../components/VoiceRecorder';
 import { InAppCameraModal } from '../components/InAppCameraModal';
-import { MapPin, Camera, Video, CheckCircle2, Siren, Eye, Flame, MoreHorizontal, Send, X, LocateFixed, AlertTriangle, Mic, Shield, Lock, Image as ImageIcon, Loader2, UploadCloud, Clock, Wifi } from 'lucide-react';
-import Map, { ViewStateChangeEvent, MapRef, Marker } from 'react-map-gl/mapbox';
+import { CheckCircle2, Siren, Eye, Flame, MoreHorizontal, Send, Mic, Lock, Loader2, AlertTriangle, Shield } from 'lucide-react';
+import { ViewStateChangeEvent, MapRef } from 'react-map-gl/mapbox';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { db, storage } from '../firebase';
@@ -16,6 +16,9 @@ import { getLevelInfo } from '../utils/levelUtils';
 import { useTranslation } from 'react-i18next';
 import { safeWatchPosition, safeGetCurrentPosition, safeClearWatch } from '../utils/geoUtils';
 import { compressImageIfNeeded, formatFileSize } from '../utils/imageCompressor';
+import { ReportLocationPicker } from '../components/report/ReportLocationPicker';
+import { ReportMediaSection } from '../components/report/ReportMediaSection';
+import { ReportUploadModal, UploadStatusState } from '../components/report/ReportUploadModal';
 
 const INCIDENT_TYPES = [
   { id: 'roubo', label: 'Roubo/Furto', icon: <Siren size={24} />, baseColor: 'red', desc: 'Assaltos ou furtos', placeholder: 'Ex: Dois homens em uma moto preta, armados. Ocorreu há 10 min...' },
@@ -641,74 +644,17 @@ export function ReportPage() {
       
       <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-4 flex flex-col gap-6">
         {/* Location Selection */}
-        <div className="bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-700">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-              <MapPin size={18} className="text-blue-400" />
-              {t('report.exactLocation', 'Localização Exata')}
-            </h3>
-            <button 
-              type="button"
-              onClick={requestLocation}
-              disabled={isLocating}
-              className={`text-xs flex items-center gap-1 px-2 py-1 rounded-lg border transition-colors ${
-                isLocating 
-                  ? 'bg-slate-700 text-slate-400 border-slate-600 cursor-not-allowed' 
-                  : 'bg-blue-500/10 text-blue-400 border-blue-500/30 hover:bg-blue-500/20'
-              }`}
-            >
-              <LocateFixed size={14} className={isLocating ? 'animate-spin' : ''} />
-              {isLocating ? t('report.searching', 'Buscando...') : t('report.myLocation', 'Meu Local')}
-            </button>
-          </div>
-          <div className="h-80 bg-slate-900 rounded-xl relative overflow-hidden mb-3 border border-slate-700">
-            <Map
-              ref={mapRef}
-              reuseMaps
-              initialViewState={{
-                longitude: reportLocation.longitude,
-                latitude: reportLocation.latitude,
-                zoom: 16,
-                pitch: 0,
-                bearing: 0
-              }}
-              onLoad={() => {
-                if (userLocation) {
-                  mapRef.current?.flyTo({ center: [userLocation.lng, userLocation.lat], zoom: 16, duration: 0 });
-                }
-              }}
-              onMoveStart={handleMoveStart}
-              onMoveEnd={handleMoveEnd}
-              mapStyle="mapbox://styles/mapbox/streets-v12"
-              mapboxAccessToken={import.meta.env.VITE_MAPBOX_TOKEN}
-              onError={(e) => console.warn('Mapbox warning:', e.error?.message || 'Erro no mapa')}
-            >
-              {/* Custom User Location Marker */}
-              {userLocation && (
-                <Marker longitude={userLocation.lng} latitude={userLocation.lat} anchor="center">
-                  <div className="relative flex items-center justify-center">
-                    <div className="absolute w-12 h-12 bg-blue-500/30 rounded-full animate-ping" />
-                    <div className="relative w-4 h-4 bg-blue-500 border-[2px] border-white rounded-full shadow-[0_0_15px_rgba(59,130,246,0.8)]" />
-                  </div>
-                </Marker>
-              )}
-            </Map>
-            {/* Center Pin Overlay */}
-            <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-              <div className={`flex flex-col items-center transform transition-transform ${isDragging ? '-translate-y-8' : '-translate-y-1/2'}`}>
-                <MapPin size={36} className="text-red-500 drop-shadow-[0_0_10px_rgba(239,68,68,0.8)]" />
-                <div className="w-2.5 h-2.5 bg-red-900/60 rounded-full -mt-1.5 animate-ping" />
-              </div>
-            </div>
-            {/* Instruction Overlay */}
-            <div className="absolute bottom-3 left-0 right-0 flex justify-center pointer-events-none">
-              <div className="bg-slate-900/95 text-white text-xs px-4 py-2 rounded-full shadow-lg border border-slate-700">
-                {t('report.dragMap', 'Arraste o mapa para ajustar o local')}
-              </div>
-            </div>
-          </div>
-          <p className="text-sm text-slate-300 truncate">{address}</p>
-        </div>
+        <ReportLocationPicker
+          reportLocation={reportLocation}
+          userLocation={userLocation}
+          address={address}
+          isLocating={isLocating}
+          isDragging={isDragging}
+          mapRef={mapRef}
+          onRequestLocation={requestLocation}
+          onMoveStart={handleMoveStart}
+          onMoveEnd={handleMoveEnd}
+        />
 
         {/* Destino & Visibilidade do Alerta (Sempre em destaque para evitar vazamento acidental) */}
         {userGroups.length > 0 && (
@@ -870,178 +816,21 @@ export function ReportPage() {
         </div>
 
         {/* Attachments */}
-        <div>
-          <h3 className="text-sm font-semibold text-white mb-3">
-            {t('report.attachmentsTitle', 'Anexos (Opcional)')}
-          </h3>
-          <div className="grid grid-cols-3 gap-2.5">
-            {/* Hidden Native Inputs (capture='environment' specifies direct hardware camera/camcorder) */}
-            <input 
-              type="file" 
-              accept="image/*" 
-              capture="environment"
-              ref={fileInputRef} 
-              onChange={handleFileChange} 
-              className="hidden" 
-            />
-            <input 
-              type="file" 
-              accept="image/*,video/*" 
-              multiple
-              ref={galleryInputRef} 
-              onChange={handleFileChange} 
-              className="hidden" 
-            />
-            <input 
-              type="file" 
-              accept="video/*" 
-              capture="environment"
-              ref={videoInputRef} 
-              onChange={handleFileChange} 
-              className="hidden" 
-            />
-
-            {/* 1. Tirar Foto (Câmera Integrada de Alta Performance) */}
-            <button 
-              type="button" 
-              onClick={() => {
-                setCameraInitialMode('photo');
-                setIsInAppCameraOpen(true);
-              }} 
-              className="bg-slate-800/60 border border-dashed border-blue-500/40 rounded-2xl p-3 flex flex-col items-center justify-center gap-1.5 hover:bg-slate-800 hover:border-blue-400 transition-all group active:scale-95"
-            >
-              <div className="p-2.5 bg-blue-500/10 text-blue-400 rounded-full group-hover:bg-blue-500/20 transition-colors">
-                <Camera size={20} className="drop-shadow-sm" />
-              </div>
-              <span className="text-[11px] font-bold text-slate-200">
-                {t('report.takePhoto', 'Tirar Foto')}
-              </span>
-            </button>
-
-            {/* 2. Galeria / Arquivos */}
-            <button 
-              type="button" 
-              onClick={() => galleryInputRef.current?.click()} 
-              className="bg-slate-800/60 border border-dashed border-slate-600 rounded-2xl p-3 flex flex-col items-center justify-center gap-1.5 hover:bg-slate-800 hover:border-slate-400 transition-all group active:scale-95"
-            >
-              <div className="p-2.5 bg-slate-900/60 text-slate-300 rounded-full group-hover:bg-slate-700 transition-colors">
-                <ImageIcon size={20} />
-              </div>
-              <span className="text-[11px] font-bold text-slate-300">
-                {t('report.gallery', 'Galeria')}
-              </span>
-            </button>
-
-            {/* 3. Gravar Vídeo (Abre Câmera de Vídeo Integrada ou Nativa) */}
-            <button 
-              type="button" 
-              onClick={() => {
-                setCameraInitialMode('video');
-                setIsInAppCameraOpen(true);
-              }} 
-              className="bg-slate-800/60 border border-dashed border-red-500/40 rounded-2xl p-3 flex flex-col items-center justify-center gap-1.5 hover:bg-slate-800 hover:border-red-400 transition-all group active:scale-95"
-            >
-              <div className="p-2.5 bg-red-500/10 text-red-400 rounded-full group-hover:bg-red-500/20 transition-colors">
-                <Video size={20} className="drop-shadow-sm" />
-              </div>
-              <span className="text-[11px] font-bold text-slate-200">
-                {t('report.recordVideo', 'Gravar Vídeo')}
-              </span>
-            </button>
-          </div>
-
-          {isCompressingImage && (
-            <div className="mt-2.5 flex items-center justify-center gap-2 p-2 bg-blue-500/10 border border-blue-500/30 rounded-xl text-blue-300 text-xs animate-pulse">
-              <Loader2 size={14} className="animate-spin text-blue-400" />
-              <span>Otimizando imagem para evitar travamentos de memória...</span>
-            </div>
-          )}
-          
-          <p className="text-[11px] text-red-400/80 text-center font-medium px-4 mt-2">
-            {t('report.legalNotice', '⚠️ Por motivos legais, evite filmar rostos de terceiros e placas de viaturas. Use o desfoque antes de enviar.')}
-          </p>
-          
-          {attachments.length > 0 && (
-            <div className="mt-4 space-y-3">
-              <div className="flex gap-2.5 overflow-x-auto pb-2">
-                {attachments.map((file, index) => {
-                  const isVid = isVideoFile(file);
-                  const isHeavy = file.size > 15 * 1024 * 1024;
-                  return (
-                    <div key={index} className="relative w-28 h-28 shrink-0 rounded-2xl overflow-hidden border border-slate-700 bg-slate-800/90 group shadow-md flex flex-col">
-                      {!isVid ? (
-                        <div 
-                          onClick={() => setEditingImage(file)}
-                          className="w-full h-full cursor-pointer relative"
-                          title="Toque para editar o desfoque da foto"
-                        >
-                          <img src={URL.createObjectURL(file)} alt="attachment" className="w-full h-full object-cover" />
-                          <div className="absolute inset-x-0 bottom-0 bg-slate-950/80 backdrop-blur-xs py-1 px-1.5 flex items-center justify-between text-[9px] text-slate-300">
-                            <span className="truncate max-w-[55px] font-medium">{file.name}</span>
-                            <span className="font-bold text-slate-400">{formatFileSize(file.size)}</span>
-                          </div>
-                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                            <span className="text-[10px] text-white font-bold bg-slate-900/90 px-1.5 py-0.5 rounded">Editar Foto</span>
-                          </div>
-                        </div>
-                      ) : (
-                        <div 
-                          onClick={() => setEditingVideo(file)}
-                          className="w-full h-full bg-slate-900 border border-blue-500/30 flex flex-col items-center justify-between cursor-pointer hover:bg-slate-850 transition-colors p-2 text-center relative"
-                          title="Toque para abrir editor de privacidade e desfoque do vídeo"
-                        >
-                          <div className="p-2 bg-blue-600/20 text-blue-400 rounded-full mt-1">
-                            <Video size={20} />
-                          </div>
-                          <div className="w-full">
-                            <span className="text-[9px] text-blue-300 font-bold flex items-center justify-center gap-0.5 leading-tight">
-                              <Shield size={10} className="text-blue-400 shrink-0" /> Desfocar Vídeo
-                            </span>
-                            <span className="text-[8px] text-slate-400 truncate block max-w-full mt-0.5">
-                              {file.name}
-                            </span>
-                            <span className={`text-[9px] font-bold block mt-0.5 ${isHeavy ? 'text-amber-400' : 'text-slate-400'}`}>
-                              {isHeavy ? '⚠️ ' : ''}{formatFileSize(file.size)}
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                      <button 
-                        type="button" 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeAttachment(index);
-                        }}
-                        className="absolute top-1.5 right-1.5 bg-black/80 hover:bg-red-500 rounded-full p-1 transition-colors z-10"
-                        title="Remover anexo"
-                      >
-                        <X size={12} className="text-white" />
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Dica amigável se houver vídeo pesado (> 15MB) */}
-              {attachments.some(f => isVideoFile(f) && f.size > 15 * 1024 * 1024) && (
-                <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-start gap-2.5 text-xs text-amber-200">
-                  <AlertTriangle size={17} className="text-amber-400 shrink-0 mt-0.5" />
-                  <div className="flex-1 space-y-1">
-                    <p className="font-bold text-amber-300 text-xs">
-                      Vídeo pesado em alta resolução ({formatFileSize(attachments.find(f => isVideoFile(f))?.size || 0)})
-                    </p>
-                    <p className="text-[11px] text-amber-200/90 leading-relaxed">
-                      Em redes móveis (4G/3G), vídeos gravados pela câmera do celular levam de 1 a 3 minutos para envio completo aos servidores.
-                    </p>
-                    <p className="text-[11px] text-amber-300/90 font-medium">
-                      💡 <strong>Dica rápida:</strong> Se preferir envio instantâneo sem esperar o upload do vídeo, você pode tocar no vídeo e escolher <em>"Extrair Foto"</em>.
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+        <ReportMediaSection
+          attachments={attachments}
+          isCompressingImage={isCompressingImage}
+          fileInputRef={fileInputRef}
+          galleryInputRef={galleryInputRef}
+          videoInputRef={videoInputRef}
+          onFileChange={handleFileChange}
+          onTriggerInAppCamera={(mode) => {
+            setCameraInitialMode(mode);
+            setIsInAppCameraOpen(true);
+          }}
+          onEditImage={setEditingImage}
+          onEditVideo={setEditingVideo}
+          onRemoveAttachment={removeAttachment}
+        />
 
         
         {/* Submit Button */}
@@ -1115,97 +904,12 @@ export function ReportPage() {
         </div>
       </form>
       
-      {/* Upload Progress Modal Overlay (Informações claras sobre o progresso e velocidade) */}
-      {isSubmitting && (
-        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-slate-900 border border-slate-700/90 rounded-3xl p-6 max-w-sm w-full shadow-2xl flex flex-col items-center text-center space-y-4">
-            {/* Animated Icon */}
-            <div className="relative">
-              <div className="w-16 h-16 rounded-full bg-blue-500/20 border border-blue-500/40 flex items-center justify-center text-blue-400">
-                {uploadStatus.phase === 'uploading' ? (
-                  <UploadCloud size={30} className="text-blue-400 animate-pulse" />
-                ) : uploadStatus.phase === 'saving' ? (
-                  <Loader2 size={30} className="text-indigo-400 animate-spin" />
-                ) : (
-                  <Siren size={30} className="text-red-400 animate-pulse" />
-                )}
-              </div>
-              <div className="absolute -inset-1 rounded-full border border-blue-400/30 animate-ping pointer-events-none" />
-            </div>
-
-            <div className="space-y-1">
-              <h3 className="text-base font-bold text-white">
-                {uploadStatus.phase === 'uploading'
-                  ? 'Enviando Ocorrência...'
-                  : uploadStatus.phase === 'saving'
-                  ? 'Gravando no Mapa...'
-                  : 'Notificando Moradores...'}
-              </h3>
-              <p className="text-xs text-slate-400">
-                {uploadStatus.phase === 'uploading'
-                  ? `Anexo ${uploadStatus.fileIndex} de ${uploadStatus.totalFiles}: ${uploadStatus.fileName}`
-                  : uploadStatus.statusText || 'Processando alerta de segurança...'}
-              </p>
-            </div>
-
-            {uploadStatus.phase === 'uploading' && (
-              <div className="w-full space-y-2.5 bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/60">
-                {/* Progress Bar & Percentage */}
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-bold text-blue-400 text-sm">
-                    {uploadStatus.progress}%
-                  </span>
-                  <span className="text-slate-300 font-medium">
-                    {formatFileSize(uploadStatus.bytesTransferred)} / {formatFileSize(uploadStatus.totalBytes)}
-                  </span>
-                </div>
-
-                <div className="w-full h-2.5 bg-slate-700 rounded-full overflow-hidden p-0.5 border border-slate-600/40">
-                  <div
-                    className="h-full bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 rounded-full transition-all duration-300"
-                    style={{ width: `${Math.max(4, uploadStatus.progress)}%` }}
-                  />
-                </div>
-
-                {/* Speed & Estimated Time */}
-                <div className="flex items-center justify-between text-[11px] text-slate-400 pt-0.5 border-t border-slate-700/50">
-                  <span className="flex items-center gap-1 text-slate-300">
-                    <Wifi size={12} className="text-blue-400" />
-                    {uploadStatus.speedKBps > 0 ? `${uploadStatus.speedKBps} KB/s` : 'Enviando pacotes...'}
-                  </span>
-                  <span className="flex items-center gap-1 text-slate-300">
-                    <Clock size={12} className="text-indigo-400" />
-                    {uploadStatus.estimatedSecondsLeft > 0 ? `~${uploadStatus.estimatedSecondsLeft}s restantes` : 'Calculando...'}
-                  </span>
-                </div>
-              </div>
-            )}
-
-            {/* Explicação pedagógica se for vídeo grande */}
-            {uploadStatus.phase === 'uploading' && uploadStatus.totalBytes > 10 * 1024 * 1024 && (
-              <div className="p-2.5 bg-blue-500/10 border border-blue-500/20 rounded-xl text-[11px] text-blue-200/90 text-left space-y-1">
-                <p className="font-semibold text-blue-300 flex items-center gap-1">
-                  <AlertTriangle size={12} className="text-blue-400" />
-                  Por que pode demorar no 4G?
-                </p>
-                <p className="text-[10px] leading-relaxed text-slate-300">
-                  Vídeos de celular têm alta resolução ({formatFileSize(uploadStatus.totalBytes)}). Em redes móveis, a velocidade de upload da operadora costuma levar de 1 a 3 minutos para enviar tudo sem perda de dados.
-                </p>
-              </div>
-            )}
-
-            {/* Cancel Button */}
-            <button
-              type="button"
-              onClick={handleCancelUpload}
-              className="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 hover:text-white text-xs font-semibold rounded-xl border border-slate-700 transition-all flex items-center justify-center gap-1.5"
-            >
-              <X size={14} className="text-red-400" />
-              Cancelar Envio
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Upload Progress Modal Overlay */}
+      <ReportUploadModal
+        isOpen={isSubmitting}
+        uploadStatus={uploadStatus}
+        onCancel={handleCancelUpload}
+      />
       
       {editingImage && (
         <ImageBlurEditor 
