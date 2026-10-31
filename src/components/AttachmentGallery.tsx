@@ -1,6 +1,6 @@
 import React, { useRef, useState, useCallback, MouseEvent, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Play, X, Download, ArrowLeft } from 'lucide-react';
+import { Play, X, Download, ArrowLeft, RotateCw } from 'lucide-react';
 
 export function AttachmentGallery({ attachments }: { attachments: any[] }) {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -11,6 +11,7 @@ export function AttachmentGallery({ attachments }: { attachments: any[] }) {
 
   // In-app media preview state
   const [selectedMedia, setSelectedMedia] = useState<{ url: string; type: string } | null>(null);
+  const [rotation, setRotation] = useState<number>(0);
   const [isClosing, setIsClosing] = useState(false);
   const isClosingRef = useRef(false);
 
@@ -30,6 +31,7 @@ export function AttachmentGallery({ attachments }: { attachments: any[] }) {
     } else {
       setTimeout(() => {
         setSelectedMedia(null);
+        setRotation(0);
         setIsClosing(false);
         isClosingRef.current = false;
       }, 250);
@@ -188,6 +190,16 @@ export function AttachmentGallery({ attachments }: { attachments: any[] }) {
             </button>
 
             <div className="flex items-center gap-2">
+              {!selectedMedia.type.startsWith('video/') && (
+                <button
+                  type="button"
+                  onClick={() => setRotation(r => (r + 90) % 360)}
+                  className="p-2.5 bg-slate-800/90 hover:bg-slate-700 active:scale-95 text-slate-200 rounded-full transition-all flex items-center justify-center shadow-xl border border-slate-700/80 touch-manipulation cursor-pointer"
+                  title="Girar foto em 90°"
+                >
+                  <RotateCw size={18} />
+                </button>
+              )}
               <a
                 href={selectedMedia.url}
                 download
@@ -216,7 +228,7 @@ export function AttachmentGallery({ attachments }: { attachments: any[] }) {
 
           {/* Media Container (clicks/taps here do not close the lightbox) */}
           <div 
-            className="relative max-w-4xl max-h-[85vh] w-full flex items-center justify-center p-2"
+            className="relative max-w-4xl max-h-[85vh] w-full flex items-center justify-center p-2 overflow-hidden"
             onClick={(e) => e.stopPropagation()}
             onTouchEnd={(e) => e.stopPropagation()}
           >
@@ -232,7 +244,8 @@ export function AttachmentGallery({ attachments }: { attachments: any[] }) {
               <img
                 src={selectedMedia.url}
                 alt="Visualização do anexo"
-                className="max-w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl border border-slate-800 pointer-events-auto"
+                className="max-w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl border border-slate-800 pointer-events-auto transition-transform duration-300"
+                style={{ transform: `rotate(${rotation}deg)` }}
               />
             )}
           </div>

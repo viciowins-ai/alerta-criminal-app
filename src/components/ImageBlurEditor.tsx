@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Check, Droplet, Undo, Info, CheckCircle2 } from 'lucide-react';
+import { X, Check, Droplet, Undo, Info, CheckCircle2, RotateCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 interface ImageBlurEditorProps {
@@ -13,6 +13,7 @@ export function ImageBlurEditor({ file, onSave, onCancel }: ImageBlurEditorProps
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const blurCanvasRef = useRef<HTMLCanvasElement>(null);
   const [image, setImage] = useState<HTMLImageElement | null>(null);
+  const [rotation, setRotation] = useState<number>(0);
   const [isDrawing, setIsDrawing] = useState(false);
   const [brushSize, setBrushSize] = useState(30);
   const [history, setHistory] = useState<ImageData[]>([]);
@@ -37,17 +38,25 @@ export function ImageBlurEditor({ file, onSave, onCancel }: ImageBlurEditorProps
     const blurCtx = blurCanvas.getContext('2d', { willReadFrequently: true });
     if (!ctx || !blurCtx) return;
 
+    const isRotated90or270 = rotation === 90 || rotation === 270;
+    const imgNaturalW = image.naturalWidth || image.width;
+    const imgNaturalH = image.naturalHeight || image.height;
+
+    // Oriented dimensions
+    const orientedW = isRotated90or270 ? imgNaturalH : imgNaturalW;
+    const orientedH = isRotated90or270 ? imgNaturalW : imgNaturalH;
+
     // Calculate dimensions to fit screen while maintaining aspect ratio
-    const maxWidth = containerRef.current.clientWidth;
-    const maxHeight = containerRef.current.clientHeight;
+    const maxWidth = containerRef.current.clientWidth || 400;
+    const maxHeight = containerRef.current.clientHeight || 500;
     
-    let targetWidth = image.width;
-    let targetHeight = image.height;
+    let targetWidth = orientedW;
+    let targetHeight = orientedH;
     
     if (targetWidth > maxWidth || targetHeight > maxHeight) {
       const ratio = Math.min(maxWidth / targetWidth, maxHeight / targetHeight);
-      targetWidth *= ratio;
-      targetHeight *= ratio;
+      targetWidth = Math.round(targetWidth * ratio);
+      targetHeight = Math.round(targetHeight * ratio);
     }
 
     canvas.width = targetWidth;
@@ -55,17 +64,32 @@ export function ImageBlurEditor({ file, onSave, onCancel }: ImageBlurEditorProps
     blurCanvas.width = targetWidth;
     blurCanvas.height = targetHeight;
 
-    // Draw base image
-    ctx.drawImage(image, 0, 0, targetWidth, targetHeight);
+    const drawW = isRotated90or270 ? targetHeight : targetWidth;
+    const drawH = isRotated90or270 ? targetWidth : targetHeight;
+
+    // Draw base image with rotation
+    ctx.save();
+    ctx.translate(targetWidth / 2, targetHeight / 2);
+    ctx.rotate((rotation * Math.PI) / 180);
+    ctx.drawImage(image, -drawW / 2, -drawH / 2, drawW, drawH);
+    ctx.restore();
     
-    // Create blurred version
+    // Create blurred version with rotation
+    blurCtx.save();
     blurCtx.filter = 'blur(15px)';
-    blurCtx.drawImage(image, 0, 0, targetWidth, targetHeight);
+    blurCtx.translate(targetWidth / 2, targetHeight / 2);
+    blurCtx.rotate((rotation * Math.PI) / 180);
+    blurCtx.drawImage(image, -drawW / 2, -drawH / 2, drawW, drawH);
     blurCtx.filter = 'none'; // reset
+    blurCtx.restore();
 
     // Save initial state to history
     setHistory([ctx.getImageData(0, 0, canvas.width, canvas.height)]);
-  }, [image]);
+  }, [image, rotation]);
+
+  const handleRotate = () => {
+    setRotation(prev => (prev + 90) % 360);
+  };
 
   const getCoordinates = (e: React.MouseEvent | React.TouchEvent) => {
     if (!canvasRef.current) return null;
@@ -137,34 +161,53 @@ export function ImageBlurEditor({ file, onSave, onCancel }: ImageBlurEditorProps
     if (!canvasRef.current) return;
     canvasRef.current.toBlob((blob) => {
       if (blob) {
-        const blurredFile = new File([blob], file.name, { type: file.type });
+        const blurredFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", { type: 'image/jpeg' });
         onSave(blurredFile);
       }
-    }, file.type, 0.9);
+    }, 'image/jpeg', 0.9);
+  };
+
+  const handleUseWithoutBlur = () => {
+    if (rotation === 0) {
+      onSave(file);
+    } else {
+      handleSave();
+    }
   };
 
   return (
     <div className="fixed inset-0 z-[100] bg-slate-950 flex flex-col items-center justify-between animate-in fade-in zoom-in-95 duration-200">
       {/* Top Bar */}
       <div className="w-full flex items-center justify-between p-3.5 bg-slate-900/80 border-b border-slate-800">
-        <button onClick={onCancel} className="p-2 text-slate-400 hover:text-white rounded-full hover:bg-slate-800 transition-colors" title="Cancelar">
+        <button onClick={onCancel} className="p-2 text-slate-400 hover:text-white rounded-full hover:bg-slate-800 transition-colors cursor-pointer" title="Cancelar">
           <X size={20} />
         </button>
         <span className="text-white text-sm font-semibold flex items-center gap-2">
           <Droplet size={17} className="text-blue-400" /> {t('blur.title', 'Censurar Rostos')}
         </span>
         <div className="flex items-center gap-2">
+          {/* Rotate Button */}
           <button
-            onClick={() => onSave(file)}
-            className="px-2.5 py-1 text-xs font-bold text-emerald-400 hover:text-emerald-300 bg-emerald-950/50 hover:bg-emerald-900/50 border border-emerald-500/30 rounded-lg flex items-center gap-1 transition-colors"
-            title="Usar imagem original sem aplicar desfoque"
+            type="button"
+            onClick={handleRotate}
+            className="px-2.5 py-1 text-xs font-bold text-blue-300 hover:text-white bg-blue-950/60 hover:bg-blue-900/60 border border-blue-500/40 rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
+            title="Girar foto em 90 graus"
+          >
+            <RotateCw size={13} />
+            <span>Girar 90°</span>
+          </button>
+
+          <button
+            onClick={handleUseWithoutBlur}
+            className="px-2.5 py-1 text-xs font-bold text-emerald-400 hover:text-emerald-300 bg-emerald-950/50 hover:bg-emerald-900/50 border border-emerald-500/30 rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
+            title="Usar imagem sem aplicar desfoque"
           >
             <CheckCircle2 size={13} />
-            Sem Desfoque
+            <span>Sem Desfoque</span>
           </button>
           <button
             onClick={handleSave}
-            className="p-2 text-blue-400 hover:text-blue-300 rounded-full hover:bg-blue-500/10 transition-colors"
+            className="p-2 text-blue-400 hover:text-blue-300 rounded-full hover:bg-blue-500/10 transition-colors cursor-pointer"
             title="Salvar com desfoque"
           >
             <Check size={20} />
@@ -173,7 +216,7 @@ export function ImageBlurEditor({ file, onSave, onCancel }: ImageBlurEditorProps
       </div>
 
       {/* Warning */}
-      <div className="w-full bg-blue-900/30 border-b border-blue-900/50 p-3 flex gap-3 items-center justify-center text-blue-200 text-xs sm:text-sm shadow-inner">
+      <div className="w-full bg-blue-900/30 border-b border-blue-900/50 p-2.5 flex gap-2.5 items-center justify-center text-blue-200 text-xs sm:text-sm shadow-inner text-center">
         <Info size={16} className="text-blue-400 shrink-0" />
         <p>{t('blur.hint', 'Passe o dedo nas pessoas e nas placas de viaturas para desfocá-las.')}</p>
       </div>
@@ -203,31 +246,41 @@ export function ImageBlurEditor({ file, onSave, onCancel }: ImageBlurEditorProps
       </div>
 
       {/* Bottom Controls */}
-      <div className="w-full p-4 sm:p-5 bg-slate-900 border-t border-slate-800 flex items-center justify-between gap-3">
+      <div className="w-full p-3.5 sm:p-4 bg-slate-900 border-t border-slate-800 flex items-center justify-between gap-2.5">
         <button 
           onClick={handleUndo} 
           disabled={history.length <= 1}
-          className="p-2.5 text-slate-400 hover:text-white disabled:opacity-50 disabled:hover:text-slate-400 hover:bg-slate-800 rounded-xl transition-all"
+          className="p-2 text-slate-400 hover:text-white disabled:opacity-40 disabled:hover:text-slate-400 hover:bg-slate-800 rounded-xl transition-all cursor-pointer"
           title="Desfazer"
         >
-          <Undo size={20} />
+          <Undo size={19} />
         </button>
         
-        <div className="flex-1 flex flex-col items-center gap-1.5 max-w-[200px]">
-          <span className="text-xs text-slate-400">{t('blur.brushSize', 'Tamanho do Desfoque')}</span>
+        <div className="flex-1 flex flex-col items-center gap-1 max-w-[180px]">
+          <span className="text-[11px] text-slate-400">{t('blur.brushSize', 'Tamanho do Pincel')}</span>
           <input 
             type="range" 
             min="10" 
             max="60" 
             value={brushSize} 
             onChange={(e) => setBrushSize(Number(e.target.value))}
-            className="w-full accent-blue-500"
+            className="w-full accent-blue-500 cursor-pointer"
           />
         </div>
 
         <button
-          onClick={() => onSave(file)}
-          className="px-3 py-2 text-xs font-bold text-emerald-400 hover:text-emerald-300 bg-emerald-950/50 hover:bg-emerald-900/50 border border-emerald-500/40 rounded-xl flex items-center gap-1.5 transition-colors shrink-0"
+          type="button"
+          onClick={handleRotate}
+          className="px-2.5 py-1.5 text-xs font-bold text-blue-300 hover:text-white bg-blue-950/60 hover:bg-blue-900/60 border border-blue-500/40 rounded-xl flex items-center gap-1 transition-colors cursor-pointer"
+          title="Girar foto"
+        >
+          <RotateCw size={13} />
+          <span>Girar</span>
+        </button>
+
+        <button
+          onClick={handleUseWithoutBlur}
+          className="px-3 py-2 text-xs font-bold text-emerald-400 hover:text-emerald-300 bg-emerald-950/50 hover:bg-emerald-900/50 border border-emerald-500/40 rounded-xl flex items-center gap-1.5 transition-colors shrink-0 cursor-pointer"
         >
           <CheckCircle2 size={14} />
           Sem Desfoque

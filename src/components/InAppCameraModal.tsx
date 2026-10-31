@@ -98,6 +98,10 @@ export function InAppCameraModal({
       try {
         let stream: MediaStream | null = null;
 
+        const isDevicePortrait = typeof window !== 'undefined' && window.innerHeight > window.innerWidth;
+        const idealWidth = isDevicePortrait ? 1080 : 1920;
+        const idealHeight = isDevicePortrait ? 1920 : 1080;
+
         // If in video mode, attempt to capture video + audio for complete incident documentation
         if (mode === 'video') {
           try {
@@ -105,8 +109,8 @@ export function InAppCameraModal({
               audio: true,
               video: {
                 facingMode: { ideal: facingMode },
-                width: { ideal: 1280 },
-                height: { ideal: 720 }
+                width: { ideal: isDevicePortrait ? 720 : 1280 },
+                height: { ideal: isDevicePortrait ? 1280 : 720 }
               }
             });
           } catch {
@@ -116,8 +120,8 @@ export function InAppCameraModal({
                 audio: false,
                 video: {
                   facingMode: { ideal: facingMode },
-                  width: { ideal: 1280 },
-                  height: { ideal: 720 }
+                  width: { ideal: isDevicePortrait ? 720 : 1280 },
+                  height: { ideal: isDevicePortrait ? 1280 : 720 }
                 }
               });
             } catch {
@@ -131,8 +135,8 @@ export function InAppCameraModal({
               audio: false,
               video: {
                 facingMode: { ideal: facingMode },
-                width: { ideal: 1920 },
-                height: { ideal: 1080 }
+                width: { ideal: idealWidth },
+                height: { ideal: idealHeight }
               }
             });
           } catch {
@@ -211,12 +215,21 @@ export function InAppCameraModal({
 
     try {
       const video = videoRef.current;
-      const width = video.videoWidth || 1280;
-      const height = video.videoHeight || 720;
+      const rawWidth = video.videoWidth || 1280;
+      const rawHeight = video.videoHeight || 720;
+
+      const isDevicePortrait = typeof window !== 'undefined' && window.innerHeight > window.innerWidth;
+      const isStreamLandscape = rawWidth > rawHeight;
+      const needsRotation = isDevicePortrait && isStreamLandscape;
 
       const canvas = document.createElement('canvas');
-      canvas.width = width;
-      canvas.height = height;
+      if (needsRotation) {
+        canvas.width = rawHeight;
+        canvas.height = rawWidth;
+      } else {
+        canvas.width = rawWidth;
+        canvas.height = rawHeight;
+      }
 
       const ctx = canvas.getContext('2d');
       if (!ctx) {
@@ -224,13 +237,22 @@ export function InAppCameraModal({
         return;
       }
 
-      // If front camera, mirror horizontal so photo looks natural
-      if (facingMode === 'user') {
-        ctx.translate(width, 0);
-        ctx.scale(-1, 1);
+      if (needsRotation) {
+        // Rotate 90deg CW to match portrait screen orientation
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.rotate((90 * Math.PI) / 180);
+        if (facingMode === 'user') {
+          ctx.scale(-1, 1);
+        }
+        ctx.drawImage(video, -rawWidth / 2, -rawHeight / 2, rawWidth, rawHeight);
+      } else {
+        // Standard orientation
+        if (facingMode === 'user') {
+          ctx.translate(canvas.width, 0);
+          ctx.scale(-1, 1);
+        }
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       }
-
-      ctx.drawImage(video, 0, 0, width, height);
 
       canvas.toBlob(
         (blob) => {
