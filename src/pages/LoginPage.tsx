@@ -18,13 +18,14 @@ export function LoginPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [inAppDetected, setInAppDetected] = useState(false);
   const [unauthorizedDomain, setUnauthorizedDomain] = useState<string | null>(null);
+  const [popupBlocked, setPopupBlocked] = useState(false);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     setInAppDetected(isInAppBrowser());
   }, []);
 
-  // Check for redirect result from Google login (if redirect was used as fallback)
+  // Check for redirect result from Google login (if redirect was used)
   useEffect(() => {
     let isMounted = true;
     const safetyTimeout = setTimeout(() => {
@@ -54,7 +55,14 @@ export function LoginPage() {
           errorMessage.includes('unauthorized-domain')
         ) {
           setUnauthorizedDomain(window.location.hostname || 'alertacriminal.com.br');
-        } else if (errorCode !== 'auth/popup-closed-by-user') {
+        } else if (
+          errorCode === 'auth/missing-initial-state' ||
+          errorMessage.includes('missing initial state') ||
+          errorMessage.includes('storage-partitioned')
+        ) {
+          // Handled gracefully: storage partition in browser
+          setError('O navegador restringiu cookies entre páginas. Toque no botão abaixo para tentar com pop-up.');
+        } else if (errorCode !== 'auth/popup-closed-by-user' && errorCode !== 'auth/cancelled-popup-request') {
           setError('Ocorreu uma instabilidade ao autenticar com o Google. Tente novamente.');
         }
       })
@@ -79,6 +87,23 @@ export function LoginPage() {
     }
   }, [user, navigate, location]);
 
+  const handleRedirectLogin = async () => {
+    setLoading(true);
+    setError(null);
+    setMessage('Redirecionando para login seguro com o Google...');
+    try {
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({
+        prompt: 'select_account'
+      });
+      await signInWithRedirect(auth, provider);
+    } catch (redirectErr: any) {
+      console.error('[Firebase Auth] Erro no signInWithRedirect:', redirectErr);
+      setLoading(false);
+      setError('Não foi possível iniciar o login por redirecionamento. Tente novamente no navegador padrão.');
+    }
+  };
+
   const handleGoogleLogin = async () => {
     // If inside Facebook / Instagram / In-App browser, Google OAuth popups fail due to storage partitioning
     if (isInAppBrowser()) {
@@ -95,6 +120,7 @@ export function LoginPage() {
     setError(null);
     setMessage(null);
     setUnauthorizedDomain(null);
+    setPopupBlocked(false);
     
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({
@@ -102,7 +128,7 @@ export function LoginPage() {
     });
 
     try {
-      // Primary: signInWithPopup is universally reliable on modern Android Chrome, iOS Safari, desktop and PWAs
+      // Primary: signInWithPopup is universally reliable and avoids cross-origin storage partitioning
       const result = await signInWithPopup(auth, provider);
       if (result && result.user) {
         const from = location.state?.from?.pathname || '/';
@@ -114,10 +140,10 @@ export function LoginPage() {
       const errorMessage = err?.message || '';
 
       console.warn('[Firebase Auth] Erro no signInWithPopup:', errorCode, errorMessage);
+      setLoading(false);
 
       if (errorCode === 'auth/popup-closed-by-user' || errorCode === 'auth/cancelled-popup-request') {
         // User closed or dismissed the popup without selecting an account
-        setLoading(false);
         return;
       }
 
@@ -127,31 +153,21 @@ export function LoginPage() {
         errorMessage.includes('unauthorized domain') ||
         errorMessage.includes('unauthorized-domain')
       ) {
-        setLoading(false);
         console.warn('[Firebase Auth] Domínio não autorizado no Console do Firebase:', window.location.hostname);
         setUnauthorizedDomain(window.location.hostname || 'alertacriminal.com.br');
         return;
       }
 
-      // If popup was explicitly blocked by browser settings or unsupported environment, fallback to redirect
+      // If popup was explicitly blocked by browser settings or unsupported environment
       if (
         errorCode === 'auth/popup-blocked' ||
         errorCode === 'auth/operation-not-supported-in-this-environment' ||
-        errorMessage.includes('storage-partitioned')
+        errorMessage.includes('popup')
       ) {
-        try {
-          setMessage('Abrindo tela de login do Google...');
-          await signInWithRedirect(auth, provider);
-          return;
-        } catch (redirectErr: any) {
-          console.error('[Firebase Auth] Erro no redirect fallback:', redirectErr);
-          setLoading(false);
-          setError('O navegador bloqueou a janela de autenticação. Tente novamente no navegador padrão.');
-          return;
-        }
+        setPopupBlocked(true);
+        return;
       }
 
-      setLoading(false);
       if (errorCode === 'auth/network-request-failed') {
         setError('Falha de conexão com a internet. Verifique sua rede e tente novamente.');
       } else {
@@ -272,6 +288,39 @@ export function LoginPage() {
               <ExternalLink size={15} />
               <span>Abrir Firebase Console &gt; Domínios Autorizados</span>
             </a>
+          </div>
+        )}
+
+        {popupBlocked && (
+          <div className="w-full mb-4 p-4 bg-amber-500/15 backdrop-blur-md border border-amber-500/40 rounded-2xl text-amber-200 text-xs space-y-3 shadow-xl animate-in fade-in duration-300">
+            <div className="flex items-center gap-2 font-bold text-amber-300 text-sm">
+              <AlertCircle size={18} className="text-amber-400 shrink-0" />
+              <span>Janela de Login Bloqueada</span>
+            </div>
+            <p className="leading-relaxed text-[11.5px] text-amber-100">
+              O navegador bloqueou a abertura da janela do Google. Toque em <strong>Tentar Abrir Novamente</strong> ou use o <strong>Redirecionamento</strong>:
+            </p>
+            <div className="space-y-2 pt-1">
+              <button
+                type="button"
+                onClick={() => handleGoogleLogin()}
+                className="w-full py-2.5 bg-amber-400 hover:bg-amber-300 active:scale-98 text-slate-950 font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-md"
+              >
+                <ExternalLink size={15} />
+                <span>Tentar Abrir Novamente</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleRedirectLogin()}
+                className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 active:scale-98 text-slate-200 font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all border border-slate-700"
+              >
+                <Compass size={15} />
+                <span>Entrar por Redirecionamento</span>
+              </button>
+            </div>
+            <p className="text-[10px] text-amber-300/80 text-center">
+              Dica: Toque nos 3 pontinhos do Chrome e marque <strong>"Sempre permitir pop-ups"</strong> para agilizar acessos futuros.
+            </p>
           </div>
         )}
 

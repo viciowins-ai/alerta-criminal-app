@@ -82,6 +82,42 @@ async function startServer() {
   const hostFromArg = hostArgIndex !== -1 ? process.argv[hostArgIndex + 1] : undefined;
   const HOST = process.env.HOST || hostFromArg || "0.0.0.0";
 
+  // --------------------------------------------------------------------------
+  // 🔥 FIREBASE AUTH PROXY (Reverse proxy for custom domain auth handler)
+  // Keeps sessionStorage in the same origin on alertacriminal.com.br
+  // --------------------------------------------------------------------------
+  app.use('/__/auth', async (req, res) => {
+    try {
+      const targetUrl = `https://alerta-criminal-c1612.firebaseapp.com/__/auth${req.url}`;
+      const headers: Record<string, string> = {};
+      for (const [key, val] of Object.entries(req.headers)) {
+        if (key.toLowerCase() !== 'host' && typeof val === 'string') {
+          headers[key] = val;
+        }
+      }
+      headers['host'] = 'alerta-criminal-c1612.firebaseapp.com';
+
+      const response = await fetch(targetUrl, {
+        method: req.method,
+        headers,
+        body: ['GET', 'HEAD'].includes(req.method) ? undefined : (req as any),
+        // @ts-ignore
+        duplex: 'half',
+        redirect: 'manual',
+      });
+
+      response.headers.forEach((value, key) => {
+        res.setHeader(key, value);
+      });
+      res.status(response.status);
+      const buffer = Buffer.from(await response.arrayBuffer());
+      res.send(buffer);
+    } catch (err) {
+      console.error('Error proxying Firebase auth handler:', err);
+      res.status(500).send('Auth proxy error');
+    }
+  });
+
   app.use(express.json());
 
   // Permitir que o site seja embutido via iframe no AI Studio e domínios oficiais
