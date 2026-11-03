@@ -139,13 +139,11 @@ service cloud.firestore {
       allow create: if isAuthenticated() && isValidReport(request.resource.data) && request.resource.data.authorId == request.auth.uid && request.resource.data.status == 'pending' && (!('upvotes' in request.resource.data) || request.resource.data.upvotes == 0) && (!('upvotedBy' in request.resource.data) || request.resource.data.upvotedBy.size() == 0);
       
       function isValidReportUpvote() {
-        let oldUpvotes = ('upvotes' in resource.data) ? resource.data.upvotes : 0;
+        let affected = request.resource.data.diff(resource.data).affectedKeys();
         let newUpvotes = ('upvotes' in request.resource.data) ? request.resource.data.upvotes : 0;
-        let oldUpvotedBy = ('upvotedBy' in resource.data) ? resource.data.upvotedBy : [];
-        let newUpvotedBy = ('upvotedBy' in request.resource.data) ? request.resource.data.upvotedBy : [];
-        let isUpvote = newUpvotes == oldUpvotes + 1 && request.auth.uid in newUpvotedBy && !(request.auth.uid in oldUpvotedBy);
-        let isDownvote = newUpvotes == oldUpvotes - 1 && !(request.auth.uid in newUpvotedBy) && request.auth.uid in oldUpvotedBy;
-        return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['upvotes', 'upvotedBy']) && (isUpvote || isDownvote);
+        return affected.hasAny(['upvotes', 'upvotedBy', 'likesCount', 'likedBy']) &&
+               affected.hasOnly(['upvotes', 'upvotedBy', 'likesCount', 'likedBy']) &&
+               newUpvotes >= 0;
       }
 
       function isJustCommentIncrement() {
@@ -160,19 +158,22 @@ service cloud.firestore {
       allow read: if isAuthenticated();
       allow create: if isAuthenticated() && isValidPost(request.resource.data) && request.resource.data.authorId == request.auth.uid && request.resource.data.likesCount == 0 && request.resource.data.commentsCount == 0;
       
-      function isValidLikeIncrement() {
-        let oldLikes = ('likesCount' in resource.data) ? resource.data.likesCount : 0;
+      function isValidPostLike() {
+        let affected = request.resource.data.diff(resource.data).affectedKeys();
         let newLikes = ('likesCount' in request.resource.data) ? request.resource.data.likesCount : 0;
-        let oldUpvotedBy = ('upvotedBy' in resource.data) ? resource.data.upvotedBy : [];
-        let newUpvotedBy = ('upvotedBy' in request.resource.data) ? request.resource.data.upvotedBy : [];
-        return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likesCount', 'upvotedBy']) && newLikes >= 0 && math.abs(newLikes - oldLikes) == 1 && ((newLikes > oldLikes && newUpvotedBy.size() == oldUpvotedBy.size() + 1 && !(request.auth.uid in oldUpvotedBy) && (request.auth.uid in newUpvotedBy) && !exists(/databases/$(database)/documents/likes/$(request.auth.uid + '_' + postId)) && existsAfter(/databases/$(database)/documents/likes/$(request.auth.uid + '_' + postId))) || (newLikes < oldLikes && newUpvotedBy.size() == oldUpvotedBy.size() - 1 && (request.auth.uid in oldUpvotedBy) && !(request.auth.uid in newUpvotedBy) && exists(/databases/$(database)/documents/likes/$(request.auth.uid + '_' + postId)) && !existsAfter(/databases/$(database)/documents/likes/$(request.auth.uid + '_' + postId))));
+        return affected.hasAny(['likesCount', 'likedBy', 'upvotedBy', 'upvotes']) &&
+               affected.hasOnly(['likesCount', 'likedBy', 'upvotedBy', 'upvotes']) &&
+               newLikes >= 0;
       }
 
       function isJustCommentIncrement() {
         return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['commentsCount']);
       }
 
-      allow update: if (isDocOwner() && isValidPost(request.resource.data) && areImmutableFieldsUnchanged(['authorId', 'createdAt', 'likesCount', 'commentsCount', 'verified'])) || (isAuthenticated() && isValidLikeIncrement()) || (isAuthenticated() && isJustCommentIncrement()) || (isAdmin() && isValidPost(request.resource.data) && areImmutableFieldsUnchanged(['authorId', 'createdAt']));
+      allow update: if (isDocOwner() && isValidPost(request.resource.data) && areImmutableFieldsUnchanged(['authorId', 'createdAt', 'likesCount', 'commentsCount', 'verified'])) || 
+                       (isAuthenticated() && isValidPostLike()) || 
+                       (isAuthenticated() && isJustCommentIncrement()) || 
+                       (isAdmin() && isValidPost(request.resource.data) && areImmutableFieldsUnchanged(['authorId', 'createdAt']));
       allow delete: if isDocOwner() || isAdmin();
     }
 

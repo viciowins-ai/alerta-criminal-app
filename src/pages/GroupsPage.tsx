@@ -10,7 +10,7 @@ import { getLevelInfo } from '../utils/levelUtils';
 import { safeGetCurrentPosition } from '../utils/geoUtils';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
-import { collection, addDoc, query, where, getDocs, doc, getDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove, serverTimestamp, increment, onSnapshot } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs, doc, getDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove, serverTimestamp, increment, onSnapshot, writeBatch } from 'firebase/firestore';
 
 export function GroupsPage() {
   const navigate = useNavigate();
@@ -140,12 +140,34 @@ export function GroupsPage() {
     const colName = item.feedType === 'report' ? 'reports' : 'posts';
     const isLiked = (item.likedBy || item.upvotedBy || []).includes(user.uid);
     try {
-      await updateDoc(doc(db, colName, item.id), {
-        likesCount: increment(isLiked ? -1 : 1),
-        upvotes: increment(isLiked ? -1 : 1),
-        likedBy: isLiked ? arrayRemove(user.uid) : arrayUnion(user.uid),
-        upvotedBy: isLiked ? arrayRemove(user.uid) : arrayUnion(user.uid)
-      });
+      const batch = writeBatch(db);
+      const docRef = doc(db, colName, item.id);
+      const likeId = `${user.uid}_${item.id}`;
+      const likeRef = doc(db, 'likes', likeId);
+
+      if (isLiked) {
+        batch.delete(likeRef);
+        batch.update(docRef, {
+          likesCount: increment(-1),
+          upvotes: increment(-1),
+          likedBy: arrayRemove(user.uid),
+          upvotedBy: arrayRemove(user.uid)
+        });
+      } else {
+        batch.set(likeRef, {
+          postId: item.id,
+          userId: user.uid,
+          createdAt: serverTimestamp()
+        });
+        batch.update(docRef, {
+          likesCount: increment(1),
+          upvotes: increment(1),
+          likedBy: arrayUnion(user.uid),
+          upvotedBy: arrayUnion(user.uid)
+        });
+      }
+
+      await batch.commit();
     } catch (err) {
       console.error("Erro ao curtir:", err);
     }

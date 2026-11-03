@@ -5,7 +5,7 @@ import { AudioPlayer } from '../components/AudioPlayer';
 import { MessageSquare, Heart, Share2, MoreHorizontal, AlertTriangle, ShieldCheck, MapPin, Users, Lock, Plus, ArrowRight, Shield } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
-import { collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, doc, getDoc, deleteDoc, updateDoc, increment, where, limit, writeBatch } from 'firebase/firestore';
+import { collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, doc, getDoc, deleteDoc, updateDoc, increment, where, limit, writeBatch, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { handleFirestoreError, OperationType } from '../utils/firestoreErrorHandler';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { CommentsModal } from '../components/CommentsModal';
@@ -204,20 +204,54 @@ export function FeedPage() {
     };
   }, [user, userGroups, selectedGroupId]);
 
-  const handleLike = async (postId: string) => {
+  const handleLike = async (item: any) => {
     if (!user) return;
+    
+    const postId = typeof item === 'string' ? item : item.id;
+    const isLiked = likedPosts.has(postId) || (item.likedBy || item.upvotedBy || []).includes(user.uid);
     
     const likeId = `${user.uid}_${postId}`;
     const likeRef = doc(db, 'likes', likeId);
     const postRef = doc(db, 'posts', postId);
 
+    // Optimistic UI updates
+    setLikedPosts(prev => {
+      const next = new Set(prev);
+      if (isLiked) {
+        next.delete(postId);
+      } else {
+        next.add(postId);
+      }
+      return next;
+    });
+
+    const updatePostList = (prevList: any[]) =>
+      prevList.map(p => {
+        if (p.id !== postId) return p;
+        const currentCount = p.likesCount || p.upvotes || 0;
+        const currentLikedBy = p.likedBy || p.upvotedBy || [];
+        return {
+          ...p,
+          likesCount: Math.max(0, currentCount + (isLiked ? -1 : 1)),
+          upvotes: Math.max(0, currentCount + (isLiked ? -1 : 1)),
+          likedBy: isLiked ? currentLikedBy.filter((id: string) => id !== user.uid) : [...currentLikedBy, user.uid],
+          upvotedBy: isLiked ? currentLikedBy.filter((id: string) => id !== user.uid) : [...currentLikedBy, user.uid],
+        };
+      });
+
+    setPosts(updatePostList);
+    setPrivatePosts(updatePostList);
+
     try {
       const batch = writeBatch(db);
       
-      if (likedPosts.has(postId)) {
+      if (isLiked) {
         batch.delete(likeRef);
         batch.update(postRef, {
-          likesCount: increment(-1)
+          likesCount: increment(-1),
+          upvotes: increment(-1),
+          likedBy: arrayRemove(user.uid),
+          upvotedBy: arrayRemove(user.uid)
         });
       } else {
         batch.set(likeRef, {
@@ -226,13 +260,27 @@ export function FeedPage() {
           createdAt: serverTimestamp()
         });
         batch.update(postRef, {
-          likesCount: increment(1)
+          likesCount: increment(1),
+          upvotes: increment(1),
+          likedBy: arrayUnion(user.uid),
+          upvotedBy: arrayUnion(user.uid)
         });
       }
       
       await batch.commit();
     } catch (error) {
-      handleFirestoreError(error, OperationType.WRITE, `likes/${likeId}`);
+      console.error("Erro ao curtir publicação:", error);
+      // Revert optimistic state on failure
+      setLikedPosts(prev => {
+        const next = new Set(prev);
+        if (isLiked) {
+          next.add(postId);
+        } else {
+          next.delete(postId);
+        }
+        return next;
+      });
+      handleFirestoreError(error, OperationType.WRITE, `posts/${postId}`);
     }
   };
 
@@ -825,7 +873,8 @@ export function FeedPage() {
             );
           }
 
-          const isLiked = likedPosts.has(item.id);
+          const isLiked = likedPosts.has(item.id) || (item.likedBy || item.upvotedBy || []).includes(user?.uid || '');
+          const currentLikesCount = item.likesCount ?? item.upvotes ?? (item.likedBy ? item.likedBy.length : 0) ?? 0;
           return (
             <div 
               key={`post-${item.id}`} 
@@ -925,7 +974,7 @@ export function FeedPage() {
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleLike(item.id);
+                    handleLike(item);
                   }}
                   className={`flex items-center justify-center gap-2 py-2 px-2 rounded-xl transition-all font-medium min-h-[44px] active:scale-95 touch-manipulation cursor-pointer border ${
                     isLiked 
@@ -935,7 +984,7 @@ export function FeedPage() {
                   title="Curtir publicação"
                 >
                   <Heart size={18} className={`shrink-0 ${isLiked ? 'fill-current text-red-500' : 'text-red-400'}`} />
-                  <span className="text-xs font-bold">{item.likesCount || 0}</span>
+                  <span className="text-xs font-bold">{currentLikesCount}</span>
                 </button>
 
                 {/* 2. Comentar */}
