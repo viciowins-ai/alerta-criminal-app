@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Shield, AlertCircle, ExternalLink, Compass, Globe, Copy, Check, Loader2 } from 'lucide-react';
 import { auth } from '../firebase';
-import { signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider } from 'firebase/auth';
+import { signInWithPopup, getRedirectResult, GoogleAuthProvider } from 'firebase/auth';
 import { useAuth } from '../contexts/AuthContext';
 import { Logo } from '../components/Logo';
 import { isInAppBrowser, openInExternalBrowser } from '../utils/inAppBrowser';
@@ -87,22 +87,6 @@ export function LoginPage() {
     }
   }, [user, navigate, location]);
 
-  const handleRedirectLogin = async () => {
-    setLoading(true);
-    setError(null);
-    setMessage('Redirecionando para login seguro com o Google...');
-    try {
-      const provider = new GoogleAuthProvider();
-      provider.setCustomParameters({
-        prompt: 'select_account'
-      });
-      await signInWithRedirect(auth, provider);
-    } catch (redirectErr: any) {
-      console.error('[Firebase Auth] Erro no signInWithRedirect:', redirectErr);
-      setLoading(false);
-      setError('Não foi possível iniciar o login por redirecionamento. Tente novamente no navegador padrão.');
-    }
-  };
 
   const handleGoogleLogin = async () => {
     // If inside Facebook / Instagram / In-App browser, Google OAuth popups fail due to storage partitioning
@@ -298,28 +282,20 @@ export function LoginPage() {
               <span>Janela de Login Bloqueada</span>
             </div>
             <p className="leading-relaxed text-[11.5px] text-amber-100">
-              O navegador bloqueou a abertura da janela do Google. Toque em <strong>Tentar Abrir Novamente</strong> ou use o <strong>Redirecionamento</strong>:
+              O navegador bloqueou a abertura da janela do Google. Toque no botão abaixo para abrir a tela de login do Google:
             </p>
-            <div className="space-y-2 pt-1">
+            <div className="pt-1">
               <button
                 type="button"
                 onClick={() => handleGoogleLogin()}
                 className="w-full py-2.5 bg-amber-400 hover:bg-amber-300 active:scale-98 text-slate-950 font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-md"
               >
                 <ExternalLink size={15} />
-                <span>Tentar Abrir Novamente</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleRedirectLogin()}
-                className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 active:scale-98 text-slate-200 font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all border border-slate-700"
-              >
-                <Compass size={15} />
-                <span>Entrar por Redirecionamento</span>
+                <span>Abrir Janela do Google</span>
               </button>
             </div>
             <p className="text-[10px] text-amber-300/80 text-center">
-              Dica: Toque nos 3 pontinhos do Chrome e marque <strong>"Sempre permitir pop-ups"</strong> para agilizar acessos futuros.
+              Dica: Se o Chrome exibir um aviso de "Pop-up bloqueado", toque nele e escolha <strong>"Sempre permitir"</strong>.
             </p>
           </div>
         )}

@@ -7,25 +7,8 @@ import { getAnalytics, isSupported as isAnalyticsSupported, logEvent } from 'fir
 import { getPerformance } from 'firebase/performance';
 import firebaseConfig from '../firebase-applet-config.json';
 
-// Helper to determine optimal authDomain to avoid Storage Partitioning (CHIPS) in Chrome & Safari
-// On custom domain (alertacriminal.com.br), using the custom domain keeps OAuth handler on the same origin
-const getCustomAuthDomain = () => {
-  if (typeof window !== 'undefined' && window.location?.hostname) {
-    const host = window.location.hostname.toLowerCase();
-    if (host.includes('alertacriminal.com.br')) {
-      return host;
-    }
-  }
-  return firebaseConfig.authDomain;
-};
-
-const appConfig = {
-  ...firebaseConfig,
-  authDomain: getCustomAuthDomain(),
-};
-
 // Initialize Firebase
-const app = !getApps().length ? initializeApp(appConfig) : getApp();
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
 // Initialize Firebase services
 export const auth = getAuth(app);
