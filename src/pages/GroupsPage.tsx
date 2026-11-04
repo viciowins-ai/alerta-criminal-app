@@ -268,57 +268,46 @@ export function GroupsPage() {
     setIsSubmittingVoice(true);
     try {
       const timeFormatted = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-      const reportPayload: any = {
+      const levelInfo = getLevelInfo(userProfile?.points || 0);
+      const groupName = group?.name || 'Rede Privada';
+      const authorName = userProfile?.name || user.displayName || 'Morador da Rede';
+      const authorAvatar = userProfile?.avatar || user.photoURL || `https://i.pravatar.cc/150?u=${user.uid}`;
+
+      const postPayload: any = {
         authorId: user.uid,
-        authorName: user.displayName || 'Membro da Rede',
-        authorAvatar: user.photoURL || '',
-        authorLevel: 'Membro Ativo',
-        isAnonymous: false,
+        authorName: authorName,
+        authorAvatar: authorAvatar,
+        authorLevel: levelInfo?.name || 'Membro Ativo',
         verified: false,
-        type: 'suspeito',
-        description: `🎙️ Mensagem de voz gravada para o grupo (${audio.duration}s)`,
+        type: 'Aviso da Rede',
+        content: `🎙️ Mensagem de voz gravada (${audio.duration}s)`,
         audioUrl: audio.url,
         audioDuration: audio.duration,
-        location: {
-          lat: -25.4284,
-          lng: -49.2733,
-          address: `Rede Privada: ${group.name}`
-        },
-        status: 'pending',
-        upvotes: 0,
-        upvotedBy: [],
-        createdAt: serverTimestamp(),
+        location: groupName,
         visibility: 'group',
         groupId: group.id,
-        groupName: group.name
+        groupName: groupName,
+        likesCount: 0,
+        commentsCount: 0,
+        createdAt: serverTimestamp()
       };
 
-      await new Promise<void>((resolve) => {
-        safeGetCurrentPosition(
-          (pos) => {
-            reportPayload.location.lat = pos.coords.latitude;
-            reportPayload.location.lng = pos.coords.longitude;
-            resolve();
-          },
-          () => resolve(),
-          { enableHighAccuracy: true, timeout: 6000, maximumAge: 5000 }
-        );
-      });
-
-      const docRef = await addDoc(collection(db, 'reports'), reportPayload);
+      const docRef = await addDoc(collection(db, 'posts'), postPayload);
       
       setGroupReports(prev => ({
         ...prev,
         [group.id]: [
           {
             id: docRef.id,
-            ...reportPayload,
+            feedType: 'post',
+            ...postPayload,
             createdAt: { toMillis: () => Date.now() }
           },
           ...(prev[group.id] || [])
         ]
       }));
 
+      // Broadcast push notification to group members
       try {
         const idToken = await user.getIdToken();
         const shortProtocol = docRef.id.slice(0, 5).toUpperCase();
@@ -329,25 +318,9 @@ export function GroupsPage() {
             'Authorization': `Bearer ${idToken}`
           },
           body: JSON.stringify({
-            title: `🔒 [${group.name}] Alerta de Voz às ${timeFormatted} (#${shortProtocol})`,
-            body: `🎙️ Nova mensagem de voz gravada no grupo por ${user.displayName || 'um membro'}`,
-            url: `/?reportId=${docRef.id}`,
-            htmlContent: `
-              <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
-                <div style="background-color: #0f172a; padding: 20px; text-align: center;">
-                  <img src="https://alertacriminal.com.br/escudo-logo.png" alt="Alerta Criminal" width="80" style="display: block; margin: 0 auto;" />
-                </div>
-                <div style="padding: 24px; background-color: #ffffff;">
-                  <h2 style="color: #4f46e5; margin-top: 0; font-size: 24px;">🎙️ Mensagem de Voz na Rede Privada</h2>
-                  <p style="font-size: 16px;">O morador <strong>${user.displayName || 'Membro da Rede'}</strong> enviou um áudio (${audio.duration}s) no grupo privado <strong>${group.name}</strong>.</p>
-                  <div style="text-align: center; margin-top: 24px;">
-                    <a href="https://alertacriminal.com.br/?reportId=${docRef.id}" style="display: inline-block; background-color: #4f46e5; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 15px;">
-                      Ouvir Mensagem de Voz no Aplicativo
-                    </a>
-                  </div>
-                </div>
-              </div>
-            `,
+            title: `🔒 [${groupName}] Mensagem de Voz às ${timeFormatted} (#${shortProtocol})`,
+            body: `🎙️ ${authorName} enviou um áudio (${audio.duration}s) no grupo`,
+            url: `/groups`,
             visibility: 'group',
             groupId: group.id,
             reportId: docRef.id
@@ -358,9 +331,9 @@ export function GroupsPage() {
       }
 
       setRecordingGroupId(null);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Erro ao enviar mensagem de voz no grupo:", err);
-      alert("Não foi possível enviar o áudio.");
+      alert(`Não foi possível enviar o áudio: ${err?.message || 'Tente novamente.'}`);
     } finally {
       setIsSubmittingVoice(false);
     }
@@ -797,58 +770,93 @@ export function GroupsPage() {
 
                           {/* Chat Typing Input Box */}
                           <div className="bg-slate-900 border border-indigo-500/40 rounded-xl p-2.5 shadow-inner">
-                            <div className="flex items-center gap-2">
-                              <img 
-                                src={userProfile?.avatar || user?.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.displayName || 'U')}&background=random`} 
-                                alt="Você" 
-                                className="w-8 h-8 rounded-full object-cover border border-indigo-500/40 shrink-0" 
-                                referrerPolicy="no-referrer"
-                              />
-                              <input 
-                                type="text"
-                                value={groupMessageText[group.id] || ''}
-                                onChange={(e) => setGroupMessageText(prev => ({ ...prev, [group.id]: e.target.value }))}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter' && !e.shiftKey) {
-                                    e.preventDefault();
-                                    handleSendTextMessage(group);
-                                  }
-                                }}
-                                placeholder="Conversar no grupo: digite uma mensagem..."
-                                className="flex-1 bg-slate-800 border border-slate-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-white rounded-lg px-3 py-2 text-xs placeholder-slate-400 outline-none min-w-0"
-                              />
-                              <button
-                                type="button"
-                                disabled={!(groupMessageText[group.id] || '').trim() || isSendingMessage[group.id]}
-                                onClick={() => handleSendTextMessage(group)}
-                                className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:hover:bg-indigo-600 text-white p-2 rounded-lg transition-colors flex items-center justify-center cursor-pointer shrink-0 shadow"
-                                title="Enviar mensagem digitada (Enter)"
-                              >
-                                {isSendingMessage[group.id] ? (
-                                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                ) : (
-                                  <Send size={15} />
+                            {recordingGroupId === group.id ? (
+                              <div className="space-y-2 p-1 animate-in fade-in duration-200">
+                                <div className="flex items-center justify-between pb-1">
+                                  <span className="text-xs font-bold text-indigo-300 flex items-center gap-1.5">
+                                    <Mic size={14} className="text-indigo-400" />
+                                    Gravar Mensagem de Voz para {group.name}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => setRecordingGroupId(null)}
+                                    className="text-[11px] text-slate-400 hover:text-white px-2 py-0.5 rounded bg-slate-800 border border-slate-700 transition-colors cursor-pointer"
+                                  >
+                                    Cancelar
+                                  </button>
+                                </div>
+                                <VoiceRecorder
+                                  maxDuration={60}
+                                  label="Toque para falar aos vizinhos (até 60s)"
+                                  onAudioRecorded={(audio) => {
+                                    if (audio) {
+                                      handleSendVoiceReport(group, audio);
+                                    }
+                                  }}
+                                />
+                                {isSubmittingVoice && (
+                                  <div className="flex items-center justify-center gap-2 py-1.5 text-xs text-indigo-300">
+                                    <div className="w-3.5 h-3.5 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin"></div>
+                                    <span>Enviando mensagem de voz para a rede...</span>
+                                  </div>
                                 )}
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setRecordingGroupId(prev => prev === group.id ? null : group.id)}
-                                className={`p-2 rounded-lg border transition-colors flex items-center justify-center cursor-pointer shrink-0 ${
-                                  recordingGroupId === group.id 
-                                    ? 'bg-red-500/20 text-red-400 border-red-500/40' 
-                                    : 'bg-slate-800 text-slate-300 hover:text-white border-slate-700 hover:bg-slate-700'
-                                }`}
-                                title="Gravar áudio de voz"
-                              >
-                                <Mic size={15} />
-                              </button>
-                            </div>
-                            <div className="flex items-center justify-between mt-1.5 px-1 text-[10px] text-slate-400">
-                              <span>Pressione <strong className="text-slate-300">Enter</strong> para enviar mensagem</span>
-                              <span className="flex items-center gap-1 text-indigo-300">
-                                <Lock size={10} /> Criptografado na rede
-                              </span>
-                            </div>
+                              </div>
+                            ) : (
+                              <>
+                                <div className="flex items-center gap-2">
+                                  <img 
+                                    src={userProfile?.avatar || user?.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.displayName || 'U')}&background=random`} 
+                                    alt="Você" 
+                                    className="w-8 h-8 rounded-full object-cover border border-indigo-500/40 shrink-0" 
+                                    referrerPolicy="no-referrer"
+                                  />
+                                  <input 
+                                    type="text"
+                                    value={groupMessageText[group.id] || ''}
+                                    onChange={(e) => setGroupMessageText(prev => ({ ...prev, [group.id]: e.target.value }))}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter' && !e.shiftKey) {
+                                        e.preventDefault();
+                                        handleSendTextMessage(group);
+                                      }
+                                    }}
+                                    placeholder="Conversar no grupo: digite uma mensagem..."
+                                    className="flex-1 bg-slate-800 border border-slate-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-white rounded-lg px-3 py-2 text-xs placeholder-slate-400 outline-none min-w-0"
+                                  />
+                                  <button
+                                    type="button"
+                                    disabled={!(groupMessageText[group.id] || '').trim() || isSendingMessage[group.id]}
+                                    onClick={() => handleSendTextMessage(group)}
+                                    className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:hover:bg-indigo-600 text-white p-2 rounded-lg transition-colors flex items-center justify-center cursor-pointer shrink-0 shadow"
+                                    title="Enviar mensagem digitada (Enter)"
+                                  >
+                                    {isSendingMessage[group.id] ? (
+                                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                    ) : (
+                                      <Send size={15} />
+                                    )}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setRecordingGroupId(prev => prev === group.id ? null : group.id)}
+                                    className={`p-2 rounded-lg border transition-colors flex items-center justify-center cursor-pointer shrink-0 ${
+                                      recordingGroupId === group.id 
+                                        ? 'bg-red-500/20 text-red-400 border-red-500/40' 
+                                        : 'bg-slate-800 text-slate-300 hover:text-white border-slate-700 hover:bg-slate-700'
+                                    }`}
+                                    title="Gravar áudio de voz"
+                                  >
+                                    <Mic size={15} />
+                                  </button>
+                                </div>
+                                <div className="flex items-center justify-between mt-1.5 px-1 text-[10px] text-slate-400">
+                                  <span>Pressione <strong className="text-slate-300">Enter</strong> para enviar mensagem</span>
+                                  <span className="flex items-center gap-1 text-indigo-300">
+                                    <Lock size={10} /> Criptografado na rede
+                                  </span>
+                                </div>
+                              </>
+                            )}
                           </div>
 
                           {/* Quick Filter Tabs: Todos / Mensagens / Ocorrências */}
@@ -1089,40 +1097,6 @@ export function GroupsPage() {
                         </div>
                       )}
                     </div>
-                    
-                    {/* Inline Quick Voice Message Recorder */}
-                    {recordingGroupId === group.id && (
-                      <div className="mt-3 p-3 bg-indigo-950/40 border border-indigo-500/40 rounded-xl space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-indigo-300 flex items-center gap-1.5">
-                            <Mic size={14} className="text-indigo-400" />
-                            Gravar Áudio Rápido para o Grupo
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => setRecordingGroupId(null)}
-                            className="text-xs text-slate-400 hover:text-white"
-                          >
-                            Fechar
-                          </button>
-                        </div>
-                        <VoiceRecorder
-                          maxDuration={60}
-                          label="Pressione para falar aos vizinhos (até 60s)"
-                          onAudioRecorded={(audio) => {
-                            if (audio) {
-                              handleSendVoiceReport(group, audio);
-                            }
-                          }}
-                        />
-                        {isSubmittingVoice && (
-                          <div className="flex items-center justify-center gap-2 py-2 text-xs text-indigo-300">
-                            <div className="w-3.5 h-3.5 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin"></div>
-                            <span>Publicando e notificando membros do grupo...</span>
-                          </div>
-                        )}
-                      </div>
-                    )}
 
                     {/* Bottom Actions */}
                     <div className="flex flex-wrap items-center justify-between gap-2 mt-2 pt-2 border-t border-slate-700/40">
